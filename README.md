@@ -24,6 +24,9 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 | [drizzle-gateway](./stacks/drizzle-gateway) | 20003 | Drizzle Gateway (DB studio) |
 | [cloudreve](./stacks/cloudreve) | 20004 | Cloudreve cloud storage (+ Postgres + Redis) |
 | [koito](./stacks/koito) | 20005 / 20006 | Koito scrobble server + multi-scrobbler |
+| [new-api](./stacks/new-api) | 20007 | LLM API gateway (app + Postgres + Redis) |
+| [opengist](./stacks/opengist) | 20008 | Git-powered pastebin |
+| [mastodon](./stacks/mastodon) | 20009 / 20010 | Fediverse server (web + streaming + sidekiq + Postgres/Redis/ES) |
 
 ## Docs
 

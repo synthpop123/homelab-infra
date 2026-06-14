@@ -1,0 +1,67 @@
+services:
+  new-api:
+    container_name: new-api
+    image: calciumion/new-api:v1.0.0-rc.11
+    command: --log-dir /app/logs
+    depends_on:
+      new-api-postgres:
+        condition: service_healthy
+      new-api-redis:
+        condition: service_healthy
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20007:3000/tcp"
+    environment:
+      # DB/Redis passwords come from Komodo Variables (written into a git-ignored .env at deploy);
+      # the repo holds only ${...} placeholders.
+      SQL_DSN: postgresql://root:${NEW_API_POSTGRES_PASSWORD}@new-api-postgres:5432/new-api
+      REDIS_CONN_STRING: redis://:${NEW_API_REDIS_PASSWORD}@new-api-redis:6379
+      TZ: Asia/Shanghai
+      ERROR_LOG_ENABLED: "true"
+      BATCH_UPDATE_ENABLED: "true"
+    volumes:
+      - /srv/new-api/data:/data
+      - /srv/new-api/logs:/app/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/status | grep -o '\"success\":\\s*true' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  new-api-postgres:
+    container_name: new-api-postgres
+    # Pinned to the major line (15); a major upgrade needs a manual data migration.
+    image: postgres:15
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: ${NEW_API_POSTGRES_PASSWORD}
+      POSTGRES_DB: new-api
+    volumes:
+      - /srv/new-api/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  new-api-redis:
+    container_name: new-api-redis
+    image: redis:8
+    command: ["redis-server", "--requirepass", "${NEW_API_REDIS_PASSWORD}"]
+    volumes:
+      # Upstream ran redis without a volume (cache only); a /srv bind is added for consistency.
+      - /srv/new-api/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${NEW_API_REDIS_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  default:
+    name: new-api

@@ -105,6 +105,94 @@ SPOTIFY_CLIENT_SECRET=[[SPOTIFY_CLIENT_SECRET]]
 MS_BASE_URL=[[MS_BASE_URL]]
 """
 
+[[stack]]
+name = "new-api"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/new-api"
+file_paths = ["compose.yaml"]
+# Bundled Postgres/Redis passwords come from Komodo Variables; the compose references
+# ${NEW_API_POSTGRES_PASSWORD} / ${NEW_API_REDIS_PASSWORD}.
+environment = """
+NEW_API_POSTGRES_PASSWORD=[[NEW_API_POSTGRES_PASSWORD]]
+NEW_API_REDIS_PASSWORD=[[NEW_API_REDIS_PASSWORD]]
+"""
+
+[[stack]]
+name = "opengist"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/opengist"
+file_paths = ["compose.yaml"]
+# No secrets in compose: opengist's instance key + SQLite DB live in the /srv data dir.
+
+[[stack]]
+name = "mastodon"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/mastodon"
+file_paths = ["compose.yaml"]
+# Mastodon reads all app config from .env.production (env_file in the compose). Komodo writes
+# that file into the run directory at deploy from the `environment` below, resolving [[VAR]]
+# placeholders from Komodo Variables. Non-sensitive values are inline; secrets and personal
+# info (domain, S3/R2 creds, app keys, mail from-address) are Variables, kept out of git.
+env_file_path = ".env.production"
+environment = """
+LOCAL_DOMAIN=[[MASTODON_LOCAL_DOMAIN]]
+WEB_DOMAIN=[[MASTODON_WEB_DOMAIN]]
+SINGLE_USER_MODE=true
+SECRET_KEY_BASE=[[MASTODON_SECRET_KEY_BASE]]
+OTP_SECRET=[[MASTODON_OTP_SECRET]]
+ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=[[MASTODON_AR_ENC_DETERMINISTIC_KEY]]
+ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT=[[MASTODON_AR_ENC_KEY_DERIVATION_SALT]]
+ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=[[MASTODON_AR_ENC_PRIMARY_KEY]]
+VAPID_PRIVATE_KEY=[[MASTODON_VAPID_PRIVATE_KEY]]
+VAPID_PUBLIC_KEY=[[MASTODON_VAPID_PUBLIC_KEY]]
+DB_HOST=db
+DB_PORT=5432
+DB_NAME=postgres
+DB_USER=postgres
+DB_PASS=
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=
+ES_ENABLED=true
+ES_HOST=es
+ES_PORT=9200
+ES_PRESET=single_node_cluster
+TRUSTED_PROXY_IP=[[MASTODON_TRUSTED_PROXY_IP]]
+S3_ENABLED=true
+S3_REGION=apac
+S3_ALIAS_HOST=[[MASTODON_S3_ALIAS_HOST]]
+S3_PROTOCOL=https
+S3_BUCKET=mastodon
+AWS_ACCESS_KEY_ID=[[MASTODON_AWS_ACCESS_KEY_ID]]
+AWS_SECRET_ACCESS_KEY=[[MASTODON_AWS_SECRET_ACCESS_KEY]]
+S3_ENDPOINT=[[MASTODON_S3_ENDPOINT]]
+S3_PERMISSION=''
+SMTP_SERVER=smtp.mailgun.org
+SMTP_PORT=587
+SMTP_LOGIN=
+SMTP_PASSWORD=
+SMTP_AUTH_METHOD=plain
+SMTP_OPENSSL_VERIFY_MODE=none
+SMTP_ENABLE_STARTTLS=auto
+SMTP_FROM_ADDRESS=[[MASTODON_SMTP_FROM_ADDRESS]]
+UPDATE_CHECK_URL=
+"""
+
 # ----------------------------------------------------------------------------
 # Auto-redeploy on git push (the Renovate flow).
 #

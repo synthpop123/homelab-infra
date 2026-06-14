@@ -1,6 +1,9 @@
 # Never commit secrets / materialized env files.
 # Non-secret config belongs in compose.yaml; secrets go in the Komodo Stack UI.
+# (Komodo writes env files like .env / .env.production into the run dir at deploy time.)
 .env
 *.env
+.env.*
 **/.env
+**/.env.*
 secrets/

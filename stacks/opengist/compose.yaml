@@ -1,0 +1,16 @@
+services:
+  opengist:
+    container_name: opengist
+    image: ghcr.io/thomiceli/opengist:1.13.1
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20008:6157/tcp"
+    volumes:
+      # Was a named volume (opengist_data); migrated to a /srv bind. The SQLite DB and the
+      # instance secret key (opengist-secret.key) live here, so it must persist. Owned by uid 1000.
+      - /srv/opengist/data:/opengist
+    restart: unless-stopped
+
+networks:
+  default:
+    name: opengist

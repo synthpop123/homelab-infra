@@ -25,8 +25,13 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20004 | cloudreve             | 5212           | Cloudreve (cloud storage)   |
 | 20005 | koito                 | 4110           | Koito (music scrobble svr)  |
 | 20006 | multi-scrobbler       | 9078           | multi-scrobbler -> koito    |
+| 20007 | new-api               | 3000           | new-api (LLM gateway)       |
+| 20008 | opengist              | 6157           | Opengist (git pastebin)     |
+| 20009 | mastodon (web)        | 3000           | Mastodon web/API            |
+| 20010 | mastodon (streaming)  | 4000           | Mastodon streaming API      |
 
-**Next free: `20007`**
+**Next free: `20011`**
 
-> Only the published service consumes a number. The bundled Postgres/Redis behind deeix-chat and
-> cloudreve are internal-only (no host port).
+> Only the published service consumes a number. Bundled databases/caches/search behind a stack
+> (Postgres, Redis, Elasticsearch for deeix-chat, cloudreve, new-api, mastodon) are internal-only
+> (no host port).
