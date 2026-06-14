@@ -2,8 +2,9 @@
 
 Runbook for moving an existing `/opt/<service>` Docker Compose deployment into this repo as a
 Komodo-managed stack. The steady-state rules (pinning, ports, networks, secrets, volumes) live in
-[conventions.md](./conventions.md); this doc is the *procedure* and the gotchas, distilled from the
-`calibre-web-automated` and `deeix-chat` migrations.
+[conventions.md](./conventions.md); this doc is the *procedure* and the gotchas, distilled from
+migrating ~15 services — single apps, multi-container stacks, and splitting a shared Postgres into
+per-stack instances (§10–11).
 
 > Expect a short outage during cutover (the old stack is down until the new one is healthy).
 > All shell examples run **on the VPS** unless noted.
@@ -143,3 +144,76 @@ The old named volumes and `/opt/<service>` are your rollback. After verifying:
 docker volume rm <volume> ...     # old named volumes
 rm -rf /opt/<service>             # old compose dir
 ```
+
+## 10. Variant — splitting a shared database into per-stack Postgres
+
+Several services shared one external `postgres` (each app talking to `host.docker.internal:5432`).
+Giving each stack its own bundled Postgres is cleaner: isolation, per-app version + backup, no shared
+SPOF, and host `5432` no longer needs publishing. The app-config change is minimal — keep the same
+DB name / user / password (as a [Komodo Variable](./conventions.md#environment-variables)); only the
+**host** changes (`host.docker.internal` → the bundled service name, e.g. `n8n-postgres`).
+
+Load the data **before** the app starts, via a throwaway container, so the bundled `PGDATA` is
+already populated when the stack comes up (the image sets the data-dir ownership itself — no manual
+chown, unlike copying a raw `PGDATA`):
+
+```bash
+# 1. Stop only the app for a consistent dump; the shared pg keeps running.
+cd /opt/<svc> && docker compose down
+
+# 2. Dump just this database (logical dump → portable across pg majors, e.g. pg17 -> pg18).
+mkdir -p /srv/<svc>/postgres /srv/<svc>/migrate
+docker exec <shared-pg> pg_dump -U postgres -Fc --no-owner --no-acl -d <db> > /srv/<svc>/migrate/<db>.dump
+
+# 3. Init the new data dir with a throwaway pg (same major the stack will use), restore, then drop
+#    the throwaway — the data persists on disk.
+docker run -d --name tmp-<svc>-pg \
+  -e POSTGRES_USER=<u> -e POSTGRES_PASSWORD=<pw> -e POSTGRES_DB=<db> \
+  -v /srv/<svc>/postgres:/var/lib/postgresql postgres:18-alpine
+until docker exec tmp-<svc>-pg pg_isready -U <u> -d <db>; do sleep 1; done
+docker exec -i tmp-<svc>-pg pg_restore -U <u> --no-owner -d <db> < /srv/<svc>/migrate/<db>.dump
+docker rm -f tmp-<svc>-pg
+```
+
+Then author the stack (app + a bundled, internal-only `postgres` on the stack network) and push.
+`pg_restore` warnings about extensions/comments are usually harmless — verify with row counts.
+
+> **postgres:18** moved its data dir — bind `/srv/<svc>/postgres:/var/lib/postgresql` (data lands at
+> `…/18/docker`), not `…/data`. See [conventions.md → Volumes](./conventions.md#volumes).
+
+**Decommission the shared instance** only after every consumer is migrated and verified:
+
+```bash
+# Prove nothing still uses it (no app connections + no container points at it):
+docker exec <shared-pg> psql -U postgres -tAc \
+  "select datname,usename,count(*) from pg_stat_activity where datname is not null group by 1,2;"
+for c in $(docker ps --format '{{.Names}}'); do \
+  docker inspect "$c" --format '{{range .Config.Env}}{{println .}}{{end}}' \
+  | grep -q 'host.docker.internal:5432' && echo "still using: $c"; done
+# Archive a final full dump into /srv (backed up), then stop it — keep the volume as rollback:
+mkdir -p /srv/postgres-archive
+docker exec <shared-pg> pg_dumpall -U postgres > /srv/postgres-archive/shared-dumpall-$(date +%F).sql
+cd /opt/postgres && docker compose down      # no -v
+```
+
+## 11. Gotchas from real migrations
+
+- **Secrets that live in the data dir, not env.** Migrate the data dir *faithfully* (`cp -a`,
+  preserving uid + mode) or you lose them: n8n's encryption key (`.n8n/config`, mode `0600`),
+  Open WebUI's `WEBUI_SECRET_KEY` (`.webui_secret_key`), Gitea's `app.ini`
+  (SECRET_KEY/INTERNAL_TOKEN). A changed key means users get logged out or data turns undecryptable.
+- **`host.docker.internal` is rarely only for the DB.** Open WebUI also uses it for admin-configured
+  model endpoints — don't strip `extra_hosts` just because the DB moved in-stack.
+- **External shared networks.** A service joined to a shared bridge (e.g. seerr on `mediacenter-net`
+  with a fixed IP, to reach the *arr apps) must stay there — put its bundled DB on a *second*,
+  private network the app also joins, and reach the DB by service name.
+- **Anonymous volumes hold real data too.** Find them via
+  `docker inspect <c> --format '{{json .Mounts}}'`, not just the compose file.
+- **Pinning a rolling tag** (`latest`/`stable`/`main-slim`): get the real version from the app
+  (`/api/version`, a `SERVER_VERSION` env, the `org.opencontainers.image.version` label) or by
+  mapping the tag's digest to a version tag on the registry — then confirm the versioned (and any
+  `-slim`-style variant) tag exists before pinning.
+- **`network_mode: host` / privileged apps** (clouddrive2): don't fit the port scheme or named
+  networks — migrate only the config dir and leave host networking, devices and `/mnt` mounts as-is.
+- **Derived indexes are disposable.** Elasticsearch/search data rebuilds (`tootctl search deploy`
+  for mastodon), so a major ES bump (7→8 here) can preserve *or* wipe the data dir freely.
