@@ -35,19 +35,21 @@ services:
 
   es:
     container_name: mastodon-es
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.29
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.19.15
     restart: unless-stopped
     environment:
+      # Auth is intentionally disabled (xpack.security.enabled=false) — ES is internal-only (no host
+      # port), reachable only by mastodon on the docker networks — so no ELASTIC_PASSWORD is set.
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m -Des.enforce.bootstrap.checks=true"
       - "xpack.license.self_generated.type=basic"
       - "xpack.security.enabled=false"
       - "xpack.watcher.enabled=false"
       - "xpack.graph.enabled=false"
       - "xpack.ml.enabled=false"
-      - "bootstrap.memory_lock=false"
+      - "bootstrap.memory_lock=true"
       - "cluster.name=es-mastodon"
       - "discovery.type=single-node"
-      - "thread_pool.write.queue_size=500"
+      - "thread_pool.write.queue_size=1000"
     networks:
       - external_network
       - internal_network
