@@ -57,6 +57,21 @@ DEEIX_POSTGRES_PASSWORD=[[DEEIX_POSTGRES_PASSWORD]]
 DEEIX_REDIS_PASSWORD=[[DEEIX_REDIS_PASSWORD]]
 """
 
+[[stack]]
+name = "drizzle-gateway"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/drizzle-gateway"
+file_paths = ["compose.yaml"]
+# MASTERPASS comes from a Komodo Variable; the compose references ${DRIZZLE_GATEWAY_MASTERPASS}.
+environment = """
+DRIZZLE_GATEWAY_MASTERPASS=[[DRIZZLE_GATEWAY_MASTERPASS]]
+"""
+
 # ----------------------------------------------------------------------------
 # Auto-redeploy on git push (the Renovate flow).
 #

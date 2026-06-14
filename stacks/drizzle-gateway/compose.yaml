@@ -1,0 +1,25 @@
+services:
+  drizzle-gateway:
+    container_name: drizzle-gateway
+    # ghcr.io/drizzle-team/gateway:latest currently resolves to the same digest as :1.3.0
+    # (its version label "1.3.14" is an internal build string, not a published tag).
+    image: ghcr.io/drizzle-team/gateway:1.3.0
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20003:4983/tcp"
+    environment:
+      PORT: 4983
+      STORE_PATH: /app
+      # Secret injected from a Komodo Variable into a git-ignored .env at deploy time.
+      MASTERPASS: ${DRIZZLE_GATEWAY_MASTERPASS}
+    volumes:
+      - /srv/drizzle-gateway/data:/app
+    # Lets the gateway reach databases listening on the host (e.g. the shared Postgres).
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+
+networks:
+  # Name the project network explicitly to avoid the auto-generated "<project>_default".
+  default:
+    name: drizzle-gateway
