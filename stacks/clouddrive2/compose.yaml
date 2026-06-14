@@ -1,0 +1,22 @@
+# CloudDrive2 — mounts cloud storage as a local FUSE filesystem under /mnt/CloudNAS.
+# Runs with host networking + privileged + host PID + /dev/fuse (required for the FUSE mounts),
+# so its web UI port and the /mnt mount are intentionally left as-is — only the config dir is
+# moved to /srv. No secrets in the compose (account credentials live in the off-git config dir).
+services:
+  clouddrive2:
+    container_name: clouddrive2
+    image: cloudnas/clouddrive2:1.0.10
+    environment:
+      - TZ=Asia/Shanghai
+      - CLOUDDRIVE_HOME=/Config
+      - PUID=1000
+      - GUID=1000
+    volumes:
+      - /mnt/CloudNAS:/CloudNAS:shared
+      - /srv/clouddrive2/config:/Config
+    devices:
+      - /dev/fuse:/dev/fuse
+    restart: unless-stopped
+    pid: "host"
+    privileged: true
+    network_mode: host

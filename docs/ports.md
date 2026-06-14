@@ -31,11 +31,14 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20010 | mastodon (streaming)  | 4000           | Mastodon streaming API      |
 | 20011 | beszel                | 8090           | Beszel monitoring hub       |
 | 20012 | immich                | 2283           | Immich photo backup         |
+| 20013 | karakeep              | 3000           | Karakeep bookmarks          |
 
-**Next free: `20013`**
+**Next free: `20014`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
-> (Postgres, Redis/Valkey, Elasticsearch, immich ML) are internal-only (no host port).
+> (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome) are internal-only
+> (no host port).
 >
-> **Outside the scheme** (fixed ports referenced by external clients/agents):
-> - `beszel-agent` listens on host port **45876** (host networking).
+> **Outside the scheme** (host-networked; ports fixed by the app, not the registry):
+> - `beszel-agent` listens on host port **45876**.
+> - `clouddrive2` runs with `network_mode: host` (web UI on its built-in port, FUSE mounts under `/mnt`).

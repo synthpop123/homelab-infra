@@ -1,0 +1,62 @@
+# Karakeep — bookmark/read-it-later app: web + headless Chrome (crawler) + Meilisearch (search).
+# Secrets and personal values (auth secret, Meili key, OpenAI key, the app URL and API base) come
+# from Komodo Variables, written into a git-ignored .env at deploy; the repo holds placeholders.
+services:
+  karakeep-web:
+    container_name: karakeep-web
+    image: ghcr.io/karakeep-app/karakeep:0.32.0
+    restart: unless-stopped
+    depends_on:
+      - karakeep-meilisearch
+      - karakeep-chrome
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20013:3000/tcp"
+    volumes:
+      - /srv/karakeep/data:/data
+    environment:
+      MEILI_ADDR: http://karakeep-meilisearch:7700
+      MEILI_MASTER_KEY: ${KARAKEEP_MEILI_MASTER_KEY}
+      NEXTAUTH_SECRET: ${KARAKEEP_NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${KARAKEEP_NEXTAUTH_URL}
+      BROWSER_WEB_URL: http://karakeep-chrome:9222
+      OPENAI_API_KEY: ${KARAKEEP_OPENAI_API_KEY}
+      OPENAI_BASE_URL: ${KARAKEEP_OPENAI_BASE_URL}
+      EMBEDDING_TEXT_MODEL: Qwen/Qwen3-Embedding-8B
+      INFERENCE_TEXT_MODEL: kimi-k2
+      INFERENCE_IMAGE_MODEL: gemini-2.5-flash
+      INFERENCE_CONTEXT_LENGTH: "4096"
+      INFERENCE_JOB_TIMEOUT_SEC: "60"
+      CRAWLER_SCREENSHOT_TIMEOUT_SEC: "20"
+      CRAWLER_JOB_TIMEOUT_SEC: "90"
+      DATA_DIR: /data
+      DISABLE_SIGNUPS: "true"
+      OCR_LANGS: chi_sim,eng
+      INFERENCE_ENABLE_AUTO_SUMMARIZATION: "true"
+      INFERENCE_LANG: Simplified Chinese
+
+  karakeep-chrome:
+    container_name: karakeep-chrome
+    image: gcr.io/zenika-hub/alpine-chrome:123
+    restart: unless-stopped
+    command:
+      - --no-sandbox
+      - --disable-gpu
+      - --disable-dev-shm-usage
+      - --remote-debugging-address=0.0.0.0
+      - --remote-debugging-port=9222
+      - --hide-scrollbars
+
+  karakeep-meilisearch:
+    container_name: karakeep-meilisearch
+    image: getmeili/meilisearch:v1.13.3
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${KARAKEEP_MEILI_MASTER_KEY}
+      MEILI_NO_ANALYTICS: "true"
+    volumes:
+      - /srv/karakeep/meilisearch:/meili_data
+
+networks:
+  default:
+    name: karakeep

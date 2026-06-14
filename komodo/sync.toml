@@ -170,6 +170,38 @@ TZ=Asia/Shanghai
 """
 
 [[stack]]
+name = "clouddrive2"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/clouddrive2"
+file_paths = ["compose.yaml"]
+# No secrets: cloud account credentials live in the off-git /srv config dir. Runs host-networked
+# + privileged + FUSE for the /mnt cloud mounts (see compose.yaml).
+
+[[stack]]
+name = "karakeep"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/karakeep"
+file_paths = ["compose.yaml"]
+# Auth/search/OpenAI secrets + personal URLs come from Komodo Variables; compose has placeholders.
+environment = """
+KARAKEEP_NEXTAUTH_SECRET=[[KARAKEEP_NEXTAUTH_SECRET]]
+KARAKEEP_MEILI_MASTER_KEY=[[KARAKEEP_MEILI_MASTER_KEY]]
+KARAKEEP_OPENAI_API_KEY=[[KARAKEEP_OPENAI_API_KEY]]
+KARAKEEP_NEXTAUTH_URL=[[KARAKEEP_NEXTAUTH_URL]]
+KARAKEEP_OPENAI_BASE_URL=[[KARAKEEP_OPENAI_BASE_URL]]
+"""
+
+[[stack]]
 name = "mastodon"
 deploy = false
 tags = ["app"]
