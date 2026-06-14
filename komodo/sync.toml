@@ -33,3 +33,26 @@ repo = "synthpop123/homelab-infra"
 branch = "main"
 run_directory = "stacks/calibre-web-automated"
 file_paths = ["compose.yaml"]
+
+# ----------------------------------------------------------------------------
+# Auto-redeploy on git push (the Renovate flow).
+#
+# The Resource Sync above only reconciles resource *definitions*; it does NOT
+# redeploy a stack when only its compose file *content* changes (e.g. Renovate
+# bumps an image tag). This Procedure does: on each push it redeploys ONLY the
+# stacks whose content actually changed. A single webhook on the repo points at
+# this procedure, so it scales past GitHub's 20-webhooks-per-repo limit.
+#   Webhook URL: https://komodo.lkwplus.com/listener/github/procedure/redeploy-on-push/main
+# ----------------------------------------------------------------------------
+[[procedure]]
+name = "redeploy-on-push"
+description = "Redeploy stacks whose compose changed in git (Renovate version bumps, etc.)"
+
+[procedure.config]
+webhook_enabled = true
+
+[[procedure.config.stage]]
+name = "Redeploy changed stacks"
+executions = [
+  { execution.type = "BatchDeployStackIfChanged", execution.params.pattern = "*" },
+]
