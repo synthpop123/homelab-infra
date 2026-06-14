@@ -24,7 +24,7 @@ services:
 
   redis:
     container_name: mastodon-redis
-    image: redis:7-alpine
+    image: redis:8-alpine
     restart: unless-stopped
     networks:
       - internal_network
