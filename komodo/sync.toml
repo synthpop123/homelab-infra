@@ -4,21 +4,22 @@
 # every stack is managed from git: add a service by adding a [[stack]] block here plus a
 # stacks/<name>/compose.yaml file, then push. The sync (re)creates and redeploys as needed.
 #
+# Stacks reference their git source through `linked_repo` — the name of a Komodo "Repo"
+# resource configured in the UI. The git account/repo therefore live in Komodo, not in this
+# file, which keeps the repo free of instance-specific details.
+#
 # Docs: https://komo.do/docs/sync
 
 [[stack]]
 name = "wallos"
-deploy = true                    # create + (re)deploy this stack when the sync detects changes
+deploy = true
 tags = ["app"]
 
 [stack.config]
-server = "Famesystems"           # must match the Server name in Komodo (KOMODO_FIRST_SERVER_NAME)
-git_provider = "github.com"
-git_account = "synthpop123"      # GitHub account alias configured in Komodo — verify under Settings > Git Accounts
-repo = "synthpop123/homelab-infra"
-branch = "main"
-run_directory = "stacks/wallos"  # folder within the repo to `cd` into before `docker compose up`
-file_paths = ["compose.yaml"]    # compose file(s) relative to run_directory
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/wallos"
+file_paths = ["compose.yaml"]
 
 [[stack]]
 name = "calibre-web-automated"
@@ -27,10 +28,7 @@ tags = ["app"]
 
 [stack.config]
 server = "Famesystems"
-git_provider = "github.com"
-git_account = "synthpop123"
-repo = "synthpop123/homelab-infra"
-branch = "main"
+linked_repo = "homelab-infra"
 run_directory = "stacks/calibre-web-automated"
 file_paths = ["compose.yaml"]
 
@@ -42,7 +40,7 @@ file_paths = ["compose.yaml"]
 # bumps an image tag). This Procedure does: on each push it redeploys ONLY the
 # stacks whose content actually changed. A single webhook on the repo points at
 # this procedure, so it scales past GitHub's 20-webhooks-per-repo limit.
-#   Webhook URL: https://komodo.lkwplus.com/listener/github/procedure/redeploy-on-push/main
+#   Webhook URL: https://<your-komodo-host>/listener/github/procedure/redeploy-on-push/main
 # ----------------------------------------------------------------------------
 [[procedure]]
 name = "redeploy-on-push"
