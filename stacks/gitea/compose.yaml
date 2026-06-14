@@ -1,11 +1,9 @@
 # Gitea — self-hosted git. Migrated off the shared Postgres to a dedicated bundled instance.
-# All Gitea secrets (SECRET_KEY, INTERNAL_TOKEN, JWT secrets) and the SSH config live in app.ini
-# inside the data dir, so /srv/gitea/data must be migrated faithfully. DB password via Komodo Variable.
+# All Gitea secrets (SECRET_KEY, INTERNAL_TOKEN, JWT secrets) live in app.ini inside the data dir,
+# so /srv/gitea/data must be migrated faithfully. DB password via Komodo Variable.
 #
-# Ports preserve the existing setup exactly: HTTP on the registry port, SSH host port kept at 222.
-# NOTE: the host SSH mapping is 222->11322 as it was before, but app.ini has SSH_LISTEN_PORT=22.
-# That mismatch predates this migration (SSH is likely unused — 0 repos); left as-is to avoid a
-# behavior change. To actually expose SSH, map "222:22" and set SSH_PORT=222 in app.ini.
+# SSH is exposed on host port 222: Gitea listens on container port 22 (its default SSH_LISTEN_PORT),
+# and GITEA__server__SSH_PORT=222 makes clone URLs advertise ssh://git@<domain>:222/...
 services:
   gitea:
     container_name: gitea
@@ -22,15 +20,16 @@ services:
       GITEA__database__NAME: gitea
       GITEA__database__USER: gitea
       GITEA__database__PASSWD: ${GITEA_DB_PASSWORD}
+      GITEA__server__SSH_PORT: "222"
       DISABLE_REGISTRATION: "true"
     volumes:
       - /srv/gitea/data:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     ports:
-      # host:container — HTTP from the registry (see docs/ports.md); SSH host port kept at 222
+      # host:container — HTTP from the registry (see docs/ports.md); SSH host port 222 -> 22
       - "20018:3000/tcp"
-      - "222:11322/tcp"
+      - "222:22/tcp"
 
   gitea-postgres:
     container_name: gitea-postgres

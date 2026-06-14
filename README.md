@@ -16,26 +16,26 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 
 ## Services
 
-| Service | Port | Description |
-|---------|------|-------------|
-| [wallos](./stacks/wallos) | 20000 | Subscription tracker |
-| [calibre-web-automated](./stacks/calibre-web-automated) | 20001 | Ebook library (CWA) |
-| [deeix-chat](./stacks/deeix-chat) | 20002 | AI chat (app + Postgres + Redis) |
-| [drizzle-gateway](./stacks/drizzle-gateway) | 20003 | Drizzle Gateway (DB studio) |
-| [cloudreve](./stacks/cloudreve) | 20004 | Cloudreve cloud storage (+ Postgres + Redis) |
-| [koito](./stacks/koito) | 20005 / 20006 | Koito scrobble server + multi-scrobbler |
-| [new-api](./stacks/new-api) | 20007 | LLM API gateway (app + Postgres + Redis) |
-| [opengist](./stacks/opengist) | 20008 | Git-powered pastebin |
-| [mastodon](./stacks/mastodon) | 20009 / 20010 | Fediverse server (web + streaming + sidekiq + Postgres/Redis/ES) |
-| [beszel](./stacks/beszel) | 20011 | Server monitoring (hub + agent) |
-| [immich](./stacks/immich) | 20012 | Photo/video backup (server + ML + Postgres/Valkey) |
-| [karakeep](./stacks/karakeep) | 20013 | Bookmarks (web + Chrome + Meilisearch) |
-| [clouddrive2](./stacks/clouddrive2) | host | Cloud storage → FUSE mount (host net) |
-| [n8n](./stacks/n8n) | 20014 | Workflow automation (+ dedicated Postgres) |
-| [memos](./stacks/memos) | 20015 | Notes (+ dedicated Postgres) |
-| [seerr](./stacks/seerr) | 20016 | Media requests (+ dedicated Postgres) |
-| [openwebui](./stacks/openwebui) | 20017 | LLM chat UI (+ dedicated Postgres) |
-| [gitea](./stacks/gitea) | 20018 | Git hosting (+ dedicated Postgres; SSH on 222) |
+| Service | URL | Port | Description |
+|---------|-----|------|-------------|
+| [wallos](./stacks/wallos) | [wallos.lkwplus.com](https://wallos.lkwplus.com) | 20000 | Subscription tracker |
+| [calibre-web-automated](./stacks/calibre-web-automated) | [calibre.lkwplus.com](https://calibre.lkwplus.com) | 20001 | Ebook library (CWA) |
+| [deeix-chat](./stacks/deeix-chat) | [ai.lkwplus.com](https://ai.lkwplus.com) | 20002 | AI chat (app + Postgres + Redis) |
+| [drizzle-gateway](./stacks/drizzle-gateway) | [db.lkwplus.com](https://db.lkwplus.com) | 20003 | Drizzle Gateway (DB studio) |
+| [cloudreve](./stacks/cloudreve) | [cloud.lkwplus.com](https://cloud.lkwplus.com) | 20004 | Cloudreve cloud storage (+ Postgres + Redis) |
+| [koito](./stacks/koito) | [music.lkwplus.com](https://music.lkwplus.com) | 20005 / 20006 | Koito scrobble server + multi-scrobbler |
+| [new-api](./stacks/new-api) | [api.lkwplus.com](https://api.lkwplus.com) | 20007 | LLM API gateway (app + Postgres + Redis) |
+| [opengist](./stacks/opengist) | [gist.lkwplus.com](https://gist.lkwplus.com) | 20008 | Git-powered pastebin |
+| [mastodon](./stacks/mastodon) | [mastodon.lkwplus.com](https://mastodon.lkwplus.com) | 20009 / 20010 | Fediverse server (web + streaming + sidekiq + Postgres/Redis/ES) |
+| [beszel](./stacks/beszel) | [beszel.lkwplus.com](https://beszel.lkwplus.com) | 20011 | Server monitoring (hub + agent) |
+| [immich](./stacks/immich) | [immich.lkwplus.com](https://immich.lkwplus.com) | 20012 | Photo/video backup (server + ML + Postgres/Valkey) |
+| [karakeep](./stacks/karakeep) | [karakeep.lkwplus.com](https://karakeep.lkwplus.com) | 20013 | Bookmarks (web + Chrome + Meilisearch) |
+| [clouddrive2](./stacks/clouddrive2) | [cd.lkwplus.com](https://cd.lkwplus.com) | host | Cloud storage → FUSE mount (host net) |
+| [n8n](./stacks/n8n) | [n8n.lkwplus.com](https://n8n.lkwplus.com) | 20014 | Workflow automation (+ dedicated Postgres) |
+| [memos](./stacks/memos) | [memos.lkwplus.com](https://memos.lkwplus.com) | 20015 | Notes (+ dedicated Postgres) |
+| [seerr](./stacks/seerr) | [seerr.lkwplus.com](https://seerr.lkwplus.com) | 20016 | Media requests (+ dedicated Postgres) |
+| [openwebui](./stacks/openwebui) | [chat.lkwplus.com](https://chat.lkwplus.com) | 20017 | LLM chat UI (+ dedicated Postgres) |
+| [gitea](./stacks/gitea) | [git.lkwplus.com](https://git.lkwplus.com) | 20018 | Git hosting (+ dedicated Postgres; SSH on 222) |
 
 ## Docs
 
@@ -52,3 +52,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 3. Commit & push — the `homelab` sync creates the stack definition and `Redeploy On Push` deploys
    it (and later version bumps). If a brand-new stack doesn't come up on the first push, deploy it
    once from the Komodo UI — see [workflow.md](./docs/workflow.md).
+
+## License
+
+[MIT](./LICENSE)

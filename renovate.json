@@ -7,6 +7,8 @@
   ],
   "timezone": "Asia/Shanghai",
   "labels": ["dependencies"],
+  "prConcurrentLimit": 0,
+  "prHourlyLimit": 0,
   "packageRules": [
     {
       "description": "Group all Docker image updates per stack folder",
