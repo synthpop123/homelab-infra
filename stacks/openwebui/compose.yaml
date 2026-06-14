@@ -26,6 +26,10 @@ services:
       BYPASS_MODEL_ACCESS_CONTROL: "true"
       CHAT_STREAM_RESPONSE_CHUNK_MAX_BUFFER_SIZE: "34359738368"
       ENABLE_CHAT_RESPONSE_BASE64_IMAGE_URL_CONVERSION: "true"
+    # Open WebUI has admin-configured model endpoints pointing at host services, so it still needs
+    # to resolve host.docker.internal (the bundled Postgres does not).
+    extra_hosts:
+      - host.docker.internal:host-gateway
 
   openwebui-postgres:
     container_name: openwebui-postgres
