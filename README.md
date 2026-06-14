@@ -27,6 +27,8 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 | [new-api](./stacks/new-api) | 20007 | LLM API gateway (app + Postgres + Redis) |
 | [opengist](./stacks/opengist) | 20008 | Git-powered pastebin |
 | [mastodon](./stacks/mastodon) | 20009 / 20010 | Fediverse server (web + streaming + sidekiq + Postgres/Redis/ES) |
+| [beszel](./stacks/beszel) | 20011 | Server monitoring (hub + agent) |
+| [immich](./stacks/immich) | 20012 | Photo/video backup (server + ML + Postgres/Valkey) |
 
 ## Docs
 

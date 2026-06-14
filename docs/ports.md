@@ -29,9 +29,13 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20008 | opengist              | 6157           | Opengist (git pastebin)     |
 | 20009 | mastodon (web)        | 3000           | Mastodon web/API            |
 | 20010 | mastodon (streaming)  | 4000           | Mastodon streaming API      |
+| 20011 | beszel                | 8090           | Beszel monitoring hub       |
+| 20012 | immich                | 2283           | Immich photo backup         |
 
-**Next free: `20011`**
+**Next free: `20013`**
 
-> Only the published service consumes a number. Bundled databases/caches/search behind a stack
-> (Postgres, Redis, Elasticsearch for deeix-chat, cloudreve, new-api, mastodon) are internal-only
-> (no host port).
+> Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
+> (Postgres, Redis/Valkey, Elasticsearch, immich ML) are internal-only (no host port).
+>
+> **Outside the scheme** (fixed ports referenced by external clients/agents):
+> - `beszel-agent` listens on host port **45876** (host networking).

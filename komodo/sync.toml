@@ -135,6 +135,41 @@ file_paths = ["compose.yaml"]
 # No secrets in compose: opengist's instance key + SQLite DB live in the /srv data dir.
 
 [[stack]]
+name = "beszel"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/beszel"
+file_paths = ["compose.yaml"]
+# Agent TOKEN + the hub's public KEY are instance-specific; sourced from Komodo Variables.
+environment = """
+BESZEL_KEY=[[BESZEL_KEY]]
+BESZEL_TOKEN=[[BESZEL_TOKEN]]
+"""
+
+[[stack]]
+name = "immich"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/immich"
+file_paths = ["compose.yaml"]
+# Immich reads DB settings from .env (env_file in the compose). Komodo writes that file at
+# deploy; only DB_PASSWORD is secret (a Komodo Variable), the rest are non-sensitive defaults.
+environment = """
+DB_PASSWORD=[[IMMICH_DB_PASSWORD]]
+DB_USERNAME=postgres
+DB_DATABASE_NAME=immich
+TZ=Asia/Shanghai
+"""
+
+[[stack]]
 name = "mastodon"
 deploy = false
 tags = ["app"]
