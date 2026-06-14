@@ -1,0 +1,15 @@
+services:
+  wallos:
+    container_name: wallos
+    image: bellamy/wallos:4.9.5
+    ports:
+      # host:container — host port allocated from the registry (see /PORTS.md)
+      - "20000:80/tcp"
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      # Persistent data lives on the host under /srv/<service>/ (absolute paths,
+      # so data never lands inside Komodo's git clone of this repo).
+      - /srv/wallos/db:/var/www/html/db
+      - /srv/wallos/logos:/var/www/html/images/uploads/logos
+    restart: unless-stopped

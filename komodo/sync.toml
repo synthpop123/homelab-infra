@@ -1,0 +1,21 @@
+# Komodo Resource Sync — declarative definition of all Stacks (Infrastructure as Code).
+#
+# A single "Resource Sync" resource in the Komodo UI points at this file. From then on,
+# every stack is managed from git: add a service by adding a [[stack]] block here plus a
+# stacks/<name>/compose.yaml file, then push. The sync (re)creates and redeploys as needed.
+#
+# Docs: https://komo.do/docs/sync
+
+[[stack]]
+name = "wallos"
+deploy = true                    # create + (re)deploy this stack when the sync detects changes
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"           # must match the Server name in Komodo (KOMODO_FIRST_SERVER_NAME)
+git_provider = "github.com"
+git_account = "synthpop123"      # GitHub account alias configured in Komodo — verify under Settings > Git Accounts
+repo = "synthpop123/homelab-infra"
+branch = "main"
+run_directory = "stacks/wallos"  # folder within the repo to `cd` into before `docker compose up`
+file_paths = ["compose.yaml"]    # compose file(s) relative to run_directory

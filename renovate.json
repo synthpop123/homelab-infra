@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
+  "timezone": "Asia/Shanghai",
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "description": "Group all Docker image updates per stack folder",
+      "matchManagers": ["docker-compose"],
+      "commitMessageTopic": "{{depName}}"
+    }
+  ]
+}
