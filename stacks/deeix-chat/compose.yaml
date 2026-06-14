@@ -46,7 +46,7 @@ services:
 
   redis:
     container_name: deeix-chat-redis
-    image: redis:7
+    image: redis:8
     command: redis-server --requirepass ${DEEIX_REDIS_PASSWORD}
     volumes:
       - /srv/deeix-chat/redis:/data
