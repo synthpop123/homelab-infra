@@ -31,6 +31,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 | [immich](./stacks/immich) | 20012 | Photo/video backup (server + ML + Postgres/Valkey) |
 | [karakeep](./stacks/karakeep) | 20013 | Bookmarks (web + Chrome + Meilisearch) |
 | [clouddrive2](./stacks/clouddrive2) | host | Cloud storage → FUSE mount (host net) |
+| [n8n](./stacks/n8n) | 20014 | Workflow automation (+ dedicated Postgres) |
 
 ## Docs
 

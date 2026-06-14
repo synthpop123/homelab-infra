@@ -202,6 +202,23 @@ KARAKEEP_OPENAI_BASE_URL=[[KARAKEEP_OPENAI_BASE_URL]]
 """
 
 [[stack]]
+name = "n8n"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/n8n"
+file_paths = ["compose.yaml"]
+# Dedicated bundled Postgres (migrated off the shared instance). DB password + public URL via
+# Komodo Variables; the n8n encryption key lives in the /srv/n8n/data dir, not here.
+environment = """
+N8N_DB_PASSWORD=[[N8N_DB_PASSWORD]]
+N8N_URL_BASE_API=[[N8N_URL_BASE_API]]
+"""
+
+[[stack]]
 name = "mastodon"
 deploy = false
 tags = ["app"]

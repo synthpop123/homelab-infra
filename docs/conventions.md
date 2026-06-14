@@ -52,3 +52,9 @@ networks:
   `docker compose down -v` can delete them.
 - Ownership follows the image's own user (e.g. LinuxServer images respect `PUID`/`PGID`; the
   wallos image runs as `www-data`/`82`). Don't force a single global UID across services.
+- **Bundled Postgres data dir:** for `postgres:18+` the data layout changed — `PGDATA` now defaults
+  to `/var/lib/postgresql/<major>/docker` and the mount point is the parent, so bind
+  `/srv/<stack>/postgres:/var/lib/postgresql` (data lands at `/srv/<stack>/postgres/18/docker`).
+  For `postgres:≤17` (and `pgvector/pgvector:pgNN`) the old layout still applies:
+  `/srv/<stack>/postgres:/var/lib/postgresql/data`. A *major* bump still needs a deliberate
+  dump/restore in either case.
