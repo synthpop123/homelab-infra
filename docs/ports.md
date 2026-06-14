@@ -20,5 +20,9 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 |-------|-----------------------|----------------|-----------------------------|
 | 20000 | wallos                | 80             | Subscription tracker        |
 | 20001 | calibre-web-automated | 8083           | Calibre-Web-Automated (CWA) |
+| 20002 | deeix-chat            | 8080           | DEEIX Chat (AI chat)        |
 
-**Next free: `20002`**
+**Next free: `20003`**
+
+> Only the published service consumes a number. deeix-chat's bundled Postgres and Redis are
+> internal-only (no host port).

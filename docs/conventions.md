@@ -9,8 +9,12 @@
 - **Legacy:** services still under `/opt/<service>/` are left untouched and migrated one at a time.
 
 ## Image pinning
-- Always pin to an explicit version: `image: org/name:1.2.3` (never `:latest`).
-- Upgrades come in as Renovate PRs — see [workflow.md](./workflow.md).
+- **App images:** pin to an explicit version (`org/name:1.2.3`, never `:latest`) so Renovate can
+  propose upgrades as PRs — see [workflow.md](./workflow.md).
+- **Databases & caches** (Postgres, Redis, …): pin to the **major line** instead
+  (`pgvector/pgvector:pg16`, `redis:7`). Patches ride along automatically, while a *major* bump
+  (pg17, redis 8) — which needs a deliberate data migration — surfaces as an occasional
+  major-version PR rather than constant patch noise.
 
 ## Ports
 - Host ports are allocated sequentially from `20000`, one per published service.
@@ -36,6 +40,9 @@ networks:
 
   Komodo interpolates `[[ ]]` at deploy time and writes the real value into `.env` (git-ignored).
   Git only ever contains the placeholder.
+- **Whole config files that carry secrets** (e.g. an app's `config.yaml`): keep the real file on
+  the host at `/srv/<service>/` (bind-mounted, backed up with `/srv`), **not** in git. Commit a
+  sanitized `*.example` alongside the compose for reference.
 
 ## Volumes
 - **Default: bind mounts to `/srv/<service>/...`** (absolute paths). Easy to back up (back up

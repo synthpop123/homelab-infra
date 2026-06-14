@@ -49,8 +49,9 @@ Adding a service is a coordinated change across **four** places, ideally in one 
 
 ## Non-obvious conventions (enforced; see `docs/conventions.md`)
 
-- **Pin every image** to an explicit version (`org/name:1.2.3`, never `:latest`) — Renovate
-  depends on this to detect updates.
+- **Pin app images** to an explicit version (`org/name:1.2.3`, never `:latest`); pin
+  **databases/caches to their major line** (`pgvector/pgvector:pg16`, `redis:7`) since a major
+  bump needs a manual data migration. Renovate relies on these tags to detect updates.
 - **Host ports are sequential from `20000`** (range `20000–20999` reserved). `docs/ports.md`
   is the single source of truth; only *published* services consume a number. Legacy `/opt`
   services use ad-hoc `13xxx`/`1<port>` and are left untouched.
@@ -62,6 +63,8 @@ Adding a service is a coordinated change across **four** places, ideally in one 
 - **Secrets are never committed.** Define them as Variables & Secrets in the Komodo UI,
   reference `${MY_SECRET}` in compose, and in `sync.toml` map `MY_SECRET = [[MY_SECRET]]`
   under the stack's `environment`. Komodo interpolates `[[ ]]` into a git-ignored `.env` at
-  deploy time. Non-secret config (`TZ`, `PUID`/`PGID`, flags) goes directly in compose.
+  deploy time. Non-secret config (`TZ`, `PUID`/`PGID`, flags) goes directly in compose. A whole
+  secret-bearing config file (e.g. an app's `config.yaml`) lives on the host under
+  `/srv/<service>/` (bind-mounted), never committed — commit a sanitized `*.example` instead.
 - **Don't force a global UID** — ownership follows each image's own user (LinuxServer images
   respect `PUID`/`PGID`; the wallos image runs as `www-data`/`82`).

@@ -32,6 +32,23 @@ linked_repo = "homelab-infra"
 run_directory = "stacks/calibre-web-automated"
 file_paths = ["compose.yaml"]
 
+[[stack]]
+name = "deeix-chat"
+deploy = true
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/deeix-chat"
+file_paths = ["compose.yaml"]
+# Postgres/Redis passwords come from Komodo Variables, kept out of git. The compose references
+# ${DEEIX_POSTGRES_PASSWORD} / ${DEEIX_REDIS_PASSWORD}; Komodo writes them into .env at deploy.
+environment = """
+DEEIX_POSTGRES_PASSWORD=[[DEEIX_POSTGRES_PASSWORD]]
+DEEIX_REDIS_PASSWORD=[[DEEIX_REDIS_PASSWORD]]
+"""
+
 # ----------------------------------------------------------------------------
 # Auto-redeploy on git push (the Renovate flow).
 #

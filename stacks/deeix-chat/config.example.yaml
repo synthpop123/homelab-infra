@@ -1,0 +1,80 @@
+# Example config for deeix-chat.
+#
+# The REAL file is NOT committed — it holds secrets (jwt_secret, data_encryption_key, etc.) and
+# lives on the host at /srv/deeix-chat/config.yaml (bind-mounted read-only, backed up with /srv).
+# Copy this file there and fill in real values before the first deploy.
+#
+# The database/redis connection values below are overridden by the compose `environment`
+# (which pulls the passwords from Komodo Variables), so in practice you only edit the rest.
+
+app:
+  name: DEEIX Chat
+  env: prod
+
+server:
+  http_port: "8080"
+  cors_allow_origin: "https://chat.example.com"
+  trusted_proxies: "127.0.0.1/32,::1/128"
+  public_api_base_url: "https://chat.example.com"
+  public_web_base_url: "https://chat.example.com"
+  frontend_dist_dir: "/app/frontend/out"
+  read_header_timeout_seconds: 10
+  read_timeout_seconds: 120
+  idle_timeout_seconds: 120
+  max_header_bytes: 1048576
+
+security:
+  # Generate strong random values. data_encryption_key protects stored upstream API keys, SSO
+  # secrets, MCP tokens, and TOTP secrets — rotating/losing it invalidates all of them.
+  jwt_secret: "CHANGE_ME"
+  data_encryption_key: "CHANGE_ME"
+  ssrf_protection_enabled: false
+  turnstile_siteverify_url: "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+
+database:
+  driver: postgres
+  postgres:
+    # Overridden by POSTGRES_DSN in compose (password from the DEEIX_POSTGRES_PASSWORD variable).
+    dsn: "postgres://deeix_chat:CHANGE_ME@postgres:5432/deeix_chat?sslmode=disable&TimeZone=Asia%2FShanghai"
+    max_open_conns: 30
+    max_idle_conns: 10
+    conn_max_lifetime_minutes: 60
+    conn_max_idle_time_minutes: 10
+  redis:
+    # Overridden by REDIS_* in compose (password from the DEEIX_REDIS_PASSWORD variable).
+    addr: "redis:6379"
+    username: ""
+    password: "CHANGE_ME"
+    db: 0
+
+cache:
+  driver: redis
+
+storage:
+  backend: local
+  local:
+    root_dir: /app/storage
+  s3:
+    endpoint: ""
+    region: auto
+    bucket: ""
+    prefix: ""
+    access_key_id: ""
+    secret_access_key: ""
+    force_path_style: true
+
+geoip:
+  provider: mmdb
+  database_url: "https://git.io/GeoLite2-City.mmdb"
+  database_path: "/app/data/geoip/GeoLite2-City.mmdb"
+  database_max_bytes: 104857600
+  refresh_interval_hours: 168
+  timeout_ms: 2500
+
+observability:
+  tracing:
+    enabled: false
+    endpoint: "https://cloud.langfuse.com/api/public/otel"
+    headers: ""
+    insecure: false
+    sampling_rate: 1

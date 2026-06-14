@@ -1,0 +1,63 @@
+services:
+  app:
+    container_name: deeix-chat-app
+    image: ghcr.io/deeix-ai/deeix-chat:v0.2.5
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Overrides the database/redis values in config.yaml. Passwords are injected from Komodo
+      # Variables into a git-ignored .env at deploy time — the repo holds only placeholders.
+      POSTGRES_DSN: "postgres://deeix_chat:${DEEIX_POSTGRES_PASSWORD}@postgres:5432/deeix_chat?sslmode=disable&TimeZone=Asia%2FShanghai"
+      REDIS_ADDR: "redis:6379"
+      REDIS_USERNAME: ""
+      REDIS_PASSWORD: "${DEEIX_REDIS_PASSWORD}"
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20002:8080/tcp"
+    volumes:
+      # Persistent data + the secret-bearing app config live on the host under /srv (off-git).
+      # config.yaml must already exist on the host or Docker will create a directory there.
+      - /srv/deeix-chat/storage:/app/storage
+      - /srv/deeix-chat/data:/app/data
+      - /srv/deeix-chat/config.yaml:/app/config.yaml:ro
+    restart: unless-stopped
+
+  postgres:
+    container_name: deeix-chat-postgres
+    # Pinned to the major line (pg16), not an exact patch: a major upgrade needs a manual
+    # data migration, so Renovate only surfaces it as an occasional major-version PR.
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: deeix_chat
+      POSTGRES_PASSWORD: ${DEEIX_POSTGRES_PASSWORD}
+      POSTGRES_DB: deeix_chat
+    volumes:
+      - /srv/deeix-chat/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    container_name: deeix-chat-redis
+    image: redis:7
+    command: redis-server --requirepass ${DEEIX_REDIS_PASSWORD}
+    volumes:
+      - /srv/deeix-chat/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${DEEIX_REDIS_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  default:
+    name: deeix-chat
