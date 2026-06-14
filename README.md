@@ -34,6 +34,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 | [n8n](./stacks/n8n) | 20014 | Workflow automation (+ dedicated Postgres) |
 | [memos](./stacks/memos) | 20015 | Notes (+ dedicated Postgres) |
 | [seerr](./stacks/seerr) | 20016 | Media requests (+ dedicated Postgres) |
+| [openwebui](./stacks/openwebui) | 20017 | LLM chat UI (+ dedicated Postgres) |
 
 ## Docs
 

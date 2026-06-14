@@ -35,8 +35,9 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20014 | n8n                   | 5678           | n8n workflow automation     |
 | 20015 | memos                 | 5230           | Memos notes                 |
 | 20016 | seerr                 | 5055           | Seerr media requests        |
+| 20017 | openwebui             | 8080           | Open WebUI (LLM chat)       |
 
-**Next free: `20017`**
+**Next free: `20018`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome) are internal-only

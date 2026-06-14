@@ -202,6 +202,25 @@ KARAKEEP_OPENAI_BASE_URL=[[KARAKEEP_OPENAI_BASE_URL]]
 """
 
 [[stack]]
+name = "openwebui"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/openwebui"
+file_paths = ["compose.yaml"]
+# Dedicated bundled Postgres (migrated off the shared instance). DB password, OpenAI key and the
+# public/API URLs via Komodo Variables; the WEBUI_SECRET_KEY lives in /srv/openwebui/data.
+environment = """
+OPENWEBUI_DB_PASSWORD=[[OPENWEBUI_DB_PASSWORD]]
+OPENWEBUI_OPENAI_API_KEY=[[OPENWEBUI_OPENAI_API_KEY]]
+OPENWEBUI_WEBUI_URL=[[OPENWEBUI_WEBUI_URL]]
+OPENWEBUI_OPENAI_API_BASE_URL=[[OPENWEBUI_OPENAI_API_BASE_URL]]
+"""
+
+[[stack]]
 name = "seerr"
 deploy = false
 tags = ["app"]

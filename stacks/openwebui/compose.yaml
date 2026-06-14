@@ -1,0 +1,48 @@
+# Open WebUI — migrated off the shared Postgres to a dedicated bundled instance.
+# WEBUI_SECRET_KEY (signs session tokens) is auto-stored in the data dir, so /srv/openwebui/data
+# must be migrated faithfully. OpenAI key, DB password and personal URLs come from Komodo Variables.
+services:
+  open-webui:
+    container_name: open-webui
+    image: ghcr.io/open-webui/open-webui:v0.9.6-slim
+    restart: unless-stopped
+    depends_on:
+      openwebui-postgres:
+        condition: service_healthy
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20017:8080/tcp"
+    volumes:
+      - /srv/openwebui/data:/app/backend/data
+    environment:
+      WEBUI_URL: ${OPENWEBUI_WEBUI_URL}
+      ENABLE_SIGNUP: "true"
+      ENABLE_OLLAMA_API: "false"
+      OPENAI_API_KEY: ${OPENWEBUI_OPENAI_API_KEY}
+      OPENAI_API_BASE_URL: ${OPENWEBUI_OPENAI_API_BASE_URL}
+      ENABLE_MESSAGE_RATING: "false"
+      DATABASE_TYPE: postgresql
+      DATABASE_URL: postgres://openwebui:${OPENWEBUI_DB_PASSWORD}@openwebui-postgres:5432/openwebui
+      BYPASS_MODEL_ACCESS_CONTROL: "true"
+      CHAT_STREAM_RESPONSE_CHUNK_MAX_BUFFER_SIZE: "34359738368"
+      ENABLE_CHAT_RESPONSE_BASE64_IMAGE_URL_CONVERSION: "true"
+
+  openwebui-postgres:
+    container_name: openwebui-postgres
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: openwebui
+      POSTGRES_USER: openwebui
+      POSTGRES_PASSWORD: ${OPENWEBUI_DB_PASSWORD}
+    volumes:
+      - /srv/openwebui/postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openwebui -d openwebui"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: openwebui
