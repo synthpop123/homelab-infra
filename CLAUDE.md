@@ -25,10 +25,10 @@ A change flows from git to a running container without any CI in this repo:
 1. Edit a `stacks/<service>/compose.yaml` (or add one) and push to `main`.
 2. Two GitHub `push` webhooks fire into Komodo on the VPS:
    - **Resource Sync `homelab`** reads `komodo/sync.toml` and reconciles resource
-     *definitions* — it creates/updates Stacks but does **not** redeploy on compose *content*
-     changes.
-   - **Procedure `Redeploy On Push`** runs `BatchDeployStackIfChanged` (pattern `*`),
-     redeploying only the stacks whose compose content actually changed.
+     *definitions* only — every stack is `deploy = false`, so it creates/updates Stacks but
+     **never deploys** (otherwise it races the procedure for the deploy lock → "Resource is busy").
+   - **Procedure `Redeploy On Push`** is the sole deployer: runs `BatchDeployStackIfChanged`
+     (pattern `*`), deploying only the stacks whose compose content actually changed.
 3. **Renovate** (Mend-hosted app, not CI here) watches every `image: name:tag`, opens PRs
    bumping pinned versions. Merging a bump triggers step 2's redeploy.
 

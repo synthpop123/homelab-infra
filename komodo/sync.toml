@@ -2,7 +2,15 @@
 #
 # A single "Resource Sync" resource in the Komodo UI points at this file. From then on,
 # every stack is managed from git: add a service by adding a [[stack]] block here plus a
-# stacks/<name>/compose.yaml file, then push. The sync (re)creates and redeploys as needed.
+# stacks/<name>/compose.yaml file, then push.
+#
+# Division of labour (this is what avoids a double-deploy race):
+#   * This sync only reconciles resource *definitions*. Every stack sets `deploy = false`, so the
+#     sync NEVER deploys — it just creates/updates the Stack resource in Komodo.
+#   * The "Redeploy On Push" procedure at the bottom is the SOLE deployer.
+#   (Flip a stack back to deploy = true and the sync's push webhook + the procedure's push webhook
+#   would both deploy it at once and collide with "Resource is busy" — which is exactly the bug
+#   this layout prevents.)
 #
 # Stacks reference their git source through `linked_repo` — the name of a Komodo "Repo"
 # resource configured in the UI. The git account/repo therefore live in Komodo, not in this
@@ -12,7 +20,7 @@
 
 [[stack]]
 name = "wallos"
-deploy = true
+deploy = false
 tags = ["app"]
 
 [stack.config]
@@ -23,7 +31,7 @@ file_paths = ["compose.yaml"]
 
 [[stack]]
 name = "calibre-web-automated"
-deploy = true
+deploy = false
 tags = ["app"]
 
 [stack.config]
@@ -34,7 +42,7 @@ file_paths = ["compose.yaml"]
 
 [[stack]]
 name = "deeix-chat"
-deploy = true
+deploy = false
 tags = ["app"]
 
 [stack.config]
@@ -52,11 +60,11 @@ DEEIX_REDIS_PASSWORD=[[DEEIX_REDIS_PASSWORD]]
 # ----------------------------------------------------------------------------
 # Auto-redeploy on git push (the Renovate flow).
 #
-# The Resource Sync above only reconciles resource *definitions*; it does NOT
-# redeploy a stack when only its compose file *content* changes (e.g. Renovate
-# bumps an image tag). This Procedure does: on each push it redeploys ONLY the
-# stacks whose content actually changed. A single webhook on the repo points at
-# this procedure, so it scales past GitHub's 20-webhooks-per-repo limit.
+# The Resource Sync above only reconciles resource *definitions* (deploy = false);
+# it never deploys. This Procedure is the SOLE deployer: on each push it deploys
+# ONLY the stacks whose compose content actually changed (a brand-new stack counts
+# as changed). One webhook on the repo points here, so it also scales past GitHub's
+# 20-webhooks-per-repo limit.
 #   Set up its push webhook in the Komodo UI (Procedure page -> copy webhook URL).
 # ----------------------------------------------------------------------------
 [[procedure]]

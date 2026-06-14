@@ -4,9 +4,10 @@ How a change flows from git to a running container.
 
 ## Components (defined as code in [`komodo/sync.toml`](../komodo/sync.toml))
 - **Resource Sync `homelab`** — reads `komodo/sync.toml` and reconciles resource *definitions*
-  (creates/updates Stacks). It does **not** redeploy when only a compose file's *content* changes.
-- **Procedure `Redeploy On Push`** — runs `BatchDeployStackIfChanged` with pattern `*`, redeploying
-  only the stacks whose compose content actually changed.
+  (creates/updates Stacks). Every stack is `deploy = false`, so the sync **never deploys** — that
+  keeps it from racing the procedure for a stack's deploy lock (the "Resource is busy" error).
+- **Procedure `Redeploy On Push`** — the **sole deployer**: runs `BatchDeployStackIfChanged` with
+  pattern `*`, deploying only the stacks whose compose content actually changed.
 
 ## Webhooks (on the GitHub repo)
 Two `push` webhooks, each with content-type `application/json` and the `KOMODO_WEBHOOK_SECRET`:
@@ -35,7 +36,13 @@ this scales to many services.
 Renovate opens PR (bump image tag)
         │  review + merge to main
         ▼
-GitHub push webhooks ──► Resource Sync `homelab`        (creates any newly-added stacks)
+GitHub push webhooks ──► Resource Sync `homelab`        (reconciles stack definitions; never deploys)
                    └───► Procedure `Redeploy On Push` ──► BatchDeployStackIfChanged
-                                                          └─► redeploys only the changed stacks
+                                                          └─► deploys only the changed stacks
 ```
+
+> **New stacks:** the sync only *defines* a new stack; the procedure deploys it. The two webhooks
+> run in parallel, so the procedure can fire before the definition exists — a brand-new stack may
+> therefore not come up on its very first push. If that happens, deploy it once from the Komodo UI;
+> every later push redeploys it automatically. (Existing stacks never hit this — they're already
+> defined, so the procedure just redeploys them.)

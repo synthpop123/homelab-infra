@@ -20,8 +20,8 @@ Komodo-managed stack. The steady-state rules (pinning, ports, networks, secrets,
 8. [ ] Push → Komodo deploys → verify health + data
 9. [ ] Later: remove the old named volumes and `/opt/<service>`
 
-**Order matters:** a push auto-triggers the sync, which *deploys* the stack. So the `/srv` data and
-any Komodo Variables must exist **before** you push — i.e. do steps 6–7 before step 8.
+**Order matters:** a push auto-deploys the stack (via the `Redeploy On Push` procedure). So the
+`/srv` data and any Komodo Variables must exist **before** you push — i.e. do steps 6–7 before step 8.
 
 ## 1. Inspect the live service
 
@@ -125,8 +125,9 @@ Gotchas:
 git add -A && git commit -m "feat: add <service> stack (migrated from /opt)" && git push
 ```
 
-The push triggers the `homelab` sync (creates + deploys the stack) and `Redeploy On Push`
-([workflow.md](./workflow.md)). Then confirm:
+The push triggers the `homelab` sync (creates the stack *definition*) and the `Redeploy On Push`
+procedure (deploys it) — see [workflow.md](./workflow.md). A brand-new stack occasionally needs a
+one-time Deploy from the Komodo UI if the procedure fired before the definition existed. Then confirm:
 
 ```bash
 docker ps --filter name=<service> --format '{{.Names}}\t{{.Status}}\t{{.Ports}}'
