@@ -35,6 +35,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 | [memos](./stacks/memos) | 20015 | Notes (+ dedicated Postgres) |
 | [seerr](./stacks/seerr) | 20016 | Media requests (+ dedicated Postgres) |
 | [openwebui](./stacks/openwebui) | 20017 | LLM chat UI (+ dedicated Postgres) |
+| [gitea](./stacks/gitea) | 20018 | Git hosting (+ dedicated Postgres; SSH on 222) |
 
 ## Docs
 

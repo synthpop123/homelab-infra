@@ -36,8 +36,9 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20015 | memos                 | 5230           | Memos notes                 |
 | 20016 | seerr                 | 5055           | Seerr media requests        |
 | 20017 | openwebui             | 8080           | Open WebUI (LLM chat)       |
+| 20018 | gitea                 | 3000           | Gitea (HTTP)                |
 
-**Next free: `20018`**
+**Next free: `20019`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome) are internal-only
@@ -46,3 +47,4 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 > **Outside the scheme** (host-networked; ports fixed by the app, not the registry):
 > - `beszel-agent` listens on host port **45876**.
 > - `clouddrive2` runs with `network_mode: host` (web UI on its built-in port, FUSE mounts under `/mnt`).
+> - `gitea` SSH stays on host port **222** (clone URLs), separate from its HTTP port above.

@@ -202,6 +202,22 @@ KARAKEEP_OPENAI_BASE_URL=[[KARAKEEP_OPENAI_BASE_URL]]
 """
 
 [[stack]]
+name = "gitea"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/gitea"
+file_paths = ["compose.yaml"]
+# Dedicated bundled Postgres (migrated off the shared instance); DB password via Komodo Variable.
+# Other Gitea secrets live in app.ini inside /srv/gitea/data.
+environment = """
+GITEA_DB_PASSWORD=[[GITEA_DB_PASSWORD]]
+"""
+
+[[stack]]
 name = "openwebui"
 deploy = false
 tags = ["app"]
