@@ -47,6 +47,9 @@ Adding a service is a coordinated change across **four** places, ideally in one 
 3. `docs/ports.md` — claim the next free host port and update **Next free**.
 4. `README.md` — add a row to the Services table.
 
+Migrating an existing `/opt/<service>` deployment into a stack (data move, secrets, cutover) has its
+own runbook: `docs/migration.md`.
+
 ## Non-obvious conventions (enforced; see `docs/conventions.md`)
 
 - **Pin app images** to an explicit version (`org/name:1.2.3`, never `:latest`); pin

@@ -11,7 +11,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 ├── stacks/<service>/compose.yaml   # one folder per service: pinned image, /srv binds, host port
 ├── komodo/sync.toml                # Komodo Resource Sync + redeploy Procedure (IaC)
 ├── renovate.json                   # Renovate config (auto-detects stacks/*/compose.yaml)
-└── docs/                           # conventions, port registry, workflow
+└── docs/                           # conventions, ports, workflow, migration runbook
 ```
 
 ## Services
@@ -27,6 +27,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 - [Conventions](./docs/conventions.md) — file layout, `/srv` data, ports, networks, env vars, volumes
 - [Port registry](./docs/ports.md)
 - [Update & deploy workflow](./docs/workflow.md) — Komodo sync + redeploy procedure + Renovate
+- [Migrating a service](./docs/migration.md) — runbook for moving an existing `/opt` service in
 
 ## Add a service
 
