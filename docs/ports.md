@@ -22,8 +22,9 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20001 | calibre-web-automated | 8083           | Calibre-Web-Automated (CWA) |
 | 20002 | deeix-chat            | 8080           | DEEIX Chat (AI chat)        |
 | 20003 | drizzle-gateway       | 4983           | Drizzle Gateway (DB studio) |
+| 20004 | cloudreve             | 5212           | Cloudreve (cloud storage)   |
 
-**Next free: `20004`**
+**Next free: `20005`**
 
-> Only the published service consumes a number. deeix-chat's bundled Postgres and Redis are
-> internal-only (no host port).
+> Only the published service consumes a number. The bundled Postgres/Redis behind deeix-chat and
+> cloudreve are internal-only (no host port).

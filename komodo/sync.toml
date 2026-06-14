@@ -72,6 +72,18 @@ environment = """
 DRIZZLE_GATEWAY_MASTERPASS=[[DRIZZLE_GATEWAY_MASTERPASS]]
 """
 
+[[stack]]
+name = "cloudreve"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/cloudreve"
+file_paths = ["compose.yaml"]
+# No secrets: the bundled Postgres uses trust auth and Redis has no password.
+
 # ----------------------------------------------------------------------------
 # Auto-redeploy on git push (the Renovate flow).
 #

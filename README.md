@@ -22,6 +22,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 | [calibre-web-automated](./stacks/calibre-web-automated) | 20001 | Ebook library (CWA) |
 | [deeix-chat](./stacks/deeix-chat) | 20002 | AI chat (app + Postgres + Redis) |
 | [drizzle-gateway](./stacks/drizzle-gateway) | 20003 | Drizzle Gateway (DB studio) |
+| [cloudreve](./stacks/cloudreve) | 20004 | Cloudreve cloud storage (+ Postgres + Redis) |
 
 ## Docs
 

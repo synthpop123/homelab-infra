@@ -1,0 +1,63 @@
+services:
+  backend:
+    container_name: cloudreve-backend
+    image: cloudreve/cloudreve:4.16.1
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20004:5212/tcp"
+    environment:
+      # CR_CONF_* env overrides conf.ini at runtime. Hosts point at the renamed
+      # sibling containers (underscores -> hyphens). DB uses trust auth (no password).
+      CR_CONF_Database.Type: postgres
+      CR_CONF_Database.Host: cloudreve-postgresql
+      CR_CONF_Database.User: cloudreve
+      CR_CONF_Database.Name: cloudreve
+      CR_CONF_Database.Port: 5432
+      CR_CONF_Redis.Server: cloudreve-redis:6379
+    volumes:
+      - /srv/cloudreve/backend_data:/cloudreve/data
+    restart: unless-stopped
+
+  postgresql:
+    container_name: cloudreve-postgresql
+    # Pinned to the major line (17); a major upgrade needs a manual data migration.
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: cloudreve
+      POSTGRES_DB: cloudreve
+      POSTGRES_HOST_AUTH_METHOD: trust
+      # Mount PGDATA directly (upstream compose bound the parent dir, which left the real
+      # data in an anonymous volume); the migrated data lives at /srv/cloudreve/postgres.
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - /srv/cloudreve/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    container_name: cloudreve-redis
+    image: redis:8
+    volumes:
+      - /srv/cloudreve/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  # Name the project network explicitly to avoid the auto-generated "<project>_default".
+  default:
+    name: cloudreve
