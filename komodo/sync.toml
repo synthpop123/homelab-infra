@@ -202,6 +202,22 @@ KARAKEEP_OPENAI_BASE_URL=[[KARAKEEP_OPENAI_BASE_URL]]
 """
 
 [[stack]]
+name = "seerr"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/seerr"
+file_paths = ["compose.yaml"]
+# Dedicated bundled Postgres (migrated off the shared instance); DB password via Komodo Variable.
+# Stays on the external mediacenter-net (see compose.yaml).
+environment = """
+SEERR_DB_PASSWORD=[[SEERR_DB_PASSWORD]]
+"""
+
+[[stack]]
 name = "memos"
 deploy = false
 tags = ["app"]

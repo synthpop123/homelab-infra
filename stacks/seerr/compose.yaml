@@ -1,0 +1,66 @@
+# seerr — media request manager (Overseerr/Jellyseerr fork). Migrated off the shared Postgres.
+# Stays attached to the external `mediacenter-net` (with its fixed IP) so it can reach the media
+# server + *arr apps; the bundled Postgres sits on a private network that only seerr bridges to.
+# App secrets (media-server/*arr API keys) live in the off-git /srv/seerr/config dir; only the DB
+# password is a Komodo Variable.
+services:
+  seerr:
+    container_name: seerr
+    image: ghcr.io/seerr-team/seerr:v3.3.0
+    init: true
+    restart: unless-stopped
+    depends_on:
+      seerr-postgres:
+        condition: service_healthy
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20016:5055/tcp"
+    volumes:
+      - /srv/seerr/config:/app/config
+    environment:
+      LOG_LEVEL: info
+      TZ: Asia/Shanghai
+      PORT: "5055"
+      DB_TYPE: postgres
+      DB_HOST: seerr-postgres
+      DB_PORT: "5432"
+      DB_USER: seerr
+      DB_PASS: ${SEERR_DB_PASSWORD}
+      DB_NAME: seerr
+      DB_LOG_QUERIES: "false"
+      DB_USE_SSL: "false"
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1
+      start_period: 20s
+      timeout: 5s
+      interval: 60s
+      retries: 3
+    networks:
+      mediacenter-net:
+        ipv4_address: 172.22.0.6
+      seerr-internal: {}
+
+  seerr-postgres:
+    container_name: seerr-postgres
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: seerr
+      POSTGRES_USER: seerr
+      POSTGRES_PASSWORD: ${SEERR_DB_PASSWORD}
+    volumes:
+      - /srv/seerr/postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U seerr -d seerr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - seerr-internal
+
+networks:
+  mediacenter-net:
+    external: true
+    name: mediacenter-net
+  seerr-internal:
+    name: seerr-internal
