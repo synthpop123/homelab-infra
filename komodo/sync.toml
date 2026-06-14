@@ -202,6 +202,21 @@ KARAKEEP_OPENAI_BASE_URL=[[KARAKEEP_OPENAI_BASE_URL]]
 """
 
 [[stack]]
+name = "memos"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/memos"
+file_paths = ["compose.yaml"]
+# Dedicated bundled Postgres (migrated off the shared instance); DB password via Komodo Variable.
+environment = """
+MEMOS_DB_PASSWORD=[[MEMOS_DB_PASSWORD]]
+"""
+
+[[stack]]
 name = "n8n"
 deploy = false
 tags = ["app"]

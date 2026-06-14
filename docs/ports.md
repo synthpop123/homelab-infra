@@ -33,8 +33,9 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20012 | immich                | 2283           | Immich photo backup         |
 | 20013 | karakeep              | 3000           | Karakeep bookmarks          |
 | 20014 | n8n                   | 5678           | n8n workflow automation     |
+| 20015 | memos                 | 5230           | Memos notes                 |
 
-**Next free: `20015`**
+**Next free: `20016`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome) are internal-only

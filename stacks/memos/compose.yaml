@@ -1,0 +1,40 @@
+# memos — lightweight note-taking, migrated off the shared Postgres to a dedicated bundled instance.
+# With the postgres driver all data lives in the DB; /var/opt/memos is effectively empty.
+# (A leftover /opt/memos/.env held a Telegram bot token, but the old compose never loaded it, so it
+# was not active and is intentionally not carried over.)
+services:
+  memos:
+    container_name: memos
+    image: neosmemo/memos:0.29.1
+    restart: unless-stopped
+    depends_on:
+      memos-postgres:
+        condition: service_healthy
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20015:5230/tcp"
+    volumes:
+      - /srv/memos/data:/var/opt/memos
+    environment:
+      MEMOS_DRIVER: postgres
+      MEMOS_DSN: user=memos password=${MEMOS_DB_PASSWORD} dbname=memos host=memos-postgres port=5432 sslmode=disable
+
+  memos-postgres:
+    container_name: memos-postgres
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: memos
+      POSTGRES_USER: memos
+      POSTGRES_PASSWORD: ${MEMOS_DB_PASSWORD}
+    volumes:
+      - /srv/memos/postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U memos -d memos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: memos
