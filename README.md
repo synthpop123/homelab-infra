@@ -38,8 +38,14 @@ published service, recorded in the registry in the same commit that adds the ser
 ### Versioning & updates (Renovate + Komodo)
 1. Every image is pinned to an explicit version — `image: org/name:1.2.3`, never `:latest`.
 2. Renovate watches every `compose.yaml` and opens a PR when a newer version is released.
-3. Merging the PR to `main` fires the GitHub webhook on the Komodo **Resource Sync**, which
-   redeploys the affected stack with the new image.
+3. Merging the PR to `main` triggers two repo webhooks:
+   - the **Resource Sync** (`homelab`) reconciles stack *definitions* (creates newly-added stacks), and
+   - the **redeploy-on-push** Procedure redeploys only the stacks whose compose *content*
+     changed, via `BatchDeployStackIfChanged` — this is what rolls out the new image.
+
+A Resource Sync alone does **not** redeploy on a compose content change (it only reconciles
+definitions), which is why the Procedure exists. One webhook per resource keeps us well under
+GitHub's limit of 20 webhooks per repo, so this scales to many services.
 
 ## Adding a new service
 
