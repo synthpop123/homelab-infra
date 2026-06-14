@@ -13,3 +13,8 @@ services:
       - /srv/wallos/db:/var/www/html/db
       - /srv/wallos/logos:/var/www/html/images/uploads/logos
     restart: unless-stopped
+
+networks:
+  # Name the project network explicitly to avoid the auto-generated "<project>_default".
+  default:
+    name: wallos

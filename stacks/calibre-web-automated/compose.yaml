@@ -1,0 +1,19 @@
+services:
+  calibre-web-automated:
+    container_name: calibre-web-automated
+    image: crocodilestick/calibre-web-automated:v4.0.6
+    ports:
+      - "20001:8083/tcp"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: Asia/Shanghai
+    volumes:
+      - /srv/calibre-web-automated/config:/config
+      - /srv/calibre-web-automated/ingest:/cwa-book-ingest
+      - /srv/calibre-web-automated/library:/calibre-library
+    restart: unless-stopped
+
+networks:
+  default:
+    name: calibre-web-automated

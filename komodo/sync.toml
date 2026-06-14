@@ -19,3 +19,17 @@ repo = "synthpop123/homelab-infra"
 branch = "main"
 run_directory = "stacks/wallos"  # folder within the repo to `cd` into before `docker compose up`
 file_paths = ["compose.yaml"]    # compose file(s) relative to run_directory
+
+[[stack]]
+name = "calibre-web-automated"
+deploy = true
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+git_provider = "github.com"
+git_account = "synthpop123"
+repo = "synthpop123/homelab-infra"
+branch = "main"
+run_directory = "stacks/calibre-web-automated"
+file_paths = ["compose.yaml"]

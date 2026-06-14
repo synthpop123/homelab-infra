@@ -16,8 +16,9 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 
 ## Allocations
 
-| Port  | Service | Container port | Notes                |
-|-------|---------|----------------|----------------------|
-| 20000 | wallos  | 80             | Subscription tracker |
+| Port  | Service               | Container port | Notes                       |
+|-------|-----------------------|----------------|-----------------------------|
+| 20000 | wallos                | 80             | Subscription tracker        |
+| 20001 | calibre-web-automated | 8083           | Calibre-Web-Automated (CWA) |
 
-**Next free: `20001`**
+**Next free: `20002`**
