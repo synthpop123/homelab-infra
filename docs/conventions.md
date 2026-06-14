@@ -1,0 +1,47 @@
+# Conventions
+
+## File organization
+- **Repo:** one stack per `stacks/<service>/compose.yaml`. Multi-file stacks add more files in
+  the same folder.
+- **VPS:** Komodo clones this repo under `/etc/komodo/repos/`. Persistent **data lives under
+  `/srv/<service>/`** via *absolute* bind mounts, so data never lands inside the git clone and
+  survives re-clones / redeploys.
+- **Legacy:** services still under `/opt/<service>/` are left untouched and migrated one at a time.
+
+## Image pinning
+- Always pin to an explicit version: `image: org/name:1.2.3` (never `:latest`).
+- Upgrades come in as Renovate PRs — see [workflow.md](./workflow.md).
+
+## Ports
+- Host ports are allocated sequentially from `20000`, one per published service.
+- The registry is the single source of truth: [ports.md](./ports.md). Record the port in the
+  same commit that adds the service.
+
+## Networks
+Name each stack's default network so Komodo does not generate `<project>_default`:
+
+```yaml
+networks:
+  default:
+    name: <stack>
+```
+
+## Environment variables
+- **Non-secret** (e.g. `TZ`, `PUID`/`PGID`, feature flags): put directly in
+  `stacks/<service>/compose.yaml` under `environment:` — committed, keeps the service self-contained.
+- **Secrets** (API keys, passwords): never commit. Define them as **Variables & Secrets** in the
+  Komodo UI, then:
+  - reference `${MY_SECRET}` in `compose.yaml`, and
+  - in `komodo/sync.toml`, set the stack's `environment` to `MY_SECRET = [[MY_SECRET]]`.
+
+  Komodo interpolates `[[ ]]` at deploy time and writes the real value into `.env` (git-ignored).
+  Git only ever contains the placeholder.
+
+## Volumes
+- **Default: bind mounts to `/srv/<service>/...`** (absolute paths). Easy to back up (back up
+  `/srv`), visible, and portable — matches the data-in-`/srv` policy.
+- **Named volumes:** avoid unless an image is picky about bind-mount permissions or the data is
+  pure cache/temp. They live under `/var/lib/docker/volumes` (harder to back up) and
+  `docker compose down -v` can delete them.
+- Ownership follows the image's own user (e.g. LinuxServer images respect `PUID`/`PGID`; the
+  wallos image runs as `www-data`/`82`). Don't force a single global UID across services.

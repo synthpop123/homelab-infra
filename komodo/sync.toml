@@ -40,10 +40,10 @@ file_paths = ["compose.yaml"]
 # bumps an image tag). This Procedure does: on each push it redeploys ONLY the
 # stacks whose content actually changed. A single webhook on the repo points at
 # this procedure, so it scales past GitHub's 20-webhooks-per-repo limit.
-#   Webhook URL: https://<your-komodo-host>/listener/github/procedure/redeploy-on-push/main
+#   Set up its push webhook in the Komodo UI (Procedure page -> copy webhook URL).
 # ----------------------------------------------------------------------------
 [[procedure]]
-name = "redeploy-on-push"
+name = "Redeploy On Push"
 description = "Redeploy stacks whose compose changed in git (Renovate version bumps, etc.)"
 
 [procedure.config]

@@ -3,7 +3,7 @@ services:
     container_name: wallos
     image: bellamy/wallos:4.9.5
     ports:
-      # host:container — host port allocated from the registry (see /PORTS.md)
+      # host:container — host port allocated from the registry (see docs/ports.md)
       - "20000:80/tcp"
     environment:
       TZ: Asia/Shanghai
