@@ -1,0 +1,47 @@
+services:
+  koito:
+    container_name: koito
+    image: gabehf/koito:v0.3.2
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20005:4110/tcp"
+    environment:
+      KOITO_FORCE_TZ: Asia/Shanghai
+      # Secret injected from a Komodo Variable at deploy time.
+      KOITO_LASTFM_API_KEY: ${KOITO_LASTFM_API_KEY}
+    volumes:
+      # koito keeps its SQLite DB + image cache here (runs as root).
+      - /srv/koito/koito:/etc/koito
+    restart: unless-stopped
+
+  # Pulls listens from Spotify etc. and scrobbles them to koito over the internal network,
+  # so the two ship as one stack. multi-scrobbler reaches koito at http://koito:4110.
+  multi-scrobbler:
+    container_name: multi-scrobbler
+    image: foxxmd/multi-scrobbler:0.14.1
+    depends_on:
+      - koito
+    ports:
+      - "20006:9078/tcp"
+    environment:
+      TZ: Asia/Shanghai
+      SPOTIFY_ID: spotify
+      KOITO_ID: koito
+      KOITO_URL: http://koito:4110
+      KOITO_NAME: Koito
+      # Public base URL, username and Spotify/koito credentials come from Komodo Variables
+      # (kept out of git — the repo is open-source-bound).
+      BASE_URL: ${MS_BASE_URL}
+      SPOTIFY_REDIRECT_URI: ${MS_BASE_URL}/callback
+      SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
+      SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET}
+      KOITO_TOKEN: ${KOITO_TOKEN}
+      KOITO_USER: ${KOITO_USER}
+    volumes:
+      - /srv/koito/config:/config
+    restart: unless-stopped
+
+networks:
+  # Name the project network explicitly to avoid the auto-generated "<project>_default".
+  default:
+    name: koito

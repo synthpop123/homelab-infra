@@ -84,6 +84,27 @@ run_directory = "stacks/cloudreve"
 file_paths = ["compose.yaml"]
 # No secrets: the bundled Postgres uses trust auth and Redis has no password.
 
+[[stack]]
+name = "koito"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/koito"
+file_paths = ["compose.yaml"]
+# koito + multi-scrobbler secrets and personal info (domain, username) come from Komodo
+# Variables; the compose references ${...} placeholders only.
+environment = """
+KOITO_LASTFM_API_KEY=[[KOITO_LASTFM_API_KEY]]
+KOITO_TOKEN=[[KOITO_TOKEN]]
+KOITO_USER=[[KOITO_USER]]
+SPOTIFY_CLIENT_ID=[[SPOTIFY_CLIENT_ID]]
+SPOTIFY_CLIENT_SECRET=[[SPOTIFY_CLIENT_SECRET]]
+MS_BASE_URL=[[MS_BASE_URL]]
+"""
+
 # ----------------------------------------------------------------------------
 # Auto-redeploy on git push (the Renovate flow).
 #

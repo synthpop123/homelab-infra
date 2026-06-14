@@ -23,6 +23,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 | [deeix-chat](./stacks/deeix-chat) | 20002 | AI chat (app + Postgres + Redis) |
 | [drizzle-gateway](./stacks/drizzle-gateway) | 20003 | Drizzle Gateway (DB studio) |
 | [cloudreve](./stacks/cloudreve) | 20004 | Cloudreve cloud storage (+ Postgres + Redis) |
+| [koito](./stacks/koito) | 20005 / 20006 | Koito scrobble server + multi-scrobbler |
 
 ## Docs
 

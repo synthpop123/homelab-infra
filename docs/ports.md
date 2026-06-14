@@ -23,8 +23,10 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20002 | deeix-chat            | 8080           | DEEIX Chat (AI chat)        |
 | 20003 | drizzle-gateway       | 4983           | Drizzle Gateway (DB studio) |
 | 20004 | cloudreve             | 5212           | Cloudreve (cloud storage)   |
+| 20005 | koito                 | 4110           | Koito (music scrobble svr)  |
+| 20006 | multi-scrobbler       | 9078           | multi-scrobbler -> koito    |
 
-**Next free: `20005`**
+**Next free: `20007`**
 
 > Only the published service consumes a number. The bundled Postgres/Redis behind deeix-chat and
 > cloudreve are internal-only (no host port).
