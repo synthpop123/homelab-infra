@@ -1,0 +1,47 @@
+# cloud-media-sync (CMS): reads the 115 netdisk cookie (kept in /srv/cms/config), periodically syncs
+# the netdisk's file changes, and writes .strm files into the shared Emby library (/srv/emby/data,
+# mounted as /media). It also runs an "emby-302" reverse proxy on container port 9096: when Emby
+# plays a .strm the request hits https://cms.lkwplus.com/d/... (reverse-proxied to that port) and CMS
+# 302-redirects it to the real 115 download link. It reaches Emby at the fixed 172.22.0.4:8096.
+#
+# privileged + the fixed IP 172.22.0.5 on the external mediacenter-net are preserved exactly from the
+# original setup (the network is created/managed outside this repo). Secrets (admin creds, Emby API
+# key, CMS token, donate code) and the personal admin username come from Komodo Variables, written
+# into a git-ignored .env at deploy — the repo holds none of them.
+services:
+  cloud-media-sync:
+    container_name: cloud-media-sync
+    image: imaliang/cloud-media-sync:0.4.3.5
+    privileged: true
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=022
+      - TZ=Asia/Shanghai
+      - RUN_ENV=online
+      - ADMIN_USERNAME=${CMS_ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${CMS_ADMIN_PASSWORD}
+      - EMBY_HOST_PORT=http://172.22.0.4:8096
+      - EMBY_API_KEY=${CMS_EMBY_API_KEY}
+      - EMBY_PROXY_PORT=9096
+      - IMAGE_CACHE_POLICY=1
+      - CMS_API_TOKEN=${CMS_API_TOKEN}
+      - DONATE_CODE=${CMS_DONATE_CODE}
+    volumes:
+      - /srv/cms/config:/config
+      - /srv/cms/logs:/logs
+      - /srv/cms/cache:/var/cache/nginx/emby
+      - /srv/emby/data:/media
+    ports:
+      # host:container — host ports from the registry (see docs/ports.md)
+      - "20022:9527/tcp"   # CMS web UI
+      - "20023:9096/tcp"   # emby-302 proxy (front this with cms.lkwplus.com)
+    networks:
+      mediacenter-net:
+        ipv4_address: 172.22.0.5
+
+networks:
+  mediacenter-net:
+    external: true
+    name: mediacenter-net

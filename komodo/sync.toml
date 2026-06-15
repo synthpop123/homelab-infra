@@ -374,6 +374,28 @@ file_paths = ["compose.yaml"]
 # Media server. Reads the shared library at /srv/emby/data. Sits at the FIXED IP 172.22.0.4 on the
 # external (manually-created) mediacenter-net so cloud-media-sync can reach it. No compose secrets.
 
+[[stack]]
+name = "cms"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/cms"
+file_paths = ["compose.yaml"]
+# cloud-media-sync: privileged, fixed IP 172.22.0.5 on the external mediacenter-net (reaches Emby at
+# 172.22.0.4). Writes .strm into /srv/emby/data and runs the emby-302 proxy fronted by cms.lkwplus.com.
+# Admin creds, Emby API key, CMS token, donate code and the personal admin username are Komodo
+# Variables, written into a git-ignored .env at deploy.
+environment = """
+CMS_ADMIN_USERNAME=[[CMS_ADMIN_USERNAME]]
+CMS_ADMIN_PASSWORD=[[CMS_ADMIN_PASSWORD]]
+CMS_EMBY_API_KEY=[[CMS_EMBY_API_KEY]]
+CMS_API_TOKEN=[[CMS_API_TOKEN]]
+CMS_DONATE_CODE=[[CMS_DONATE_CODE]]
+"""
+
 # ----------------------------------------------------------------------------
 # Sync-then-deploy on git push (the Renovate flow), as ONE ordered procedure.
 #

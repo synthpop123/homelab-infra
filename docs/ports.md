@@ -40,8 +40,10 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20019 | qbittorrent           | 8081           | qBittorrent WebUI (torrent) |
 | 20020 | qui                   | 7476           | qui — qBittorrent manager   |
 | 20021 | emby                  | 8096           | Emby media server           |
+| 20022 | cms (web UI)          | 9527           | cloud-media-sync web UI     |
+| 20023 | cms (emby-302)        | 9096           | strm 302 proxy → cms.lkwplus.com |
 
-**Next free: `20022`**
+**Next free: `20024`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome) are internal-only
@@ -52,3 +54,7 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 > - `clouddrive2` runs with `network_mode: host` (web UI on its built-in port, FUSE mounts under `/mnt`).
 > - `gitea` SSH stays on host port **222** (clone URLs), separate from its HTTP port above.
 > - `qbittorrent` BitTorrent listen port stays on host port **65231** (tcp + udp), separate from its WebUI above.
+>
+> **Fixed IPs on the shared external `mediacenter-net`** (docker network addresses, not host ports):
+> `emby` = `172.22.0.4`, `cloud-media-sync` = `172.22.0.5`, `seerr` = `172.22.0.6`. cloud-media-sync
+> reaches Emby by that fixed IP, so these must not change.
