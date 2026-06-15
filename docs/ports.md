@@ -37,8 +37,10 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20016 | seerr                 | 5055           | Seerr media requests        |
 | 20017 | openwebui             | 8080           | Open WebUI (LLM chat)       |
 | 20018 | gitea                 | 3000           | Gitea (HTTP)                |
+| 20019 | qbittorrent           | 8081           | qBittorrent WebUI (torrent) |
+| 20020 | qui                   | 7476           | qui — qBittorrent manager   |
 
-**Next free: `20019`**
+**Next free: `20021`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome) are internal-only
@@ -48,3 +50,4 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 > - `beszel-agent` listens on host port **45876**.
 > - `clouddrive2` runs with `network_mode: host` (web UI on its built-in port, FUSE mounts under `/mnt`).
 > - `gitea` SSH stays on host port **222** (clone URLs), separate from its HTTP port above.
+> - `qbittorrent` BitTorrent listen port stays on host port **65231** (tcp + udp), separate from its WebUI above.

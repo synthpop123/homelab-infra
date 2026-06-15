@@ -1,0 +1,50 @@
+# Torrent stack — qBittorrent (download client) + qui (autobrr's qBittorrent WebUI/manager).
+#
+# Own `torrent` network, deliberately kept separate from autobrr's `torrenting` network (autobrr is
+# left running untouched under /opt and is not wired to qBittorrent). qui reaches qBittorrent
+# in-network at http://qbittorrent:8081, so its WebUI host port can change freely without breaking
+# the link.
+#
+# No compose-level secrets: the qBittorrent WebUI credentials live in /srv/torrent/qbittorrent/config
+# and qui's instance config (including the encrypted qBittorrent password) lives in /srv/torrent/qui/config.
+services:
+  qbittorrent:
+    container_name: qbittorrent
+    image: lscr.io/linuxserver/qbittorrent:5.1.4
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Shanghai
+      - UMASK=022
+      # WebUI listens on 8081 inside the container (must equal the container side of the mapping
+      # below, for qBittorrent's CSRF/port handling). qui connects to qbittorrent:8081 in-network.
+      - WEBUI_PORT=8081
+      # BitTorrent listen port — kept identical to the legacy setup (must match the tcp+udp mapping).
+      - TORRENTING_PORT=65231
+    volumes:
+      - /srv/torrent/qbittorrent/config:/config
+      - /srv/torrent/qbittorrent/downloads:/downloads
+      - /srv/torrent/qbittorrent/completed:/upload
+    ports:
+      # WebUI — host port from the registry (was 18781); container side stays 8081.
+      - "20019:8081/tcp"
+      # BitTorrent listen port — unchanged (tcp + udp).
+      - "65231:65231/tcp"
+      - "65231:65231/udp"
+
+  qui:
+    container_name: qui
+    image: ghcr.io/autobrr/qui:v1.20.0
+    restart: unless-stopped
+    depends_on:
+      - qbittorrent
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20020:7476/tcp"
+    volumes:
+      - /srv/torrent/qui/config:/config
+
+networks:
+  default:
+    name: torrent

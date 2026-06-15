@@ -343,6 +343,20 @@ SMTP_FROM_ADDRESS=[[MASTODON_SMTP_FROM_ADDRESS]]
 UPDATE_CHECK_URL=
 """
 
+[[stack]]
+name = "torrent"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/torrent"
+file_paths = ["compose.yaml"]
+# No secrets in compose: the qBittorrent WebUI credentials live in /srv/torrent/qbittorrent/config
+# and qui's instance config (incl. the encrypted qBittorrent password) in /srv/torrent/qui/config.
+# Own `torrent` network, separate from autobrr's `torrenting` (autobrr left untouched under /opt).
+
 # ----------------------------------------------------------------------------
 # Auto-redeploy on git push (the Renovate flow).
 #
