@@ -4,13 +4,17 @@
 # every stack is managed from git: add a service by adding a [[stack]] block here plus a
 # stacks/<name>/compose.yaml file, then push.
 #
-# Division of labour (this is what avoids a double-deploy race):
+# Division of labour (this is what avoids a double-deploy race AND first-push misses):
 #   * This sync only reconciles resource *definitions*. Every stack sets `deploy = false`, so the
 #     sync NEVER deploys — it just creates/updates the Stack resource in Komodo.
-#   * The "Redeploy On Push" procedure at the bottom is the SOLE deployer.
-#   (Flip a stack back to deploy = true and the sync's push webhook + the procedure's push webhook
-#   would both deploy it at once and collide with "Resource is busy" — which is exactly the bug
-#   this layout prevents.)
+#   * The "Redeploy On Push" procedure at the bottom is the SOLE deployer, and it is the SINGLE
+#     git-push entry point: stage 1 runs THIS sync (RunSync), stage 2 deploys what changed. Stages
+#     run sequentially, so a brand-new stack's definition exists before the deploy stage runs — it
+#     comes up on its FIRST push, no manual UI deploy / empty "trigger" commit needed.
+#   * The sync's OWN push webhook is disabled (the procedure runs the sync as stage 1). Having both
+#     webhooks fire would run two `homelab` syncs in parallel and fight over the lock.
+#   (Flip a stack back to deploy = true and the sync would deploy it too, colliding with the
+#   procedure for the stack's deploy lock — "Resource is busy" — which is the bug this layout avoids.)
 #
 # Stacks reference their git source through `linked_repo` — the name of a Komodo "Repo"
 # resource configured in the UI. The git account/repo therefore live in Komodo, not in this
@@ -358,21 +362,32 @@ file_paths = ["compose.yaml"]
 # Own `torrent` network, separate from autobrr's `torrenting` (autobrr left untouched under /opt).
 
 # ----------------------------------------------------------------------------
-# Auto-redeploy on git push (the Renovate flow).
+# Sync-then-deploy on git push (the Renovate flow), as ONE ordered procedure.
 #
-# The Resource Sync above only reconciles resource *definitions* (deploy = false);
-# it never deploys. This Procedure is the SOLE deployer: on each push it deploys
-# ONLY the stacks whose compose content actually changed (a brand-new stack counts
-# as changed). One webhook on the repo points here, so it also scales past GitHub's
-# 20-webhooks-per-repo limit.
-#   Set up its push webhook in the Komodo UI (Procedure page -> copy webhook URL).
+# A single webhook on the repo points at THIS procedure (the `homelab` sync's own
+# webhook is disabled). Stages run sequentially, so each push:
+#   Stage 1  RunSync "homelab"                — reconcile resource *definitions*
+#            (creates a brand-new stack's resource if this push added one).
+#   Stage 2  BatchDeployStackIfChanged "*"    — deploy ONLY the stacks whose compose
+#            content changed, including that brand-new stack now that it exists.
+# Because stage 2 can't start until stage 1 finishes, a new stack deploys on its FIRST
+# push — no manual UI deploy and no empty "trigger" commit. (Renovate tag bumps are just
+# the stage-2 path: changed compose -> redeploy.) If stage 1 fails, stage 2 won't run.
+#   Set up this procedure's push webhook in the Komodo UI (Procedure page -> copy webhook URL),
+#   and make sure the `homelab` ResourceSync's webhook is turned OFF so it doesn't double-run.
 # ----------------------------------------------------------------------------
 [[procedure]]
 name = "Redeploy On Push"
-description = "Redeploy stacks whose compose changed in git (Renovate version bumps, etc.)"
+description = "On git push: run the homelab sync (reconcile definitions), then deploy stacks whose compose changed."
 
 [procedure.config]
 webhook_enabled = true
+
+[[procedure.config.stage]]
+name = "Sync resource definitions"
+executions = [
+  { execution.type = "RunSync", execution.params.sync = "homelab" },
+]
 
 [[procedure.config.stage]]
 name = "Redeploy changed stacks"

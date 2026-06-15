@@ -6,18 +6,21 @@ How a change flows from git to a running container.
 - **Resource Sync `homelab`** — reads `komodo/sync.toml` and reconciles resource *definitions*
   (creates/updates Stacks). Every stack is `deploy = false`, so the sync **never deploys** — that
   keeps it from racing the procedure for a stack's deploy lock (the "Resource is busy" error).
-- **Procedure `Redeploy On Push`** — the **sole deployer**: runs `BatchDeployStackIfChanged` with
-  pattern `*`, deploying only the stacks whose compose content actually changed.
+- **Procedure `Redeploy On Push`** — the **single git-push entry point** and the **sole deployer**.
+  It runs two **sequential** stages: **(1)** `RunSync homelab` reconciles definitions, then
+  **(2)** `BatchDeployStackIfChanged *` deploys only the stacks whose compose content changed.
+  Because stage 2 waits for stage 1, a brand-new stack's definition exists before deploy — so it
+  comes up on its **first** push (no manual UI deploy, no empty "trigger" commit).
 
 ## Webhooks (on the GitHub repo)
-Two `push` webhooks, each with content-type `application/json` and the `KOMODO_WEBHOOK_SECRET`:
+**One** `push` webhook (content-type `application/json`, secret `KOMODO_WEBHOOK_SECRET`):
 
-1. Resource Sync → `…/listener/github/sync/homelab/sync`
-2. Procedure → `…/listener/github/procedure/<id-or-name>/main`
+- Procedure `Redeploy On Push` → `…/listener/github/procedure/<id>/main`
 
-Copy the exact URL from each resource's page in the Komodo UI (it handles the id/encoding). Two
-webhooks is well under GitHub's limit of 20 per repo, and one procedure covers every stack — so
-this scales to many services.
+Copy the exact URL from the Procedure's page in the Komodo UI (it handles the id/encoding). The
+**Resource Sync `homelab`** has a webhook URL too (`…/listener/github/sync/<id>/sync`), but it is
+intentionally **left disabled / not added** — the procedure runs the sync itself as stage 1. Adding
+it back would run two `homelab` syncs in parallel on every push and fight over the lock.
 
 ## How Renovate detects new versions
 - Renovate is **not** built into GitHub and needs **no CI / GitHub Actions** in this repo. Install
@@ -36,13 +39,15 @@ this scales to many services.
 Renovate opens PR (bump image tag)
         │  review + merge to main
         ▼
-GitHub push webhooks ──► Resource Sync `homelab`        (reconciles stack definitions; never deploys)
-                   └───► Procedure `Redeploy On Push` ──► BatchDeployStackIfChanged
-                                                          └─► deploys only the changed stacks
+GitHub push webhook ──► Procedure `Redeploy On Push`
+                          │
+                          ├─ Stage 1: RunSync `homelab`            (reconcile stack definitions; never deploys)
+                          ▼
+                          └─ Stage 2: BatchDeployStackIfChanged *  (deploy only the changed stacks)
 ```
 
-> **New stacks:** the sync only *defines* a new stack; the procedure deploys it. The two webhooks
-> run in parallel, so the procedure can fire before the definition exists — a brand-new stack may
-> therefore not come up on its very first push. If that happens, deploy it once from the Komodo UI;
-> every later push redeploys it automatically. (Existing stacks never hit this — they're already
-> defined, so the procedure just redeploys them.)
+> **New stacks come up on the first push.** Stage 1 creates the new stack's definition; stage 2 then
+> deploys it (a brand-new stack counts as "changed"). Because the stages are sequential, the
+> definition always exists before the deploy stage runs — no manual UI deploy or empty commit needed.
+> (Earlier this repo used two parallel webhooks — sync + procedure — which raced, so a new stack
+> sometimes missed its first deploy; folding the sync into the procedure as stage 1 fixed that.)

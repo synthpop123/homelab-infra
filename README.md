@@ -52,9 +52,9 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 1. Create `stacks/<service>/compose.yaml` — pin the image, put volumes under `/srv/<service>/…`,
    take the next free port from [docs/ports.md](./docs/ports.md).
 2. Add a `[[stack]]` block to [`komodo/sync.toml`](./komodo/sync.toml) and record the port.
-3. Commit & push — the `homelab` sync creates the stack definition and `Redeploy On Push` deploys
-   it (and later version bumps). If a brand-new stack doesn't come up on the first push, deploy it
-   once from the Komodo UI — see [workflow.md](./docs/workflow.md).
+3. Commit & push — the `Redeploy On Push` procedure runs the `homelab` sync (creates the stack
+   definition) and then deploys what changed, all in one ordered run. A brand-new stack comes up on
+   its first push (and later version bumps redeploy automatically) — see [workflow.md](./docs/workflow.md).
 
 ## License
 
