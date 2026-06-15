@@ -85,8 +85,6 @@ services:
       - es
     volumes:
       - /srv/mastodon/public/system:/mastodon/public/system
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
 
   streaming:
     container_name: mastodon-streaming
@@ -105,8 +103,6 @@ services:
     depends_on:
       - db
       - redis
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
 
   sidekiq:
     container_name: mastodon-sidekiq
@@ -124,8 +120,6 @@ services:
       - /srv/mastodon/public/system:/mastodon/public/system
     healthcheck:
       test: ["CMD-SHELL", "ps aux | grep -q '[s]idekiq' || exit 1"]
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
 
 networks:
   # Two networks (upstream design): internal_network is isolated (no egress) for db/redis;

@@ -23,8 +23,6 @@ services:
     restart: unless-stopped
     healthcheck:
       disable: false
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
 
   immich-machine-learning:
     container_name: immich-machine-learning
@@ -36,8 +34,6 @@ services:
     restart: unless-stopped
     healthcheck:
       disable: false
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
 
   redis:
     container_name: immich-redis
@@ -45,8 +41,6 @@ services:
     healthcheck:
       test: redis-cli ping || exit 1
     restart: unless-stopped
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
 
   database:
     container_name: immich-postgres
@@ -60,8 +54,6 @@ services:
       - /srv/immich/postgres:/var/lib/postgresql/data
     shm_size: 128mb
     restart: unless-stopped
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
 
 networks:
   default:
