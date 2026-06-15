@@ -44,12 +44,13 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20023 | cms (emby-302)        | 9096           | strm 302 proxy → cms.lkwplus.com |
 | 20024 | mdc                   | 9208           | Movie Data Capture scraper  |
 | 20025 | flaresolverr          | 8191           | Cloudflare solver (for mdc)  |
+| 20026 | autobrr               | 7474           | autobrr IRC/RSS automation  |
 
-**Next free: `20026`**
+**Next free: `20027`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
-> (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome) are internal-only
-> (no host port).
+> (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify)
+> are internal-only (no host port).
 >
 > **Outside the scheme** (host-networked; ports fixed by the app, not the registry):
 > - `beszel-agent` listens on host port **45876**.

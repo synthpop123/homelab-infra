@@ -1,0 +1,38 @@
+# autobrr — IRC/RSS release-automation filtering. A filter's "Webhook" action POSTs the matched
+# release to the bundled `autobrr-notify` service (FastAPI), which enriches it with TMDB metadata
+# and posts a rich card to Telegram. This keeps autobrr on its STOCK image (the old setup hand-
+# installed Python into the container, which was lost on every image pull). Notify secrets (TMDB
+# key, Telegram bot token + channel id) come from Komodo Variables via ${...}; autobrr's own state
+# (autobrr.db) lives in /srv/autobrr/config.
+services:
+  autobrr:
+    container_name: autobrr
+    image: ghcr.io/autobrr/autobrr:v1.80.0
+    restart: unless-stopped
+    user: 1000:1000
+    environment:
+      - TZ=Asia/Shanghai
+      - AUTOBRR__LOG_LEVEL=INFO
+      - AUTOBRR__CHECK_FOR_UPDATES=false
+    volumes:
+      - /srv/autobrr/config:/config
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20026:7474/tcp"
+
+  autobrr-notify:
+    container_name: autobrr-notify
+    # Built locally from ./notify; the stack deploys with `--build` (see komodo/sync.toml).
+    build: ./notify
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+      - TMDB_API_KEY=${TMDB_API_KEY}
+      - TMDB_LANGUAGE=zh-CN
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHANNEL_ID=${TELEGRAM_CHANNEL_ID}
+    # No host port: autobrr reaches it in-network at http://autobrr-notify:8000/notify
+
+networks:
+  default:
+    name: autobrr

@@ -436,6 +436,27 @@ MDC_USERNAME=[[MDC_USERNAME]]
 MDC_PASSWORD=[[MDC_PASSWORD]]
 """
 
+[[stack]]
+name = "autobrr"
+description = "https://autobrr.lkwplus.com"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/autobrr"
+file_paths = ["compose.yaml"]
+# `autobrr-notify` is built locally from ./notify, so the deploy runs `docker compose up --build`.
+extra_args = "--build"
+# TMDB key + Telegram bot token/channel id for the notify sidecar are Komodo Variables; the compose
+# references ${...}. autobrr's own secrets live in /srv/autobrr/config (autobrr.db), kept off git.
+environment = """
+TMDB_API_KEY=[[AUTOBRR_TMDB_API_KEY]]
+TELEGRAM_BOT_TOKEN=[[AUTOBRR_TELEGRAM_BOT_TOKEN]]
+TELEGRAM_CHANNEL_ID=[[AUTOBRR_TELEGRAM_CHANNEL_ID]]
+"""
+
 # ----------------------------------------------------------------------------
 # Sync-then-deploy on git push (the Renovate flow), as ONE ordered procedure.
 #
