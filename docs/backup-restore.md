@@ -16,7 +16,7 @@ radius. You need **all three** to come back from a total loss:
 |-------|----------|----------|--------------|----------------|
 | **1. Code / IaC** | `stacks/*/compose.yaml`, `komodo/sync.toml`, docs | this git repo | pushed to **GitHub** (off-box) | `git clone` to recover |
 | **2. Komodo metadata** | resource defs, **Variables/secrets**, users, API keys, git/registry accounts, audit log | MongoDB (`komodo-mongo`) | **built-in** dump → `/etc/komodo/backups` (daily) | secrets & accounts gone; stacks must be reconfigured by hand |
-| **3. Application data** | each service's DB, uploads, app-held keys | `/srv/<service>/` (3.6 GB) | **nothing yet** — see [Layer 2 below](#layer-2--application-data-srv) | the actual user data is gone for good |
+| **3. Application data** | each service's DB, uploads, app-held keys | `/srv/<service>/` (~56 GB, mostly emby) | **nothing yet** — see [Layer 2 below](#layer-2--application-data-srv) | the actual user data is gone for good |
 
 Why all three, and why git alone is **not** enough:
 
@@ -93,7 +93,8 @@ bring Core back and are **not** in git:
 Komodo's own `komodo_mongo-data` / `komodo_keys`). Nothing backs `/srv` up today.
 
 ```
-3.6G  /srv total   — biggest: immich 1.4G, openwebui 1.1G, new-api 317M, koito 176M, ...
+~56G  /srv total   — dominated by emby ~50G (.strm + scraped metadata/artwork, mostly
+       rebuildable), cms 3.1G; then immich 1.4G, openwebui 1.1G, new-api ~320M, koito 176M, ...
 ```
 
 ### Make the backup consistent

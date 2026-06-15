@@ -20,6 +20,8 @@
 - Host ports are allocated sequentially from `20000`, one per published service.
 - The registry is the single source of truth: [ports.md](./ports.md). Record the port in the
   same commit that adds the service.
+- **Exposure:** published ports are reachable only via the Akko reverse proxy — a host firewall
+  drops direct public hits, with a few deliberate exceptions. See [firewall.md](./firewall.md).
 
 ## Networks
 Name each stack's default network so Komodo does not generate `<project>_default`:

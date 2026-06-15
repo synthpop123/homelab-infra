@@ -11,6 +11,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 ├── stacks/<service>/compose.yaml   # one folder per service: pinned image, /srv binds, host port
 ├── komodo/sync.toml                # Komodo Resource Sync + redeploy Procedure (IaC)
 ├── bootstrap/komodo/               # Komodo itself (Core/Periphery/Mongo): deployed by hand
+├── bootstrap/firewall/             # host firewall (DOCKER-USER rules): deployed by hand
 ├── renovate.json                   # Renovate config (auto-detects stacks/*/compose.yaml)
 └── docs/                           # conventions, ports, workflow, migration, backup runbooks
 ```
@@ -50,6 +51,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 - [Update & deploy workflow](./docs/workflow.md) — Komodo sync + redeploy procedure + Renovate
 - [Migrating a service](./docs/migration.md) — runbook for moving an existing `/opt` service in
 - [Backup & restore](./docs/backup-restore.md) — the three data layers, Komodo's built-in DB backup, `/srv` + off-site, restore runbooks
+- [Host firewall](./docs/firewall.md) — restricting published ports to the Akko reverse proxy (Docker-safe, no-lockout design)
 
 ## Add a service
 

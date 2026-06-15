@@ -1,7 +1,7 @@
 # Torrent stack — qBittorrent (download client) + qui (autobrr's qBittorrent WebUI/manager).
 #
-# Own `torrent` network, deliberately kept separate from autobrr's `torrenting` network (autobrr is
-# left running untouched under /opt and is not wired to qBittorrent). qui reaches qBittorrent
+# Own `torrent` network. qBittorrent is deliberately NOT wired to the autobrr stack — autobrr only
+# does IRC/RSS filtering + Telegram notify here, not qBittorrent control. qui reaches qBittorrent
 # in-network at http://qbittorrent:8081, so its WebUI host port can change freely without breaking
 # the link.
 #

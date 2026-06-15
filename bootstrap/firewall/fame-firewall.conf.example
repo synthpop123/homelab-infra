@@ -1,0 +1,13 @@
+# /etc/fame-firewall.conf — host-specific values for fame-firewall.sh.
+#
+# Copy to /etc/fame-firewall.conf on the host and fill in. The real file stays OFF git
+# (it names the reverse-proxy IP); only this sanitized example is versioned.
+
+# Public WAN interface — the NIC that holds the public IP.
+#   check: ip -4 route show default   (the `dev <iface>` field)
+WAN_IF=eth0
+
+# Public IP of the Akko reverse proxy. It is the ONLY source allowed to reach the
+# Akko-fronted container ports (i.e. everything except the public exceptions hard-coded
+# in fame-firewall.sh: gitea SSH 222, qBittorrent 65231, beszel hub 20011).
+AKKO_IP=__CHANGE_ME__

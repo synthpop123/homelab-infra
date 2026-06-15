@@ -1,0 +1,17 @@
+[Unit]
+Description=Fame host firewall (DOCKER-USER restrictions + ufw cleanup)
+Documentation=https://github.com/synthpop123/homelab-infra/blob/main/docs/firewall.md
+# Run after Docker so the DOCKER-USER chain exists; re-run if Docker restarts (which
+# rebuilds the chain and would otherwise drop our rules).
+After=docker.service
+Requires=docker.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/fame-firewall.conf
+ExecStart=/usr/local/sbin/fame-firewall.sh
+
+[Install]
+WantedBy=multi-user.target

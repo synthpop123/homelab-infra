@@ -61,3 +61,16 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 > **Fixed IPs on the shared external `mediacenter-net`** (docker network addresses, not host ports):
 > `emby` = `172.22.0.4`, `cloud-media-sync` = `172.22.0.5`, `seerr` = `172.22.0.6`. cloud-media-sync
 > reaches Emby by that fixed IP, so these must not change.
+
+## Firewall exposure
+
+A host firewall governs who can reach these ports from the public internet — see
+[firewall.md](./firewall.md) for the full policy. In short:
+
+- **Akko-only** — every `200xx` service port (and Komodo `9120`) accepts traffic **only from the
+  Akko reverse proxy**; a direct hit to `fame-ip:200xx` is dropped.
+- **Public exceptions** (open to the internet on purpose) — gitea SSH `222`, qBittorrent `65231`
+  (tcp+udp), beszel hub `20011` (so remote agents report straight to fame, skipping Akko).
+- **Host-process ports** (not Docker-published): SSH `11322`, Caddy `80/443`, komari `25774` ride
+  the `INPUT` chain and stay internet-facing. clouddrive2's `19798` (host-networked) is restricted
+  to **Akko-only** via a dedicated `FAME-INPUT` subchain.
