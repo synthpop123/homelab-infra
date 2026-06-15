@@ -361,6 +361,19 @@ file_paths = ["compose.yaml"]
 # and qui's instance config (incl. the encrypted qBittorrent password) in /srv/torrent/qui/config.
 # Own `torrent` network, separate from autobrr's `torrenting` (autobrr left untouched under /opt).
 
+[[stack]]
+name = "emby"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/emby"
+file_paths = ["compose.yaml"]
+# Media server. Reads the shared library at /srv/emby/data. Sits at the FIXED IP 172.22.0.4 on the
+# external (manually-created) mediacenter-net so cloud-media-sync can reach it. No compose secrets.
+
 # ----------------------------------------------------------------------------
 # Sync-then-deploy on git push (the Renovate flow), as ONE ordered procedure.
 #

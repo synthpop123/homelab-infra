@@ -39,8 +39,9 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20018 | gitea                 | 3000           | Gitea (HTTP)                |
 | 20019 | qbittorrent           | 8081           | qBittorrent WebUI (torrent) |
 | 20020 | qui                   | 7476           | qui — qBittorrent manager   |
+| 20021 | emby                  | 8096           | Emby media server           |
 
-**Next free: `20021`**
+**Next free: `20022`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome) are internal-only
