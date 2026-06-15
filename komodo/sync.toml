@@ -24,6 +24,7 @@
 
 [[stack]]
 name = "wallos"
+description = "https://wallos.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -35,6 +36,7 @@ file_paths = ["compose.yaml"]
 
 [[stack]]
 name = "calibre-web-automated"
+description = "https://calibre.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -46,6 +48,7 @@ file_paths = ["compose.yaml"]
 
 [[stack]]
 name = "deeix-chat"
+description = "https://ai.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -63,6 +66,7 @@ DEEIX_REDIS_PASSWORD=[[DEEIX_REDIS_PASSWORD]]
 
 [[stack]]
 name = "drizzle-gateway"
+description = "https://db.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -78,6 +82,7 @@ DRIZZLE_GATEWAY_MASTERPASS=[[DRIZZLE_GATEWAY_MASTERPASS]]
 
 [[stack]]
 name = "cloudreve"
+description = "https://cloud.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -90,6 +95,7 @@ file_paths = ["compose.yaml"]
 
 [[stack]]
 name = "koito"
+description = "https://music.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -111,6 +117,7 @@ MS_BASE_URL=[[MS_BASE_URL]]
 
 [[stack]]
 name = "new-api"
+description = "https://api.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -128,6 +135,7 @@ NEW_API_REDIS_PASSWORD=[[NEW_API_REDIS_PASSWORD]]
 
 [[stack]]
 name = "opengist"
+description = "https://gist.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -140,6 +148,7 @@ file_paths = ["compose.yaml"]
 
 [[stack]]
 name = "beszel"
+description = "https://beszel.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -156,6 +165,7 @@ BESZEL_TOKEN=[[BESZEL_TOKEN]]
 
 [[stack]]
 name = "immich"
+description = "https://immich.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -175,6 +185,7 @@ TZ=Asia/Shanghai
 
 [[stack]]
 name = "clouddrive2"
+description = "https://cd.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -188,6 +199,7 @@ file_paths = ["compose.yaml"]
 
 [[stack]]
 name = "karakeep"
+description = "https://karakeep.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -207,6 +219,7 @@ KARAKEEP_OPENAI_BASE_URL=[[KARAKEEP_OPENAI_BASE_URL]]
 
 [[stack]]
 name = "gitea"
+description = "https://git.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -223,6 +236,7 @@ GITEA_DB_PASSWORD=[[GITEA_DB_PASSWORD]]
 
 [[stack]]
 name = "openwebui"
+description = "https://chat.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -242,6 +256,7 @@ OPENWEBUI_OPENAI_API_BASE_URL=[[OPENWEBUI_OPENAI_API_BASE_URL]]
 
 [[stack]]
 name = "seerr"
+description = "https://seerr.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -258,6 +273,7 @@ SEERR_DB_PASSWORD=[[SEERR_DB_PASSWORD]]
 
 [[stack]]
 name = "memos"
+description = "https://memos.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -273,6 +289,7 @@ MEMOS_DB_PASSWORD=[[MEMOS_DB_PASSWORD]]
 
 [[stack]]
 name = "n8n"
+description = "https://n8n.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -290,6 +307,7 @@ N8N_URL_BASE_API=[[N8N_URL_BASE_API]]
 
 [[stack]]
 name = "mastodon"
+description = "https://mastodon.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -349,6 +367,7 @@ UPDATE_CHECK_URL=
 
 [[stack]]
 name = "torrent"
+description = "https://qb.lkwplus.com / https://qui.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -363,6 +382,7 @@ file_paths = ["compose.yaml"]
 
 [[stack]]
 name = "emby"
+description = "https://emby.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -376,6 +396,7 @@ file_paths = ["compose.yaml"]
 
 [[stack]]
 name = "cms"
+description = "https://cms.lkwplus.com / https://emby-302.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -398,6 +419,7 @@ CMS_DONATE_CODE=[[CMS_DONATE_CODE]]
 
 [[stack]]
 name = "mdc"
+description = "https://mdc.lkwplus.com / https://flare.lkwplus.com"
 deploy = false
 tags = ["app"]
 
