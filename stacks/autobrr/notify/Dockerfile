@@ -1,6 +1,6 @@
 # Standalone notifier image so autobrr can run its stock image (no in-container Python).
 # Built locally by the stack (Komodo deploys with `--build`); never pushed to a registry.
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 WORKDIR /app
 
