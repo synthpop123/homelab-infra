@@ -10,8 +10,9 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 .
 ├── stacks/<service>/compose.yaml   # one folder per service: pinned image, /srv binds, host port
 ├── komodo/sync.toml                # Komodo Resource Sync + redeploy Procedure (IaC)
+├── bootstrap/komodo/               # Komodo itself (Core/Periphery/Mongo): deployed by hand
 ├── renovate.json                   # Renovate config (auto-detects stacks/*/compose.yaml)
-└── docs/                           # conventions, ports, workflow, migration runbook
+└── docs/                           # conventions, ports, workflow, migration, backup runbooks
 ```
 
 ## Services

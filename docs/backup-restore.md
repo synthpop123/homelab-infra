@@ -78,10 +78,11 @@ schedule on the `Backup Core Database` procedure.
 The Mongo dump captures Komodo's *logical* state, but two host-side bits are required to
 bring Core back and are **not** in git:
 
-- **`/opt/komodo/compose.env`** — MongoDB credentials, `KOMODO_PASSKEY` (Periphery auth),
-  JWT/webhook secrets. Lose it and the restored Mongo won't authenticate and agents won't
-  trust Core. Store it with your secrets manager / off-box (encrypted).
-- **`komodo_keys` volume** (`/config/keys` in Core) — Core's generated keys.
+- **`/opt/komodo/compose.env`** — MongoDB credentials and the JWT/webhook secrets (Core↔Periphery
+  auth uses the keypair in the `komodo_keys` volume below, not a passkey here). Lose it and the
+  restored Mongo won't authenticate. Store it off-box (encrypted); a sanitized copy is versioned
+  at [`bootstrap/komodo/`](../bootstrap/komodo/).
+- **`komodo_keys` volume** (`/config/keys` in Core) — Core's generated Core/Periphery keypair.
 
 ---
 
