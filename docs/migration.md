@@ -217,3 +217,29 @@ cd /opt/postgres && docker compose down      # no -v
   networks — migrate only the config dir and leave host networking, devices and `/mnt` mounts as-is.
 - **Derived indexes are disposable.** Elasticsearch/search data rebuilds (`tootctl search deploy`
   for mastodon), so a major ES bump (7→8 here) can preserve *or* wipe the data dir freely.
+
+## 12. Variant — a locally-built helper image (no registry)
+
+When the stock image is fine but you need a small companion, don't hand-install tools into the
+app's container (they vanish on the next image pull — autobrr had Python `apk`-installed for an Exec
+notify script). Keep the app on its **official image** and move the extra logic into a sidecar that
+the stack builds locally — no registry, no Komodo `Build` resource:
+
+- `stacks/<svc>/<helper>/{Dockerfile,requirements.txt,app.py}` — the helper's own pinned deps.
+- compose: a second service with `build: ./<helper>` next to the stock `image:` one; reach it
+  in-network by service name (autobrr → `http://autobrr-notify:8000`). Wire the app to it (autobrr:
+  a filter **Webhook** action instead of **Exec**).
+- `komodo/sync.toml`: set `extra_args = "--build"` on the stack so the deploy runs
+  `docker compose up -d --build` and (re)builds the helper. Renovate still bumps the Dockerfile
+  `FROM` and the stock `image:` tag.
+
+A `build:` service won't run in `docker compose config`, so validate the image separately before
+cutover (a temp dir on the host works if the build needs the daemon):
+
+```bash
+docker build -t helper-test ./stacks/<svc>/<helper> \
+  && docker run --rm -p 18099:8000 helper-test &   # then curl /healthz
+```
+
+Secrets stay in **Komodo Variables** injected via the stack `environment` (the sidecar reads them
+from env) — never bake them into the image or the git-tracked Dockerfile.
