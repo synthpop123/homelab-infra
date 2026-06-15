@@ -42,8 +42,10 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20021 | emby                  | 8096           | Emby media server           |
 | 20022 | cms (web UI)          | 9527           | cloud-media-sync web UI     |
 | 20023 | cms (emby-302)        | 9096           | strm 302 proxy → cms.lkwplus.com |
+| 20024 | mdc                   | 9208           | Movie Data Capture scraper  |
+| 20025 | flaresolverr          | 8191           | Cloudflare solver (for mdc)  |
 
-**Next free: `20024`**
+**Next free: `20026`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome) are internal-only

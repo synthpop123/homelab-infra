@@ -396,6 +396,24 @@ CMS_API_TOKEN=[[CMS_API_TOKEN]]
 CMS_DONATE_CODE=[[CMS_DONATE_CODE]]
 """
 
+[[stack]]
+name = "mdc"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/mdc"
+file_paths = ["compose.yaml"]
+# Movie Data Capture scraper + flaresolverr (Cloudflare solver, reached in-network at
+# flaresolverr:8191). Reads the 115 mount /mnt/CloudNAS/115 and writes nfo/posters into the shared
+# Emby library /srv/emby/data. Login username/password are Komodo Variables.
+environment = """
+MDC_USERNAME=[[MDC_USERNAME]]
+MDC_PASSWORD=[[MDC_PASSWORD]]
+"""
+
 # ----------------------------------------------------------------------------
 # Sync-then-deploy on git push (the Renovate flow), as ONE ordered procedure.
 #

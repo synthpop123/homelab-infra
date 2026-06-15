@@ -40,6 +40,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 | [torrent](./stacks/torrent) | [qb.lkwplus.com](https://qb.lkwplus.com) / [qui.lkwplus.com](https://qui.lkwplus.com) | 20019 / 20020 | qBittorrent + qui WebUI manager (BT on 65231) |
 | [emby](./stacks/emby) | [emby.lkwplus.com](https://emby.lkwplus.com) | 20021 | Emby media server (fixed IP 172.22.0.4 on mediacenter-net) |
 | [cms](./stacks/cms) | [cms.lkwplus.com](https://cms.lkwplus.com) | 20022 / 20023 | cloud-media-sync — strm generation + emby-302 proxy (fixed IP 172.22.0.5) |
+| [mdc](./stacks/mdc) | [mdc.lkwplus.com](https://mdc.lkwplus.com) | 20024 / 20025 | Movie Data Capture scraper + flaresolverr |
 
 ## Docs
 
