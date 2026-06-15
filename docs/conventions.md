@@ -46,7 +46,8 @@ networks:
 
 ## Volumes
 - **Default: bind mounts to `/srv/<service>/...`** (absolute paths). Easy to back up (back up
-  `/srv`), visible, and portable — matches the data-in-`/srv` policy.
+  `/srv` — see [backup-restore.md](./backup-restore.md)), visible, and portable — matches the
+  data-in-`/srv` policy.
 - **Named volumes:** avoid unless an image is picky about bind-mount permissions or the data is
   pure cache/temp. They live under `/var/lib/docker/volumes` (harder to back up) and
   `docker compose down -v` can delete them.

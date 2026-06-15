@@ -43,6 +43,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 - [Port registry](./docs/ports.md)
 - [Update & deploy workflow](./docs/workflow.md) — Komodo sync + redeploy procedure + Renovate
 - [Migrating a service](./docs/migration.md) — runbook for moving an existing `/opt` service in
+- [Backup & restore](./docs/backup-restore.md) — the three data layers, Komodo's built-in DB backup, `/srv` + off-site, restore runbooks
 
 ## Add a service
 
