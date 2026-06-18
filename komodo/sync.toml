@@ -457,6 +457,24 @@ TELEGRAM_BOT_TOKEN=[[AUTOBRR_TELEGRAM_BOT_TOKEN]]
 TELEGRAM_CHANNEL_ID=[[AUTOBRR_TELEGRAM_CHANNEL_ID]]
 """
 
+[[stack]]
+name = "umami"
+description = "https://umami.lkwplus.com"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/umami"
+file_paths = ["compose.yaml"]
+# Fresh install with a dedicated bundled Postgres. The DB password + APP_SECRET come from Komodo
+# Variables; the compose references ${UMAMI_DB_PASSWORD} / ${UMAMI_APP_SECRET}.
+environment = """
+UMAMI_DB_PASSWORD=[[UMAMI_DB_PASSWORD]]
+UMAMI_APP_SECRET=[[UMAMI_APP_SECRET]]
+"""
+
 # ----------------------------------------------------------------------------
 # Sync-then-deploy on git push (the Renovate flow), as ONE ordered procedure.
 #

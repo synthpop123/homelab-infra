@@ -43,6 +43,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 | [cms](./stacks/cms) | [cms.lkwplus.com](https://cms.lkwplus.com) / [emby-302.lkwplus.com](https://emby-302.lkwplus.com) | 20022 / 20023 | cloud-media-sync — web UI + strm-302 proxy (fixed IP 172.22.0.5) |
 | [mdc](./stacks/mdc) | [mdc.lkwplus.com](https://mdc.lkwplus.com) / [flare.lkwplus.com](https://flare.lkwplus.com) | 20024 / 20025 | Movie Data Capture scraper + flaresolverr |
 | [autobrr](./stacks/autobrr) | [autobrr.lkwplus.com](https://autobrr.lkwplus.com) | 20026 | IRC/RSS release automation (+ TMDB→Telegram notify sidecar) |
+| [umami](./stacks/umami) | [umami.lkwplus.com](https://umami.lkwplus.com) | 20027 | Privacy-focused web analytics (+ dedicated Postgres) |
 
 ## Docs
 

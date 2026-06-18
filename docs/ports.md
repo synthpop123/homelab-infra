@@ -45,8 +45,9 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20024 | mdc                   | 9208           | Movie Data Capture scraper  |
 | 20025 | flaresolverr          | 8191           | Cloudflare solver (for mdc)  |
 | 20026 | autobrr               | 7474           | autobrr IRC/RSS automation  |
+| 20027 | umami                 | 3000           | Umami web analytics         |
 
-**Next free: `20027`**
+**Next free: `20028`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify)

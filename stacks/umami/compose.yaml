@@ -1,0 +1,48 @@
+# umami — privacy-focused web analytics. Fresh install with a dedicated bundled Postgres.
+# All data lives in the DB. The DB password + APP_SECRET come from Komodo Variables (kept out of
+# git); the compose references ${UMAMI_DB_PASSWORD} / ${UMAMI_APP_SECRET}.
+#
+# Umami v3 auto-detects the database from DATABASE_URL, so the image is the plain version tag (the
+# legacy postgresql-/mysql- prefixed tags are gone). postgres:18 changed the data layout: PGDATA
+# defaults to /var/lib/postgresql/18/docker and the volume mount point is the parent
+# /var/lib/postgresql (so bind that, not /var/lib/postgresql/data).
+services:
+  umami:
+    container_name: umami
+    image: ghcr.io/umami-software/umami:3.1.0
+    restart: unless-stopped
+    init: true
+    depends_on:
+      umami-postgres:
+        condition: service_healthy
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20027:3000/tcp"
+    environment:
+      DATABASE_URL: postgresql://umami:${UMAMI_DB_PASSWORD}@umami-postgres:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET}
+    healthcheck:
+      test: ["CMD-SHELL", "curl http://localhost:3000/api/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  umami-postgres:
+    container_name: umami-postgres
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${UMAMI_DB_PASSWORD}
+    volumes:
+      - /srv/umami/postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umami -d umami"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: umami
