@@ -48,6 +48,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 ## Docs
 
 - [Conventions](./docs/conventions.md) — file layout, `/srv` data, ports, networks, env vars, volumes
+- [Komodo Variables](./docs/komodo-variables.md) — creating/inspecting secret values (UI + headless via Mongo)
 - [Port registry](./docs/ports.md)
 - [Update & deploy workflow](./docs/workflow.md) — Komodo sync + redeploy procedure + Renovate
 - [Migrating a service](./docs/migration.md) — runbook for moving an existing `/opt` service in

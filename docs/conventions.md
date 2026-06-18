@@ -40,6 +40,9 @@ networks:
   - reference `${MY_SECRET}` in `compose.yaml`, and
   - in `komodo/sync.toml`, set the stack's `environment` to `MY_SECRET = [[MY_SECRET]]`.
 
+  Creating / inspecting the actual values (the Komodo UI, and the headless-from-host route an agent
+  uses when there's no UI/API): [komodo-variables.md](./komodo-variables.md).
+
   Komodo interpolates `[[ ]]` at deploy time and writes the real value into `.env` (git-ignored).
   Git only ever contains the placeholder.
 - **Whole config files that carry secrets** (e.g. an app's `config.yaml`): keep the real file on

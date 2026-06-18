@@ -66,7 +66,10 @@ own runbook: `docs/migration.md`.
 - **Secrets are never committed.** Define them as Variables & Secrets in the Komodo UI,
   reference `${MY_SECRET}` in compose, and in `sync.toml` map `MY_SECRET = [[MY_SECRET]]`
   under the stack's `environment`. Komodo interpolates `[[ ]]` into a git-ignored `.env` at
-  deploy time. Non-secret config (`TZ`, `PUID`/`PGID`, flags) goes directly in compose. A whole
+  deploy time. Creating/inspecting the values themselves — including the headless-from-host route
+  (write straight to the `komodo-mongo` `Variable` collection) when you have only `ssh fame` and no
+  UI/API — is in `docs/komodo-variables.md`. Non-secret config (`TZ`, `PUID`/`PGID`, flags) goes
+  directly in compose. A whole
   secret-bearing config file (e.g. an app's `config.yaml`) lives on the host under
   `/srv/<service>/` (bind-mounted), never committed — commit a sanitized `*.example` instead.
 - **Don't force a global UID** — ownership follows each image's own user (LinuxServer images
