@@ -1,0 +1,21 @@
+# bark-server: self-hosted push server for the Bark iOS app. Devices register against it and it
+# relays notifications via APNs. Its device-key database lives in /srv/bark/data. https://bark.lkwplus.com
+services:
+  bark-server:
+    container_name: bark-server
+    image: finab/bark-server:v2.3.5
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      # host:container — host port allocated from the registry (see docs/ports.md)
+      - "20028:8080/tcp"
+    volumes:
+      # Persistent data lives on the host under /srv/<service>/ (absolute path,
+      # so data never lands inside Komodo's git clone of this repo).
+      - /srv/bark/data:/data
+
+networks:
+  # Name the project network explicitly to avoid the auto-generated "<project>_default".
+  default:
+    name: bark

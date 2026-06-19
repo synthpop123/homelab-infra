@@ -4,8 +4,8 @@
 # config/state lives in /srv/mdc/data.
 #
 # flaresolverr solves Cloudflare challenges for the scrapers; mdc reaches it in-network at
-# http://flaresolverr:8191/v1 (config.json), so both share this stack's `mdc` network and the host
-# port can change freely. Login credentials come from Komodo Variables.
+# http://flaresolverr:8191/v1 (config.json) over this stack's `mdc` network. It is internal-only
+# (container mdc-flaresolverr, no published host port) — only mdc uses it. Login creds are Komodo Variables.
 services:
   mdc:
     container_name: mdc
@@ -26,7 +26,7 @@ services:
       - "20024:9208/tcp"
 
   flaresolverr:
-    container_name: flaresolverr
+    container_name: mdc-flaresolverr
     image: ghcr.io/flaresolverr/flaresolverr:v3.5.0
     restart: unless-stopped
     environment:
@@ -37,9 +37,6 @@ services:
       - TZ=Asia/Shanghai
     volumes:
       - /srv/mdc/flaresolver:/config
-    ports:
-      # host:container — host port from the registry (see docs/ports.md)
-      - "20025:8191/tcp"
 
 networks:
   default:

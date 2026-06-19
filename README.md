@@ -41,9 +41,10 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 | [torrent](./stacks/torrent) | [qb.lkwplus.com](https://qb.lkwplus.com) / [qui.lkwplus.com](https://qui.lkwplus.com) | 20019 / 20020 | qBittorrent + qui WebUI manager (BT on 65231) |
 | [emby](./stacks/emby) | [emby.lkwplus.com](https://emby.lkwplus.com) | 20021 | Emby media server (fixed IP 172.22.0.4 on mediacenter-net) |
 | [cms](./stacks/cms) | [cms.lkwplus.com](https://cms.lkwplus.com) / [emby-302.lkwplus.com](https://emby-302.lkwplus.com) | 20022 / 20023 | cloud-media-sync — web UI + strm-302 proxy (fixed IP 172.22.0.5) |
-| [mdc](./stacks/mdc) | [mdc.lkwplus.com](https://mdc.lkwplus.com) / [flare.lkwplus.com](https://flare.lkwplus.com) | 20024 / 20025 | Movie Data Capture scraper + flaresolverr |
+| [mdc](./stacks/mdc) | [mdc.lkwplus.com](https://mdc.lkwplus.com) | 20024 | Movie Data Capture scraper (+ internal flaresolverr) |
 | [autobrr](./stacks/autobrr) | [autobrr.lkwplus.com](https://autobrr.lkwplus.com) | 20026 | IRC/RSS release automation (+ TMDB→Telegram notify sidecar) |
 | [umami](./stacks/umami) | [umami.lkwplus.com](https://umami.lkwplus.com) | 20027 | Privacy-focused web analytics (+ dedicated Postgres) |
+| [bark](./stacks/bark) | [bark.lkwplus.com](https://bark.lkwplus.com) | 20028 | Bark push notification server |
 
 ## Docs
 

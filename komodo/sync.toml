@@ -419,7 +419,7 @@ CMS_DONATE_CODE=[[CMS_DONATE_CODE]]
 
 [[stack]]
 name = "mdc"
-description = "https://mdc.lkwplus.com / https://flare.lkwplus.com"
+description = "https://mdc.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -428,9 +428,10 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/mdc"
 file_paths = ["compose.yaml"]
-# Movie Data Capture scraper + flaresolverr (Cloudflare solver, reached in-network at
-# flaresolverr:8191). Reads the 115 mount /mnt/CloudNAS/115 and writes nfo/posters into the shared
-# Emby library /srv/emby/data. Login username/password are Komodo Variables.
+# Movie Data Capture scraper + flaresolverr (Cloudflare solver, internal-only — container
+# mdc-flaresolverr, no host port, reached in-network at flaresolverr:8191). Reads the 115 mount
+# /mnt/CloudNAS/115 and writes nfo/posters into the shared Emby library /srv/emby/data. Login
+# username/password are Komodo Variables.
 environment = """
 MDC_USERNAME=[[MDC_USERNAME]]
 MDC_PASSWORD=[[MDC_PASSWORD]]
@@ -474,6 +475,19 @@ environment = """
 UMAMI_DB_PASSWORD=[[UMAMI_DB_PASSWORD]]
 UMAMI_APP_SECRET=[[UMAMI_APP_SECRET]]
 """
+
+[[stack]]
+name = "bark"
+description = "https://bark.lkwplus.com"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/bark"
+file_paths = ["compose.yaml"]
+# No secrets: bark-server keeps its device-key database in /srv/bark/data.
 
 # ----------------------------------------------------------------------------
 # Sync-then-deploy on git push (the Renovate flow), as ONE ordered procedure.

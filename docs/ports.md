@@ -43,15 +43,19 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20022 | cms (web UI)          | 9527           | cloud-media-sync web UI     |
 | 20023 | cms (emby-302)        | 9096           | strm 302 proxy → cms.lkwplus.com |
 | 20024 | mdc                   | 9208           | Movie Data Capture scraper  |
-| 20025 | flaresolverr          | 8191           | Cloudflare solver (for mdc)  |
 | 20026 | autobrr               | 7474           | autobrr IRC/RSS automation  |
 | 20027 | umami                 | 3000           | Umami web analytics         |
+| 20028 | bark                  | 8080           | Bark push notification server |
 
-**Next free: `20028`**
+**Next free: `20029`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
-> (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify)
-> are internal-only (no host port).
+> (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,
+> mdc's `flaresolverr`) are internal-only (no host port).
+>
+> **Vacated:** `20025` previously published mdc's `flaresolverr`; it is now internal-only (mdc reaches
+> it in-network at `flaresolverr:8191`), so `20025` is unused. New services still take the next
+> sequential number (**Next free** above), not this gap.
 >
 > **Outside the scheme** (host-networked; ports fixed by the app, not the registry):
 > - `beszel-agent` listens on host port **45876**.
