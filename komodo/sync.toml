@@ -489,6 +489,23 @@ run_directory = "stacks/bark"
 file_paths = ["compose.yaml"]
 # No secrets: bark-server keeps its device-key database in /srv/bark/data.
 
+[[stack]]
+name = "cliproxyapi"
+description = "https://cpa.lkwplus.com / https://cpa-manager.lkwplus.com"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/cliproxyapi"
+file_paths = ["compose.yaml"]
+# CPA's own secrets (Management Key + client api-keys) live in the off-git /srv/cliproxyapi/config.yaml.
+# Only cpa-manager-plus's admin login key is a Komodo Variable; the compose references ${CPA_MANAGER_ADMIN_KEY}.
+environment = """
+CPA_MANAGER_ADMIN_KEY=[[CPA_MANAGER_ADMIN_KEY]]
+"""
+
 # ----------------------------------------------------------------------------
 # Sync-then-deploy on git push (the Renovate flow), as ONE ordered procedure.
 #

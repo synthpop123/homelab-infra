@@ -1,0 +1,65 @@
+# CLIProxyAPI (CPA) + CPA-Manager-Plus, the "full Docker" deployment.
+#
+# - cli-proxy-api  : the proxy itself — turns Gemini/Codex/Claude/Grok OAuth accounts + API keys
+#                    into OpenAI/Claude/Gemini-compatible endpoints. Its AI API (/v1/*) is fronted
+#                    by https://cpa.lkwplus.com.
+# - cpa-manager-plus: the Manager Server + bundled panel (request monitoring, model prices, Codex
+#                     inspection). Fronted by https://cpa-manager.lkwplus.com. It reaches CPA in-network
+#                     at http://cli-proxy-api:8317 to proxy /v0/management/* and consume the usage queue.
+#
+# CPA's own secrets (remote-management.secret-key = the CPA Management Key, and api-keys) live in the
+# off-git /srv/cliproxyapi/config.yaml (bind-mounted; commit config.example.yaml instead). For
+# cpa-manager-plus to reach CPA's management API across containers, that config MUST set
+# remote-management.allow-remote: true.
+services:
+  cli-proxy-api:
+    container_name: cli-proxy-api
+    image: eceasy/cli-proxy-api:v7.2.22
+    ports:
+      # host:container — host port from the registry (see docs/ports.md). cpa.lkwplus.com
+      - "20029:8317/tcp"
+    volumes:
+      # config.yaml carries secrets, so it lives on the host (off-git). It must already exist as a
+      # FILE before first deploy or Docker creates a directory in its place. auths/ holds the OAuth
+      # credential files (uploaded via the panel or the CPA login flow).
+      - /srv/cliproxyapi/config.yaml:/CLIProxyAPI/config.yaml
+      - /srv/cliproxyapi/auths:/root/.cli-proxy-api
+      - /srv/cliproxyapi/logs:/CLIProxyAPI/logs
+    restart: unless-stopped
+
+  cpa-manager-plus:
+    container_name: cpa-manager-plus
+    image: seakee/cpa-manager-plus:v1.7.0
+    depends_on:
+      - cli-proxy-api
+    ports:
+      # host:container — host port from the registry (see docs/ports.md). cpa-manager.lkwplus.com
+      - "20030:18317/tcp"
+    environment:
+      # Admin login key for the panel — a Komodo Variable (see komodo/sync.toml). If left empty the
+      # server would auto-generate one and print it once to the logs; we pin it instead.
+      CPA_MANAGER_ADMIN_KEY: "${CPA_MANAGER_ADMIN_KEY}"
+      # The rest are the upstream defaults, kept explicit as tuning knobs (see the project README).
+      # auto = try RESP Pub/Sub, then HTTP usage-queue, then RESP pop. The data key auto-generates
+      # to /data/data.key on first run and persists with the SQLite DB under /srv.
+      HTTP_ADDR: "0.0.0.0:18317"
+      USAGE_DB_PATH: "/data/usage.sqlite"
+      CPA_MANAGER_DATA_KEY_PATH: "/data/data.key"
+      USAGE_COLLECTOR_MODE: "auto"
+      USAGE_RESP_QUEUE: "usage"
+      USAGE_RESP_POP_SIDE: "right"
+      USAGE_BATCH_SIZE: "100"
+      # Must stay <= CPA's redis-usage-queue-retention-seconds (default 60s) in ms, or the server
+      # refuses to save. 500ms is well under it.
+      USAGE_POLL_INTERVAL_MS: "500"
+      USAGE_QUERY_LIMIT: "50000"
+      USAGE_CORS_ORIGINS: "*"
+    volumes:
+      # SQLite usage DB + data.key. /srv bind (not a named volume) per the data-in-/srv convention.
+      - /srv/cliproxyapi/manager-data:/data
+    restart: unless-stopped
+
+networks:
+  # Name the project network explicitly to avoid the auto-generated "<project>_default".
+  default:
+    name: cliproxyapi

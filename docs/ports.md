@@ -46,8 +46,10 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20026 | autobrr               | 7474           | autobrr IRC/RSS automation  |
 | 20027 | umami                 | 3000           | Umami web analytics         |
 | 20028 | bark                  | 8080           | Bark push notification server |
+| 20029 | cli-proxy-api         | 8317           | CLIProxyAPI AI proxy → cpa.lkwplus.com |
+| 20030 | cpa-manager-plus      | 18317          | CPA-Manager-Plus panel → cpa-manager.lkwplus.com |
 
-**Next free: `20029`**
+**Next free: `20031`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,

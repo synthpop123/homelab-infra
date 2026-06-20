@@ -1,0 +1,59 @@
+# Example config for cli-proxy-api (CLIProxyAPI / CPA).
+#
+# The REAL file is NOT committed — it carries secrets (remote-management.secret-key and api-keys)
+# and lives on the host at /srv/cliproxyapi/config.yaml (bind-mounted, backed up with /srv).
+# Copy this file there and fill in real values before the first deploy. It must exist as a FILE,
+# or Docker creates a directory at that path.
+#
+# Providers/accounts (Gemini, Codex, Claude, OpenAI-compatible, …) are best added later through the
+# CPA-Manager-Plus panel (it edits this config and uploads OAuth auth files for you), so the example
+# below keeps only the core server settings. Full provider reference:
+#   https://github.com/router-for-me/CLIProxyAPI/blob/main/config.example.yaml
+
+# Bind all interfaces inside the container (the host firewall + Akko gate external access).
+host: ""
+port: 8317
+
+tls:
+  enable: false
+  cert: ""
+  key: ""
+
+remote-management:
+  # MUST be true: cpa-manager-plus reaches the management API from a SEPARATE container (non-localhost),
+  # so localhost-only access would break the panel's /v0/management/* proxy and usage-queue consumption.
+  allow-remote: true
+  # The CPA Management Key. This is what you enter as "CPA Management Key" during the CPA-Manager-Plus
+  # first-time setup (alongside the CPA address http://cli-proxy-api:8317). Plaintext is hashed on startup.
+  secret-key: "CHANGE_ME_cpa_management_key"
+  # Leave the bundled CPA panel as-is; we use the CPA-Manager-Plus panel as the primary UI.
+  disable-control-panel: false
+  panel-github-repository: "https://github.com/router-for-me/Cli-Proxy-API-Management-Center"
+
+# OAuth credential files live here (mounted from /srv/cliproxyapi/auths). ~ = /root in the container.
+auth-dir: "~/.cli-proxy-api"
+
+# API keys clients must present to call the AI proxy at https://cpa.lkwplus.com (/v1/*). Add as many
+# as you need; an empty list leaves the proxy open to anyone who can reach it.
+api-keys:
+  - "CHANGE_ME_client_api_key"
+
+debug: false
+logging-to-file: false
+
+# Leave usage stats off here — CPA-Manager-Plus turns CPA usage publishing on automatically when you
+# enable request monitoring during setup. Retention bounds the panel's poll interval (500ms << 60s).
+usage-statistics-enabled: false
+redis-usage-queue-retention-seconds: 60
+
+# Upstream proxy for reaching the AI providers, if needed. e.g. socks5://user:pass@host:1080/
+proxy-url: ""
+
+request-retry: 3
+
+quota-exceeded:
+  switch-project: true
+  switch-preview-model: true
+
+routing:
+  strategy: "round-robin"
