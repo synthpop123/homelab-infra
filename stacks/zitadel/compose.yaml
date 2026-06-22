@@ -1,0 +1,126 @@
+# Zitadel — identity & access management / SSO (OIDC, OAuth2, SAML). Fronted by Akko in
+# "external TLS" mode: Akko's Caddy terminates TLS and proxies https://auth.lkwplus.com ->
+# fame:20031 (plain HTTP). So ZITADEL_EXTERNALSECURE=true (users arrive over https) while
+# ZITADEL_TLS_ENABLED=false (this stack speaks plain http/h2c internally).
+#
+# Zitadel v4 is split into TWO app containers that a proxy MUST path-route:
+#   /ui/v2/login/*  -> zitadel-login (:3000, Next.js Login V2 UI)
+#   everything else -> zitadel       (:8080) over h2c (cleartext HTTP/2 — required for gRPC)
+# A tiny bundled Caddy does that split + h2c and is the ONLY published port (20031), so Akko
+# stays a one-line reverse_proxy like every other service. See ./Caddyfile and docs/ports.md.
+#
+# Secrets are Komodo Variables (kept out of git): ZITADEL_MASTERKEY (exactly 32 chars, encrypts
+# data at rest — NEVER changes after first init), ZITADEL_DB_PASSWORD (bundled Postgres),
+# ZITADEL_ADMIN_PASSWORD (initial admin). The compose only references ${...} placeholders.
+services:
+  zitadel-caddy:
+    container_name: zitadel-caddy
+    image: caddy:2.11.4-alpine
+    restart: unless-stopped
+    depends_on:
+      zitadel:
+        condition: service_healthy
+      zitadel-login:
+        condition: service_healthy
+    ports:
+      # host:container — host port from the registry (see docs/ports.md). Akko reverse-proxies here.
+      - "20031:80/tcp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+
+  zitadel:
+    container_name: zitadel
+    image: ghcr.io/zitadel/zitadel:v4.15.3
+    restart: unless-stopped
+    # root so it can write the login-client PAT into the bootstrap bind mount (matches upstream)
+    user: "0"
+    command: start-from-init --masterkey "${ZITADEL_MASTERKEY}"
+    depends_on:
+      zitadel-postgres:
+        condition: service_healthy
+    environment:
+      ZITADEL_PORT: "8080"
+      ZITADEL_EXTERNALDOMAIN: auth.lkwplus.com
+      ZITADEL_EXTERNALPORT: "443"
+      ZITADEL_EXTERNALSECURE: "true"
+      ZITADEL_TLS_ENABLED: "false"
+      ZITADEL_LOGSTORE_ACCESS_STDOUT_ENABLED: "true"
+
+      ZITADEL_DATABASE_POSTGRES_DSN: postgresql://zitadel:${ZITADEL_DB_PASSWORD}@zitadel-postgres:5432/zitadel?sslmode=disable
+
+      # Login with the BARE username (e.g. "lkw123") — no @domain required. With this false
+      # (the default), usernames are unique instance-wide and both "lkw123" and the auto-generated
+      # "lkw123@<org>.auth.lkwplus.com" alias are valid login names.
+      ZITADEL_DEFAULTINSTANCE_DOMAINPOLICY_USERLOGINMUSTBEDOMAIN: "false"
+
+      # Initial admin + org — applied ONLY on first init. Password is a Komodo secret.
+      ZITADEL_FIRSTINSTANCE_ORG_NAME: lkwplus
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: lkw123
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "false"
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_ADDRESS: lkw20010211@gmail.com
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_VERIFIED: "true"
+
+      # Service user the Login V2 UI uses to talk to the API; its PAT is written to the shared
+      # bootstrap dir on first init and read by zitadel-login.
+      ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /zitadel/bootstrap/login-client.pat
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Automatically Initialized IAM_LOGIN_CLIENT
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: "2099-01-01T00:00:00Z"
+
+      # Login V2 is the default UI; point its public URLs at the external https domain.
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: "true"
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: https://auth.lkwplus.com/ui/v2/login/
+      ZITADEL_OIDC_DEFAULTLOGINURLV2: https://auth.lkwplus.com/ui/v2/login/login?authRequest=
+      ZITADEL_OIDC_DEFAULTLOGOUTURLV2: https://auth.lkwplus.com/ui/v2/login/logout?post_logout_redirect=
+      ZITADEL_SAML_DEFAULTLOGINURLV2: https://auth.lkwplus.com/ui/v2/login/login?samlRequest=
+    healthcheck:
+      test: ["CMD", "/app/zitadel", "ready"]
+      interval: 10s
+      timeout: 30s
+      retries: 12
+      start_period: 20s
+    volumes:
+      - /srv/zitadel/bootstrap:/zitadel/bootstrap:rw
+
+  zitadel-login:
+    container_name: zitadel-login
+    image: ghcr.io/zitadel/zitadel-login:v4.15.3
+    restart: unless-stopped
+    user: "0"
+    depends_on:
+      zitadel:
+        condition: service_healthy
+    environment:
+      ZITADEL_API_URL: http://zitadel:8080
+      NEXT_PUBLIC_BASE_PATH: /ui/v2/login
+      ZITADEL_SERVICE_USER_TOKEN_FILE: /zitadel/bootstrap/login-client.pat
+      CUSTOM_REQUEST_HEADERS: Host:auth.lkwplus.com,X-Forwarded-Proto:https
+    healthcheck:
+      test: ["CMD", "/bin/sh", "-c", "node /app/healthcheck.mjs http://localhost:3000/ui/v2/login/healthy"]
+      interval: 10s
+      timeout: 30s
+      retries: 12
+      start_period: 20s
+    volumes:
+      - /srv/zitadel/bootstrap:/zitadel/bootstrap:ro
+
+  zitadel-postgres:
+    container_name: zitadel-postgres
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zitadel
+      POSTGRES_USER: zitadel
+      POSTGRES_PASSWORD: ${ZITADEL_DB_PASSWORD}
+    volumes:
+      - /srv/zitadel/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zitadel -d zitadel"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: zitadel

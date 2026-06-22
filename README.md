@@ -46,6 +46,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 | [umami](./stacks/umami) | [umami.lkwplus.com](https://umami.lkwplus.com) | 20027 | Privacy-focused web analytics (+ dedicated Postgres) |
 | [bark](./stacks/bark) | [bark.lkwplus.com](https://bark.lkwplus.com) | 20028 | Bark push notification server |
 | [cliproxyapi](./stacks/cliproxyapi) | [cpa.lkwplus.com](https://cpa.lkwplus.com) / [cpa-manager.lkwplus.com](https://cpa-manager.lkwplus.com) | 20029 / 20030 | CLIProxyAPI AI proxy (CPA) + CPA-Manager-Plus panel |
+| [zitadel](./stacks/zitadel) | [auth.lkwplus.com](https://auth.lkwplus.com) | 20031 | Identity & access management — SSO (OIDC/OAuth2/SAML); v4 api + login + bundled Caddy + Postgres |
 
 ## Docs
 

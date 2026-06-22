@@ -506,6 +506,26 @@ environment = """
 CPA_MANAGER_ADMIN_KEY=[[CPA_MANAGER_ADMIN_KEY]]
 """
 
+[[stack]]
+name = "zitadel"
+description = "https://auth.lkwplus.com"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/zitadel"
+file_paths = ["compose.yaml"]
+# Identity & access management (SSO). The masterkey (exactly 32 chars, encrypts data at rest and
+# must NEVER change after first init), the bundled Postgres password and the initial admin
+# password are Komodo Variables; the compose references ${...} placeholders only.
+environment = """
+ZITADEL_MASTERKEY=[[ZITADEL_MASTERKEY]]
+ZITADEL_DB_PASSWORD=[[ZITADEL_DB_PASSWORD]]
+ZITADEL_ADMIN_PASSWORD=[[ZITADEL_ADMIN_PASSWORD]]
+"""
+
 # ----------------------------------------------------------------------------
 # Sync-then-deploy on git push (the Renovate flow), as ONE ordered procedure.
 #
