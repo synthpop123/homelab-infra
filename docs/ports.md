@@ -48,15 +48,12 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20028 | bark                  | 8080           | Bark push notification server |
 | 20029 | cli-proxy-api         | 8317           | CLIProxyAPI AI proxy → cpa.lkwplus.com |
 | 20030 | cpa-manager-plus      | 18317          | CPA-Manager-Plus panel → cpa-manager.lkwplus.com |
-| 20031 | zitadel               | 80             | Zitadel SSO (auth.lkwplus.com) — bundled Caddy front |
 
-**Next free: `20032`**
+**Next free: `20031`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,
-> mdc's `flaresolverr`) are internal-only (no host port). For **zitadel**, only its bundled Caddy
-> front is published (`20031`); the `zitadel` API, `zitadel-login` UI and `zitadel-postgres` behind
-> it are internal-only.
+> mdc's `flaresolverr`) are internal-only (no host port).
 >
 > **Vacated:** `20025` previously published mdc's `flaresolverr`; it is now internal-only (mdc reaches
 > it in-network at `flaresolverr:8191`), so `20025` is unused. New services still take the next

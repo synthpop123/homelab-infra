@@ -49,7 +49,7 @@ via VNC). The current design is shaped specifically to avoid that:
 
 | Class | Ports | Rule |
 |-------|-------|------|
-| **Akko-only** (container) | `20000–20031` and komodo `9120`, except the exceptions below | `DOCKER-USER`: accept from Akko's IP, **drop** everything else from the WAN NIC |
+| **Akko-only** (container) | `20000–20030` and komodo `9120`, except the exceptions below | `DOCKER-USER`: accept from Akko's IP, **drop** everything else from the WAN NIC |
 | **Akko-only** (host-net) | clouddrive2 `19798` | `FAME-INPUT`: accept from Akko's IP, **drop** the rest from the WAN NIC |
 | **Public exceptions** (container) | gitea SSH `222`, qBittorrent `65231` (tcp+udp), beszel hub `20011` | `DOCKER-USER`: accept from anywhere (matched via `--ctorigdstport`) |
 | **Host-process** (not Docker) | SSH `11322`, Caddy `80/443`, komari `25774` | `INPUT` policy `accept` → **open to the internet** |
