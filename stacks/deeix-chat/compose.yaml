@@ -1,7 +1,7 @@
 services:
   app:
     container_name: deeix-chat-app
-    image: ghcr.io/deeix-ai/deeix-chat:v0.2.7
+    image: ghcr.io/deeix-ai/deeix-chat:v0.2.8
     depends_on:
       postgres:
         condition: service_healthy
