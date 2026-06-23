@@ -8,7 +8,8 @@ How a change flows from git to a running container.
   keeps it from racing the procedure for a stack's deploy lock (the "Resource is busy" error).
 - **Procedure `Redeploy On Push`** — the **single git-push entry point** and the **sole deployer**.
   It runs two **sequential** stages: **(1)** `RunSync homelab` reconciles definitions, then
-  **(2)** `BatchDeployStackIfChanged *` deploys only the stacks whose compose content changed.
+  **(2)** `BatchDeployStackIfChanged *` deploys only the stacks whose configured `file_paths`
+  changed.
   Because stage 2 waits for stage 1, a brand-new stack's definition exists before deploy — so it
   comes up on its **first** push (no manual UI deploy, no empty "trigger" commit).
 
@@ -28,6 +29,10 @@ it back would run two `homelab` syncs in parallel on every push and fight over t
 - Mend's own infrastructure then runs Renovate on a schedule (~hourly): it temporarily clones the
   repo, the **docker-compose manager** parses every `image: name:tag`, queries the upstream registry
   (Docker Hub / GHCR) for newer tags, and opens a PR bumping the tag. It does not retain your code.
+- If a stack builds a local image from files beside `compose.yaml` (for example a Dockerfile plus
+  `requirements.txt`), list those build inputs in that stack's `file_paths` in
+  [`komodo/sync.toml`](../komodo/sync.toml). Otherwise dependency-only changes outside
+  `compose.yaml` can merge without triggering a redeploy.
 - The first run opens a "Configure Renovate" onboarding PR; after you merge it, Renovate creates a
   **Dependency Dashboard** issue and starts proposing updates.
 - Self-hosting (npm package / Docker image / GitHub Action on an hourly cron) is the alternative —

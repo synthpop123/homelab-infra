@@ -447,8 +447,10 @@ tags = ["app"]
 server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/autobrr"
-file_paths = ["compose.yaml"]
-# `autobrr-notify` is built locally from ./notify, so the deploy runs `docker compose up --build`.
+# `autobrr-notify` is built locally from ./notify; include every build input so dependency-only
+# changes in the Dockerfile or requirements still trigger BatchDeployStackIfChanged.
+file_paths = ["compose.yaml", "notify/Dockerfile", "notify/requirements.txt", "notify/app.py"]
+# Deploy with `docker compose up --build` so the local notifier image is rebuilt.
 extra_args = "--build"
 # TMDB key + Telegram bot token/channel id for the notify sidecar are Komodo Variables; the compose
 # references ${...}. autobrr's own secrets live in /srv/autobrr/config (autobrr.db), kept off git.

@@ -28,7 +28,7 @@ A change flows from git to a running container without any CI in this repo:
      *definitions* only — every stack is `deploy = false`, so it creates/updates Stacks but
      **never deploys** (otherwise it races the procedure for the deploy lock → "Resource is busy").
    - **Procedure `Redeploy On Push`** is the sole deployer: runs `BatchDeployStackIfChanged`
-     (pattern `*`), deploying only the stacks whose compose content actually changed.
+     (pattern `*`), deploying only the stacks whose configured `file_paths` actually changed.
 3. **Renovate** (Mend-hosted app, not CI here) watches every `image: name:tag`, opens PRs
    bumping pinned versions. Merging a bump triggers step 2's redeploy.
 
@@ -43,7 +43,9 @@ Adding a service is a coordinated change across **four** places, ideally in one 
 
 1. `stacks/<service>/compose.yaml` — the compose file (conventions below).
 2. `komodo/sync.toml` — add a `[[stack]]` block (`server = "Famesystems"`,
-   `linked_repo = "homelab-infra"`, `run_directory`, `file_paths`).
+   `linked_repo = "homelab-infra"`, `run_directory`, `file_paths`). If the stack builds a local
+   image, include every build input (Dockerfile, requirements files, app code) in `file_paths`, not
+   only `compose.yaml`, so dependency-only changes trigger redeploys.
 3. `docs/ports.md` — claim the next free host port and update **Next free**.
 4. `README.md` — add a row to the Services table.
 
