@@ -7,7 +7,7 @@
 services:
   n8n:
     container_name: n8n
-    image: docker.n8n.io/n8nio/n8n:2.28.0
+    image: docker.n8n.io/n8nio/n8n:2.28.1
     restart: unless-stopped
     depends_on:
       n8n-postgres:
