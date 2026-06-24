@@ -67,7 +67,7 @@ services:
 
   web:
     container_name: mastodon-web
-    image: ghcr.io/mastodon/mastodon:v4.6.0
+    image: ghcr.io/mastodon/mastodon:v4.6.1
     restart: unless-stopped
     env_file: .env.production
     command: bundle exec puma -C config/puma.rb
@@ -106,7 +106,7 @@ services:
 
   sidekiq:
     container_name: mastodon-sidekiq
-    image: ghcr.io/mastodon/mastodon:v4.6.0
+    image: ghcr.io/mastodon/mastodon:v4.6.1
     restart: unless-stopped
     env_file: .env.production
     command: bundle exec sidekiq
