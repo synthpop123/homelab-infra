@@ -88,7 +88,7 @@ services:
 
   streaming:
     container_name: mastodon-streaming
-    image: ghcr.io/mastodon/mastodon-streaming:v4.6.0
+    image: ghcr.io/mastodon/mastodon-streaming:v4.6.1
     restart: unless-stopped
     env_file: .env.production
     command: node ./streaming/index.js
