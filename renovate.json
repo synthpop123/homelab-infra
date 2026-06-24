@@ -11,9 +11,15 @@
   "prHourlyLimit": 0,
   "packageRules": [
     {
-      "description": "Group all Docker image updates per stack folder",
+      "description": "Topic Docker image PRs by the bare image name (Renovate's default prepends a 'dependency ' noun).",
       "matchManagers": ["docker-compose"],
       "commitMessageTopic": "{{depName}}"
+    },
+    {
+      "description": "Mastodon ships its web/sidekiq image and the streaming image in lockstep at the same version, so group their updates into one PR.",
+      "matchManagers": ["docker-compose"],
+      "matchPackageNames": ["ghcr.io/mastodon/**"],
+      "groupName": "mastodon"
     }
   ]
 }
