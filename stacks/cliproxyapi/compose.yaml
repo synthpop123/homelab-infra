@@ -14,7 +14,7 @@
 services:
   cli-proxy-api:
     container_name: cli-proxy-api
-    image: eceasy/cli-proxy-api:v7.2.38
+    image: eceasy/cli-proxy-api:v7.2.39
     ports:
       # host:container — host port from the registry (see docs/ports.md). cpa.lkwplus.com
       - "20029:8317/tcp"
