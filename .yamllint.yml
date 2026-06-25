@@ -1,0 +1,26 @@
+# yamllint config for the declarative compose files.
+#
+# Focused on real errors (duplicate keys, tabs, broken structure) rather than
+# style noise — the deploy path is push -> Komodo auto-deploy, so this gate exists
+# to catch what would otherwise only surface mid-deploy on the VPS.
+extends: default
+
+rules:
+  # Compose files have long image digests / env lines; length is not a real defect.
+  line-length: disable
+  # No "---" header on compose files, and that is fine.
+  document-start: disable
+  # Leading-comment indentation varies in these files; not worth failing on.
+  comments-indentation: disable
+  comments:
+    require-starting-space: true
+    min-spaces-from-content: 1
+  # Allow either sequence-indent style (`- x` flush or indented); both parse the
+  # same. Real structural mistakes still fail YAML parsing or `docker compose config`.
+  indentation:
+    spaces: 2
+    indent-sequences: whatever
+  # `true`/`false` are canonical; only flag genuinely ambiguous truthy *values*,
+  # never keys.
+  truthy:
+    check-keys: false

@@ -4,9 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-GitOps for self-hosted services. There is **no build/test/lint** — it is declarative
-infrastructure. The unit of work is editing YAML/TOML and pushing; deployment happens
-on the VPS via Komodo, not from this machine. You cannot run or verify a deploy locally.
+GitOps for self-hosted services — declarative infrastructure, so there is **no build or
+test step**. The one local check is a **lint gate**: `./scripts/validate.sh` (also run in CI
+on every PR via `.github/workflows/lint.yml`) validates every `stacks/*/compose.yaml` with
+`yamllint` + `docker compose config`, plus `sync.toml`/`renovate.json` syntax. Run it before
+pushing. The unit of work is editing YAML/TOML and pushing; deployment happens on the VPS via
+Komodo, not from this machine — you cannot run or verify a *deploy* locally.
 
 ## Deployment model (the big picture)
 
@@ -20,7 +23,9 @@ nothing deploys from the local repo.
 
 ### Flow
 
-A change flows from git to a running container without any CI in this repo:
+A change flows from git to a running container with no CI in the *deploy* path — deployment
+is webhook-driven, not CI-driven (the PR lint gate in `.github/workflows/lint.yml` validates
+changes but never deploys):
 
 1. Edit a `stacks/<service>/compose.yaml` (or add one) and push to `main`.
 2. Two GitHub `push` webhooks fire into Komodo on the VPS:

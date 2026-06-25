@@ -1,0 +1,38 @@
+# Pre-deploy lint gate.
+#
+# The deploy path here is push -> Komodo `Redeploy On Push` procedure (docs/workflow.md),
+# with no validation in between. This workflow is that missing gate: it runs on every PR
+# (including the ones Renovate opens to bump image tags) so a broken compose or sync.toml
+# is caught before it can be merged into `main` and auto-deployed on the VPS.
+#
+# It runs entirely on GitHub's runners — it does NOT touch the VPS and deploys nothing.
+name: lint
+
+on:
+  pull_request:
+    paths:
+      - "stacks/**"
+      - "komodo/sync.toml"
+      - "renovate.json"
+      - ".yamllint.yml"
+      - "scripts/validate.sh"
+      - ".github/workflows/lint.yml"
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install yamllint
+        run: pipx install yamllint
+
+      # STRICT=1 makes a missing tool a hard failure, so CI never silently skips a check.
+      # ubuntu-latest ships docker compose v2 and python 3.11+, so all three checks run.
+      - name: Validate declarative infra
+        run: STRICT=1 ./scripts/validate.sh
