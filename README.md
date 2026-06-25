@@ -13,6 +13,8 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 ├── bootstrap/komodo/               # Komodo itself (Core/Periphery/Mongo): deployed by hand
 ├── bootstrap/firewall/             # host firewall (DOCKER-USER rules): deployed by hand
 ├── renovate.json                   # Renovate config (auto-detects stacks/*/compose.yaml)
+├── scripts/validate.sh             # pre-deploy lint (compose/sync.toml/renovate.json)
+├── .github/workflows/lint.yml      # runs validate.sh on every PR (no VPS access)
 └── docs/                           # conventions, ports, workflow, migration, backup runbooks
 ```
 
