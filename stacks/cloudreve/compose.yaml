@@ -1,7 +1,7 @@
 services:
   backend:
     container_name: cloudreve-backend
-    image: cloudreve/cloudreve:4.16.1
+    image: cloudreve/cloudreve:4.17.0
     depends_on:
       postgresql:
         condition: service_healthy
