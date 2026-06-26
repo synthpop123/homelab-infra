@@ -11,7 +11,7 @@
 services:
   cloud-media-sync:
     container_name: cloud-media-sync
-    image: imaliang/cloud-media-sync:0.4.6.3
+    image: imaliang/cloud-media-sync:0.4.6.4
     privileged: true
     restart: unless-stopped
     environment:
