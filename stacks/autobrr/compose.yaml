@@ -7,7 +7,7 @@
 services:
   autobrr:
     container_name: autobrr
-    image: ghcr.io/autobrr/autobrr:v1.80.0
+    image: ghcr.io/autobrr/autobrr:v1.81.0
     restart: unless-stopped
     user: 1000:1000
     environment:
