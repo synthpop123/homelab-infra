@@ -49,7 +49,7 @@ services:
 
   karakeep-meilisearch:
     container_name: karakeep-meilisearch
-    image: getmeili/meilisearch:v1.13.3
+    image: getmeili/meilisearch:v1.48.3
     restart: unless-stopped
     environment:
       MEILI_MASTER_KEY: ${KARAKEEP_MEILI_MASTER_KEY}
