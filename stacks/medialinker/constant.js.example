@@ -5,7 +5,7 @@
 //
 // What's tailored vs. the upstream/MoviePilot tutorial template:
 //   * plexHost      -> the Plex container's fixed IP on mediacenter-net (172.22.0.7:32400).
-//   * mediaMountPath-> ["/data/Movie"], the read-only mount Plex AND medialinker share.
+//   * mediaMountPath-> ["/data/Movie", "/data/TV"], the read-only mounts Plex AND medialinker share.
 //   * mediaPathMapping is EMPTY: our cloud-media-sync .strm files already contain a full
 //     https://cms.lkwplus.com/d/... link, so there is nothing to rewrite (the tutorial's
 //     [0,0,"/media1/strm","mp域名:端口"] line only exists because MoviePilot's strm hold a
@@ -18,9 +18,9 @@
 // Plex backend reached over mediacenter-net (this container sits at 172.22.0.8).
 const plexHost = "http://172.22.0.7:32400";
 
-// The read-only media mount shared with Plex. Item.Path values under it are handled by
+// The read-only media mounts shared with Plex. Item.Path values under them are handled by
 // medialinker; anything else is proxied to Plex untouched.
-const mediaMountPath = ["/data/Movie"];
+const mediaMountPath = ["/data/Movie", "/data/TV"];
 
 // No alist in this setup.
 const alistAddr = "";

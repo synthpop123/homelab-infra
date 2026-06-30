@@ -5,8 +5,8 @@
 # hold a full https://cms.lkwplus.com/d/... link (cloud-media-sync's emby-302 service), so the client
 # follows it to the final 115 direct link — the exact path Emby uses, so no MoviePilot is needed.
 #
-# Mounts /srv/emby/data/Movie read-only at the SAME container path as Plex (/data/Movie), so it can
-# read the strm file for the Item.Path Plex returns. The real config — constant.js (plexHost + rules)
+# Mounts /srv/emby/data/{Movie,TV} read-only at the SAME container paths as Plex (/data/{Movie,TV}), so
+# it can read the strm file for the Item.Path Plex returns. The real config — constant.js (plexHost + rules)
 # — lives off-git at /srv/medialinker/ (bind-mounted to /opt); a sanitized constant.js.example is
 # committed alongside this compose. On the external mediacenter-net at the FIXED IP 172.22.0.8.
 #
@@ -26,6 +26,7 @@ services:
     volumes:
       - /srv/medialinker:/opt
       - /srv/emby/data/Movie:/data/Movie:ro
+      - /srv/emby/data/TV:/data/TV:ro
     ports:
       # host:container — host port from the registry (see docs/ports.md). Front this with
       # plex.lkwplus.com via Akko (TLS terminated there; medialinker stays plain http internally).

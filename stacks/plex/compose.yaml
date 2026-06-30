@@ -1,5 +1,5 @@
-# Plex media server. Shares Emby's .strm movie library: mounts /srv/emby/data/Movie (the strm tree
-# cloud-media-sync writes) read-only as /data/Movie and scrapes it with Plex's own agent. Plex can't
+# Plex media server. Shares Emby's .strm libraries: mounts /srv/emby/data/{Movie,TV} (the strm tree
+# cloud-media-sync writes) read-only as /data/{Movie,TV} and scrapes them with Plex's own agent. Plex can't
 # natively play .strm, so playback is intercepted by the medialinker stack (nginx+njs reverse proxy)
 # which 302-redirects to the cms.lkwplus.com direct-link service — the same path Emby already uses,
 # which is why no MoviePilot is needed. Plex's own config/database lives in /srv/plex/config.
@@ -25,6 +25,7 @@ services:
     volumes:
       - /srv/plex/config:/config
       - /srv/emby/data/Movie:/data/Movie:ro
+      - /srv/emby/data/TV:/data/TV:ro
     ports:
       # host:container — host port from the registry (see docs/ports.md). Clients play through
       # medialinker, not this port; it stays for admin and is Akko-only at the firewall.

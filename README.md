@@ -48,7 +48,7 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 | [umami](./stacks/umami) | [umami.lkwplus.com](https://umami.lkwplus.com) | 20027 | Privacy-focused web analytics (+ dedicated Postgres) |
 | [bark](./stacks/bark) | [bark.lkwplus.com](https://bark.lkwplus.com) | 20028 | Bark push notification server |
 | [cliproxyapi](./stacks/cliproxyapi) | [cpa.lkwplus.com](https://cpa.lkwplus.com) / [cpa-manager.lkwplus.com](https://cpa-manager.lkwplus.com) | 20029 / 20030 | CLIProxyAPI AI proxy (CPA) + CPA-Manager-Plus panel |
-| [plex](./stacks/plex) | via [plex.lkwplus.com](https://plex.lkwplus.com) | 20031 | Plex media server — scrapes Emby's shared strm Movie library (fixed IP 172.22.0.7) |
+| [plex](./stacks/plex) | via [plex.lkwplus.com](https://plex.lkwplus.com) | 20031 | Plex media server — scrapes Emby's shared strm Movie + TV libraries (fixed IP 172.22.0.7) |
 | [medialinker](./stacks/medialinker) | [plex.lkwplus.com](https://plex.lkwplus.com) | 20032 | strm 302 reverse proxy in front of Plex for direct play (fixed IP 172.22.0.8) |
 
 ## Docs
