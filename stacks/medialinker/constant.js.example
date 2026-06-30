@@ -1,0 +1,146 @@
+// medialinker (embyExternalUrl) config for THIS deployment — sanitized example.
+// Real file lives off-git at /srv/medialinker/constant.js (bind-mounted to /opt/constant.js).
+// Copy this to the host and adjust if needed:
+//   scp stacks/medialinker/constant.js.example fame:/srv/medialinker/constant.js
+//
+// What's tailored vs. the upstream/MoviePilot tutorial template:
+//   * plexHost      -> the Plex container's fixed IP on mediacenter-net (172.22.0.7:32400).
+//   * mediaMountPath-> ["/data/Movie"], the read-only mount Plex AND medialinker share.
+//   * mediaPathMapping is EMPTY: our cloud-media-sync .strm files already contain a full
+//     https://cms.lkwplus.com/d/... link, so there is nothing to rewrite (the tutorial's
+//     [0,0,"/media1/strm","mp域名:端口"] line only exists because MoviePilot's strm hold a
+//     local path that must be turned into MP's url — we don't use MoviePilot).
+//   * redirectStrmLastLinkRule keeps only the default LAN-ip rule: cms.lkwplus.com is a public
+//     https domain, so njs does NOT follow it — medialinker just 302s that link to the client,
+//     which then follows cms -> 115, exactly like Emby does today.
+//   * clientSelfAlistRule is EMPTY and alist* are unset: there is no alist in this setup.
+
+// Plex backend reached over mediacenter-net (this container sits at 172.22.0.8).
+const plexHost = "http://172.22.0.7:32400";
+
+// The read-only media mount shared with Plex. Item.Path values under it are handled by
+// medialinker; anything else is proxied to Plex untouched.
+const mediaMountPath = ["/data/Movie"];
+
+// No alist in this setup.
+const alistAddr = "";
+const alistToken = "";
+const alistSignEnable = false;
+const alistSignExpireTime = 12;
+const alistPublicAddr = "";
+
+// 字符串头,用于特殊匹配判断
+const strHead = {
+  lanIp: ["172.", "10.", "192.", "[fd00:"], // 局域网ip头
+  xEmbyClients: {
+    seekBug: ["Emby for iOS"],
+  },
+  xUAs: {
+    seekBug: ["Infuse", "VidHub", "SenPlayer"],
+    clientsPC: ["EmbyTheater"],
+    clients3rdParty: ["Fileball", "Infuse", "SenPlayer", "VidHub"],
+    player3rdParty: ["dandanplay", "VLC", "MXPlayer", "PotPlayer"],
+    blockDownload: ["Infuse-Download"],
+    infuse: {
+      direct: "Infuse-Direct",
+      download: "Infuse-Download",
+    },
+  },
+  "115": "115.com",
+  ali: "aliyundrive.net",
+  userIds: {
+    mediaPathMappingGroup01: [],
+    allowInteractiveSearch: [],
+  },
+  filePaths: {
+    mediaMountPath: [],
+    redirectStrmLastLinkRule: [],
+    mediaPathMappingGroup01: [],
+  },
+};
+
+// 规则引用占位,本部署未使用分组规则
+const ruleRef = {};
+
+// 路由缓存配置
+const routeCacheConfig = {
+  // 总开关,是否开启路由缓存,短时间内同客户端访问相同资源不再重复判断/请求
+  enable: true,
+  // 二级缓存开关,仅针对直链
+  enableL2: false,
+  // 缓存键表达式
+  keyExpression: "r.uri:r.args.path:r.args.mediaIndex:r.args.partIndex",
+};
+
+// 符号链接真实路径规则,本部署未使用
+const symlinkRule = [
+  // [0, "/mnt/sda1"],
+];
+
+// 路由规则,本部署未使用(默认全部 redirect 直链)
+const routeRule = [
+  // ["proxy", "filePath", 0, "/mnt/sda1"],
+];
+
+// 路径映射: 留空。strm 内部已是完整 cms 链接,无需改写。
+// (教程里那条 [0, 0, "/media1/strm", "外网mp域名:端口"] 是 MoviePilot 专用,这里不需要)
+const mediaPathMapping = [
+];
+
+// 仅针对 alist 返回 raw_url 的映射,本部署无 alist,留空
+const alistRawUrlMapping = [
+];
+
+// 是否转发由 njs 获取 strm/远程链接 重定向后直链的规则。
+// 仅保留默认: 当 strm 内部链接是局域网 ip(http://172./10./192./[fd00:) 时让 njs 代取最终直链。
+// 我们的 strm 内部是公网域名 cms.lkwplus.com,不命中此规则 => 直接把该链接 302 给客户端,
+// 客户端再跟随 cms -> 115 直链(与 Emby 现状一致)。
+const redirectStrmLastLinkRule = [
+  [0, strHead.lanIp.map(s => "http://" + s)],
+];
+
+// 客户端自取 alist 直链规则: 本部署无 alist,留空。
+const clientSelfAlistRule = [
+];
+
+// 响应重定向链接前是否检测有效性
+const redirectCheckEnable = false;
+
+// 媒体服务/alist 查询失败后是否使用原始链接回源中转,无效则返回 500
+const fallbackUseOriginal = true;
+
+// 转码配置: plex 只能用自身服务转码,默认关闭(强制直接播放)
+const transcodeConfig = {
+  enable: false,
+};
+
+// for js_set
+function getPlexHost(r) {
+  return plexHost;
+}
+function getTranscodeEnable(r) {
+  return transcodeConfig.enable;
+}
+
+export default {
+  plexHost,
+  mediaMountPath,
+  routeCacheConfig,
+  symlinkRule,
+  routeRule,
+  alistAddr,
+  alistToken,
+  alistSignEnable,
+  alistSignExpireTime,
+  alistPublicAddr,
+  strHead,
+  clientSelfAlistRule,
+  redirectCheckEnable,
+  fallbackUseOriginal,
+  mediaPathMapping,
+  alistRawUrlMapping,
+  redirectStrmLastLinkRule,
+  transcodeConfig,
+  getPlexHost,
+  getTranscodeEnable,
+}

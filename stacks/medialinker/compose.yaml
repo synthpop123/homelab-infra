@@ -1,0 +1,40 @@
+# medialinker — embyExternalUrl's docker packaging (nginx + njs), a reverse proxy IN FRONT OF Plex
+# that enables the .strm direct play Plex itself refuses. Plex clients connect here
+# (plex.lkwplus.com -> Akko -> medialinker:8091); medialinker proxies normal traffic to Plex and, on
+# a playback request, reads the .strm's inner link and 302-redirects to it. Our strm files already
+# hold a full https://cms.lkwplus.com/d/... link (cloud-media-sync's emby-302 service), so the client
+# follows it to the final 115 direct link — the exact path Emby uses, so no MoviePilot is needed.
+#
+# Mounts /srv/emby/data/Movie read-only at the SAME container path as Plex (/data/Movie), so it can
+# read the strm file for the Item.Path Plex returns. The real config — constant.js (plexHost + rules)
+# — lives off-git at /srv/medialinker/ (bind-mounted to /opt); a sanitized constant.js.example is
+# committed alongside this compose. On the external mediacenter-net at the FIXED IP 172.22.0.8.
+#
+# Image note: thsrite/medialinker has no semver tags (only rolling latest/emby/plex), so it's pinned
+# by digest for reproducibility (Renovate tracks digest bumps). AUTO_UPDATE=false keeps the running
+# njs script == the pinned image (no run-time git pull). The :plex tag defaults SERVER=plex (kept
+# explicit below).
+services:
+  medialinker:
+    container_name: medialinker
+    image: thsrite/medialinker:plex@sha256:ecfcce3aab372cea61710586b9e2dc0e311b53c83a41aedef602bc58b4e03b30
+    restart: unless-stopped
+    environment:
+      - SERVER=plex
+      - NGINX_PORT=8091
+      - AUTO_UPDATE=false
+    volumes:
+      - /srv/medialinker:/opt
+      - /srv/emby/data/Movie:/data/Movie:ro
+    ports:
+      # host:container — host port from the registry (see docs/ports.md). Front this with
+      # plex.lkwplus.com via Akko (TLS terminated there; medialinker stays plain http internally).
+      - "20032:8091/tcp"
+    networks:
+      mediacenter-net:
+        ipv4_address: 172.22.0.8
+
+networks:
+  mediacenter-net:
+    external: true
+    name: mediacenter-net

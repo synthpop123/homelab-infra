@@ -1,0 +1,39 @@
+# Plex media server. Shares Emby's .strm movie library: mounts /srv/emby/data/Movie (the strm tree
+# cloud-media-sync writes) read-only as /data/Movie and scrapes it with Plex's own agent. Plex can't
+# natively play .strm, so playback is intercepted by the medialinker stack (nginx+njs reverse proxy)
+# which 302-redirects to the cms.lkwplus.com direct-link service — the same path Emby already uses,
+# which is why no MoviePilot is needed. Plex's own config/database lives in /srv/plex/config.
+#
+# On the external mediacenter-net at the FIXED IP 172.22.0.7 so medialinker reaches it at
+# 172.22.0.7:32400 (plexHost in medialinker's constant.js). The network is created/managed outside
+# this repo (manual `docker network create`), hence external.
+#
+# PLEX_CLAIM is the first-run activation token from https://www.plex.tv/claim (valid ~4 min); it's a
+# Komodo Variable and can be cleared once the server is claimed. VERSION=docker pins Plex to the
+# image tag (no self-update) so version is driven by the tag + Renovate, like the other stacks.
+services:
+  plex:
+    container_name: plex
+    image: linuxserver/plex:1.43.2.10687-563d026ea-ls311
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Shanghai
+      - VERSION=docker
+      - PLEX_CLAIM=${PLEX_CLAIM}
+    volumes:
+      - /srv/plex/config:/config
+      - /srv/emby/data/Movie:/data/Movie:ro
+    ports:
+      # host:container — host port from the registry (see docs/ports.md). Clients play through
+      # medialinker, not this port; it stays for admin and is Akko-only at the firewall.
+      - "20031:32400/tcp"
+    networks:
+      mediacenter-net:
+        ipv4_address: 172.22.0.7
+
+networks:
+  mediacenter-net:
+    external: true
+    name: mediacenter-net

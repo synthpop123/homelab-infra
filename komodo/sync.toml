@@ -506,6 +506,40 @@ environment = """
 CPA_MANAGER_ADMIN_KEY=[[CPA_MANAGER_ADMIN_KEY]]
 """
 
+[[stack]]
+name = "plex"
+description = "https://plex.lkwplus.com (backend, reached via medialinker)"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/plex"
+file_paths = ["compose.yaml"]
+# Plex shares Emby's strm Movie library (reads /srv/emby/data/Movie read-only) and scrapes it with
+# its own agent. Fixed IP 172.22.0.7 on the external mediacenter-net so medialinker reaches it at
+# 172.22.0.7:32400. PLEX_CLAIM (first-run activation token from plex.tv/claim) is a Komodo Variable;
+# it can be cleared once the server is claimed.
+environment = """
+PLEX_CLAIM=[[PLEX_CLAIM]]
+"""
+
+[[stack]]
+name = "medialinker"
+description = "https://plex.lkwplus.com"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/medialinker"
+file_paths = ["compose.yaml"]
+# Reverse proxy (nginx+njs) in front of Plex for .strm direct play. No compose secrets: constant.js
+# (plexHost + rules) lives off-git at /srv/medialinker/constant.js (a sanitized constant.js.example
+# is committed). Fixed IP 172.22.0.8 on the external mediacenter-net.
+
 # ----------------------------------------------------------------------------
 # Sync-then-deploy on git push (the Renovate flow), as ONE ordered procedure.
 #

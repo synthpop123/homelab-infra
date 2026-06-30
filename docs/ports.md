@@ -48,8 +48,10 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 | 20028 | bark                  | 8080           | Bark push notification server |
 | 20029 | cli-proxy-api         | 8317           | CLIProxyAPI AI proxy → cpa.lkwplus.com |
 | 20030 | cpa-manager-plus      | 18317          | CPA-Manager-Plus panel → cpa-manager.lkwplus.com |
+| 20031 | plex                  | 32400          | Plex media server (Akko-only; clients via medialinker) |
+| 20032 | medialinker           | 8091           | strm 302 reverse proxy → plex.lkwplus.com |
 
-**Next free: `20031`**
+**Next free: `20033`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,
@@ -66,8 +68,9 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 > - `qbittorrent` BitTorrent listen port stays on host port **65231** (tcp + udp), separate from its WebUI above.
 >
 > **Fixed IPs on the shared external `mediacenter-net`** (docker network addresses, not host ports):
-> `emby` = `172.22.0.4`, `cloud-media-sync` = `172.22.0.5`, `seerr` = `172.22.0.6`. cloud-media-sync
-> reaches Emby by that fixed IP, so these must not change.
+> `emby` = `172.22.0.4`, `cloud-media-sync` = `172.22.0.5`, `seerr` = `172.22.0.6`, `plex` = `172.22.0.7`,
+> `medialinker` = `172.22.0.8`. cloud-media-sync reaches Emby by that fixed IP, and medialinker reaches
+> Plex at `172.22.0.7:32400`, so these must not change.
 
 ## Firewall exposure
 
