@@ -1,14 +1,11 @@
 # Kometa configuration for the Plex stack — SANITIZED TEMPLATE (safe to commit).
 #
-# The REAL config.yml carries secrets (Plex token + TMDb API key), so it lives ONLY on the host at
-# /srv/plex/kometa/config/config.yml (bind-mounted into the kometa container, backed up with /srv) and
-# is never committed. To (re)create it: copy this file, fill in the two <...> placeholders, and drop it
-# at that path owned 1000:1000. A local working copy may be kept next to this file as
-# kometa-config.local.yml (git-ignored). Kometa reaches Plex over mediacenter-net at 172.22.0.7:32400
-# and TMDb for metadata; it needs no media mounts and runs on the daily schedule set by KOMETA_TIMES in
-# compose.yaml.
+# The REAL config.yml carries secrets (Plex token + TMDb key + MDBList key), so it lives ONLY on the
+# host at /srv/plex/kometa/config/config.yml (bind-mounted, backed up with /srv) and is never committed.
+# To (re)create it: copy this file, fill in the three <...> placeholders, and drop it at that path owned
+# 1000:1000. A local working copy may be kept as kometa-config.local.yml (git-ignored).
 #
-# Library names below MUST match Plex exactly (this server: 电影 / 电视节目, both zh-CN agents).
+# Library names MUST match Plex exactly (this server: 电影 / 电视节目, both zh-CN agents).
 
 libraries:
   电影:
@@ -17,17 +14,61 @@ libraries:
       - default: country
         template_variables:
           style: color
-          sort_by: added.desc            # sort by Date Added, newest first
-      # Cannes Film Festival award collections (Movies only). Manual collections use `collection_order`.
+          sort_by: random                # item order: random (reshuffles each Plex refresh)
+          minimum_items: 10              # only build a country collection with >= 10 films
+          use_separator: false           # no "Countries" separator card
+      # Letterboxd charts — Top 500 / 1001 Movies / One Million Watched Club only.
+      - default: letterboxd
+        template_variables:
+          use_all: false                 # turn everything off, then re-enable only these:
+          use_top_500: true              # Letterboxd Top 500
+          use_1001_movies: true          # 1,001 Movies You Must See Before You Die
+          use_million: true              # One Million Watched Club
+          cache_builders: 30             # cache these large lists for 30 days
+          use_separator: false
+          # collection_order already defaults to `custom` here (follows list order)
+      # IMDb charts — Top 250 only.
+      - default: imdb
+        template_variables:
+          use_all: false
+          use_top: true                  # IMDb Top 250 (drops IMDb Popular / Lowest Rated)
+          use_separator: false
+          # collection_order also defaults to `custom` here
+      # Cannes — Palme d'Or winners only, no per-year collections.
       - default: cannes
         template_variables:
-          collection_order: added.desc   # sort by Date Added, newest first
+          use_year_collections: false    # drop "Cannes <year>", keep only the Palme d'Or collection
+          collection_order: custom       # follow the winners-list order
+          use_separator: false
+      # Oscars — keep Best Picture / Director / etc., drop per-year collections.
+      - default: oscars
+        template_variables:
+          use_year_collections: false
+          collection_order: custom
+          use_separator: false
+      # Universes — keep only Alien/Predator, DC Universe, Fast & Furious, MCU, Star Wars,
+      # Wizarding World, X-Men. Everything below is turned off.
+      - default: universe
+        template_variables:
+          use_arrow: false               # Arrowverse
+          use_mummy: false               # Mummy Universe
+          use_askew: false               # View Askewniverse
+          use_conjuring: false           # Conjuring Universe
+          use_dca: false                 # DC Animated Universe
+          use_middle: false              # Middle Earth
+          use_rocky: false               # Rocky / Creed
+          use_trek: false                # Star Trek
+          use_marvel: false              # "In Association With Marvel" (NOT the MCU, which stays)
+          use_separator: false
   电视节目:
     collection_files:
+      # Per-country collections. Smart collections → item order uses `sort_by`.
       - default: country
         template_variables:
           style: color
-          sort_by: episode_added.desc    # sort by Last Episode Date Added, newest first
+          sort_by: random                # item order: random
+          minimum_items: 10
+          use_separator: false
 
 plex:
   url: http://172.22.0.7:32400
@@ -35,3 +76,6 @@ plex:
 tmdb:
   apikey: <TMDB_API_KEY>       # real value only in the /srv copy, never in git
   language: en
+mdblist:
+  apikey: <MDBLIST_API_KEY>    # real value only in the /srv copy, never in git
+  cache_expiration: 60
