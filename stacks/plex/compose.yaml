@@ -1,8 +1,13 @@
-# Plex media server. Shares Emby's .strm libraries: mounts /srv/emby/data/{Movie,TV} (the strm tree
+# Plex stack — Plex media server + Tautulli (Plex monitoring/stats).
+#
+# Plex shares Emby's .strm libraries: mounts /srv/emby/data/{Movie,TV} (the strm tree
 # cloud-media-sync writes) read-only as /data/{Movie,TV} and scrapes them with Plex's own agent. Plex can't
 # natively play .strm, so playback is intercepted by the medialinker stack (nginx+njs reverse proxy)
 # which 302-redirects to the cms.lkwplus.com direct-link service — the same path Emby already uses,
 # which is why no MoviePilot is needed. Plex's own config/database lives in /srv/plex/config.
+#
+# Tautulli monitors Plex; point it at http://172.22.0.7:32400 (or plex:32400 in-network). Config lives
+# in /srv/plex/tautulli/config. Fronted by https://tautulli.lkwplus.com (reverse proxy off-repo).
 #
 # On the external mediacenter-net at the FIXED IP 172.22.0.7 so medialinker reaches it at
 # 172.22.0.7:32400 (plexHost in medialinker's constant.js). The network is created/managed outside
@@ -33,6 +38,23 @@ services:
     networks:
       mediacenter-net:
         ipv4_address: 172.22.0.7
+
+  tautulli:
+    container_name: tautulli
+    image: ghcr.io/tautulli/tautulli:v2.17.2
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Shanghai
+    volumes:
+      - /srv/plex/tautulli/config:/config
+    ports:
+      # host:container — host port from the registry (see docs/ports.md). tautulli.lkwplus.com
+      - "20033:8181/tcp"
+    networks:
+      mediacenter-net:
+        ipv4_address: 172.22.0.9
 
 networks:
   mediacenter-net:
