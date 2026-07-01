@@ -56,7 +56,7 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,
-> mdc's `flaresolverr`) are internal-only (no host port).
+> mdc's `flaresolverr`, the plex stack's `kometa`) are internal-only (no host port).
 >
 > **Vacated:** `20025` previously published mdc's `flaresolverr`; it is now internal-only (mdc reaches
 > it in-network at `flaresolverr:8191`), so `20025` is unused. New services still take the next
@@ -72,7 +72,8 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 > `emby` = `172.22.0.4`, `cloud-media-sync` = `172.22.0.5`, `seerr` = `172.22.0.6`, `plex` = `172.22.0.7`,
 > `medialinker` = `172.22.0.8`, `tautulli` = `172.22.0.9`. cloud-media-sync reaches Emby by that fixed IP,
 > medialinker reaches Plex at `172.22.0.7:32400`, and Tautulli should use the same Plex address — so these
-> must not change.
+> must not change. The plex stack's `kometa` also joins `mediacenter-net` but makes only outbound calls
+> (Plex `172.22.0.7:32400` + TMDb), so it takes no fixed IP and no host port.
 
 ## Firewall exposure
 

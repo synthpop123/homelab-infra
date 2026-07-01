@@ -1,0 +1,37 @@
+# Kometa configuration for the Plex stack — SANITIZED TEMPLATE (safe to commit).
+#
+# The REAL config.yml carries secrets (Plex token + TMDb API key), so it lives ONLY on the host at
+# /srv/plex/kometa/config/config.yml (bind-mounted into the kometa container, backed up with /srv) and
+# is never committed. To (re)create it: copy this file, fill in the two <...> placeholders, and drop it
+# at that path owned 1000:1000. A local working copy may be kept next to this file as
+# kometa-config.local.yml (git-ignored). Kometa reaches Plex over mediacenter-net at 172.22.0.7:32400
+# and TMDb for metadata; it needs no media mounts and runs on the daily schedule set by KOMETA_TIMES in
+# compose.yaml.
+#
+# Library names below MUST match Plex exactly (this server: 电影 / 电视节目, both zh-CN agents).
+
+libraries:
+  电影:
+    collection_files:
+      # Per-country collections. `country` builds smart collections, so item order uses `sort_by`.
+      - default: country
+        template_variables:
+          style: color
+          sort_by: added.desc            # sort by Date Added, newest first
+      # Cannes Film Festival award collections (Movies only). Manual collections use `collection_order`.
+      - default: cannes
+        template_variables:
+          collection_order: added.desc   # sort by Date Added, newest first
+  电视节目:
+    collection_files:
+      - default: country
+        template_variables:
+          style: color
+          sort_by: episode_added.desc    # sort by Last Episode Date Added, newest first
+
+plex:
+  url: http://172.22.0.7:32400
+  token: <PLEX_TOKEN>          # real value only in the /srv copy, never in git
+tmdb:
+  apikey: <TMDB_API_KEY>       # real value only in the /srv copy, never in git
+  language: en

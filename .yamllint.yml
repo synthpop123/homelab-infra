@@ -5,6 +5,12 @@
 # to catch what would otherwise only surface mid-deploy on the VPS.
 extends: default
 
+# Local, git-ignored secret configs (e.g. stacks/plex/kometa-config.local.yml) are not part of the
+# committed deploy path, so keep them out of the lint gate.
+ignore: |
+  *.local.yml
+  *.local.yaml
+
 rules:
   # Compose files have long image digests / env lines; length is not a real defect.
   line-length: disable

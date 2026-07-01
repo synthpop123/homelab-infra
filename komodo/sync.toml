@@ -517,9 +517,12 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/plex"
 file_paths = ["compose.yaml"]
-# Plex + Tautulli on the external mediacenter-net. Plex at fixed IP 172.22.0.7 so medialinker reaches
-# it at 172.22.0.7:32400; Tautulli at 172.22.0.9 (monitor Plex at that address). PLEX_CLAIM (first-run
-# activation token from plex.tv/claim) is a Komodo Variable; it can be cleared once the server is claimed.
+# Plex + Tautulli + Kometa on the external mediacenter-net. Plex at fixed IP 172.22.0.7 so medialinker
+# reaches it at 172.22.0.7:32400; Tautulli at 172.22.0.9 (monitor Plex there). Kometa is outbound-only
+# (Plex + TMDb) with no fixed IP / host port; its whole config.yml (Plex token + TMDb key) lives off-git
+# at /srv/plex/kometa/config/config.yml — a sanitized kometa-config.yml.example is committed, so there
+# are no Komodo Variables to map here. PLEX_CLAIM (first-run activation token from plex.tv/claim) is a
+# Komodo Variable; it can be cleared once the server is claimed.
 environment = """
 PLEX_CLAIM=[[PLEX_CLAIM]]
 """

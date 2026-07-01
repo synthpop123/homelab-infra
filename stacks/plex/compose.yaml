@@ -9,6 +9,12 @@
 # Tautulli monitors Plex; point it at http://172.22.0.7:32400 (or plex:32400 in-network). Config lives
 # in /srv/plex/tautulli/config. Fronted by https://tautulli.lkwplus.com (reverse proxy off-repo).
 #
+# Kometa manages Plex metadata/collections (per-country collections + Cannes awards). It only makes
+# outbound calls — Plex at 172.22.0.7:32400 over mediacenter-net and TMDb — so it needs no host port,
+# no fixed IP and no media mounts. Its whole config.yml carries the Plex token + TMDb key, so the real
+# file lives off-git at /srv/plex/kometa/config/config.yml (a sanitized kometa-config.yml.example is
+# committed). Kometa runs on a daily schedule (KOMETA_TIMES), not on every container start.
+#
 # On the external mediacenter-net at the FIXED IP 172.22.0.7 so medialinker reaches it at
 # 172.22.0.7:32400 (plexHost in medialinker's constant.js). The network is created/managed outside
 # this repo (manual `docker network create`), hence external.
@@ -55,6 +61,27 @@ services:
     networks:
       mediacenter-net:
         ipv4_address: 172.22.0.9
+
+  kometa:
+    container_name: kometa
+    image: linuxserver/kometa:v2.4.4-ls103
+    restart: unless-stopped
+    depends_on:
+      - plex
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Shanghai
+      # Daily run time(s) only — Kometa is a batch job, not a server (comma-separate for multiple).
+      # KOMETA_RUN stays False so it does NOT run on container start; it waits for the schedule (the
+      # first run is triggered manually once right after deploy).
+      - KOMETA_TIMES=05:00
+      - KOMETA_RUN=False
+    volumes:
+      - /srv/plex/kometa/config:/config
+    networks:
+      # Outbound only (Plex 172.22.0.7:32400 + TMDb); no fixed IP or host port needed.
+      - mediacenter-net
 
 networks:
   mediacenter-net:

@@ -7,3 +7,9 @@
 **/.env
 **/.env.*
 secrets/
+
+# Local, secret-bearing config copies kept off git. The authoritative copy also lives on the host
+# under /srv (backed up there); this pattern lets a working copy sit next to its compose, e.g.
+# stacks/plex/kometa-config.local.yml (Plex token + TMDb key).
+*.local.yml
+*.local.yaml
