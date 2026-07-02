@@ -15,6 +15,17 @@
 # file lives off-git at /srv/plex/kometa/config/config.yml (a sanitized kometa-config.yml.example is
 # committed). Kometa runs on a daily schedule (KOMETA_TIMES), not on every container start.
 #
+# letterboxd-plex-sync mirrors Letterboxd → Plex one-way on a weekly cron (Monday 07:00 local):
+# watched status, ratings and the watchlist (custom lists unsupported upstream; the optional Radarr
+# integration stays off by default). Outbound-only like Kometa (Plex at 172.22.0.7:32400, plex.tv,
+# letterboxd.com, TMDb) — no host port, no fixed IP. RUN_NOW=false so container (re)starts never
+# trigger a sync; the first run is kicked off manually after deploy:
+#   docker exec -d letterboxd-plex-sync /app/sync_job_wrapper.sh   (watch: docker logs -f letterboxd-plex-sync)
+# /srv/plex/letterboxd-sync caches the Letterboxd-URL→TMDB-id map — the first build crawls ~15 s
+# per film (hours for a large history), weekly runs only map new films. Upstream publishes no
+# version tags, so the image pins :latest by digest (Renovate still bumps digests). Letterboxd
+# credentials, the Plex token and the TMDB key are LETTERBOXD_* Komodo Variables.
+#
 # On the external mediacenter-net at the FIXED IP 172.22.0.7 so medialinker reaches it at
 # 172.22.0.7:32400 (plexHost in medialinker's constant.js). The network is created/managed outside
 # this repo (manual `docker network create`), hence external.
@@ -81,6 +92,30 @@ services:
       - /srv/plex/kometa/config:/config
     networks:
       # Outbound only (Plex 172.22.0.7:32400 + TMDb); no fixed IP or host port needed.
+      - mediacenter-net
+
+  letterboxd-plex-sync:
+    container_name: letterboxd-plex-sync
+    image: treysu/letterboxd-plex-sync:latest@sha256:67a8b5dbe9b54a3a3261a93d367fc9a98abec1fb3efdf48f36b831d38080e6d1
+    restart: unless-stopped
+    depends_on:
+      - plex
+    environment:
+      - TZ=Asia/Shanghai
+      - PLEX_BASEURL=http://172.22.0.7:32400
+      - PLEX_TOKEN=${LETTERBOXD_PLEX_TOKEN}
+      - LB_USERNAME=${LETTERBOXD_USERNAME}
+      - LB_PASSWORD=${LETTERBOXD_PASSWORD}
+      - TMDB_API_KEY=${LETTERBOXD_TMDB_API_KEY}
+      # Monday 07:00 (container runs on Asia/Shanghai via TZ + the /etc/localtime mount).
+      # RUN_NOW=false: syncs only on schedule, never on container start (see header).
+      - CRON_SCHEDULE=0 7 * * 1
+      - RUN_NOW=false
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /srv/plex/letterboxd-sync:/app/data
+    networks:
+      # Outbound only (Plex, plex.tv, letterboxd.com, TMDb); no fixed IP or host port needed.
       - mediacenter-net
 
 networks:

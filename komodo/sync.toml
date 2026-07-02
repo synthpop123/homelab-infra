@@ -517,14 +517,19 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/plex"
 file_paths = ["compose.yaml"]
-# Plex + Tautulli + Kometa on the external mediacenter-net. Plex at fixed IP 172.22.0.7 so medialinker
-# reaches it at 172.22.0.7:32400; Tautulli at 172.22.0.9 (monitor Plex there). Kometa is outbound-only
-# (Plex + TMDb) with no fixed IP / host port; its whole config.yml (Plex token + TMDb key) lives off-git
-# at /srv/plex/kometa/config/config.yml — a sanitized kometa-config.yml.example is committed, so there
-# are no Komodo Variables to map here. PLEX_CLAIM (first-run activation token from plex.tv/claim) is a
-# Komodo Variable; it can be cleared once the server is claimed.
+# Plex + Tautulli + Kometa + letterboxd-plex-sync on the external mediacenter-net. Plex at fixed IP
+# 172.22.0.7 so medialinker reaches it at 172.22.0.7:32400; Tautulli at 172.22.0.9 (monitor Plex
+# there). Kometa and letterboxd-plex-sync are outbound-only (no fixed IP / host port). Kometa's whole
+# config.yml (Plex token + TMDb key) lives off-git at /srv/plex/kometa/config/config.yml — a sanitized
+# kometa-config.yml.example is committed. letterboxd-plex-sync's Letterboxd credentials, Plex token
+# and TMDB key are the LETTERBOXD_* Variables below. PLEX_CLAIM (first-run activation token from
+# plex.tv/claim) is a Komodo Variable; it can be cleared once the server is claimed.
 environment = """
 PLEX_CLAIM=[[PLEX_CLAIM]]
+LETTERBOXD_USERNAME=[[LETTERBOXD_USERNAME]]
+LETTERBOXD_PASSWORD=[[LETTERBOXD_PASSWORD]]
+LETTERBOXD_PLEX_TOKEN=[[LETTERBOXD_PLEX_TOKEN]]
+LETTERBOXD_TMDB_API_KEY=[[LETTERBOXD_TMDB_API_KEY]]
 """
 
 [[stack]]

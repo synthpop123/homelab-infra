@@ -23,9 +23,11 @@ files on disk. This doc is the topology — each stack's compose has the per-ser
 ```
 
 Around the core: **seerr** takes media requests, **tautulli** monitors Plex sessions,
-**kometa** maintains Plex collections on a daily schedule (outbound-only), and the
-acquisition side is **torrent** (qBittorrent + qui) with **autobrr** (IRC/RSS filtering +
-Telegram notify) — deliberately *not* wired to qBittorrent, notify-only.
+**kometa** maintains Plex collections on a daily schedule (outbound-only),
+**letterboxd-plex-sync** mirrors Letterboxd watched/ratings/watchlist into Plex weekly
+(outbound-only), and the acquisition side is **torrent** (qBittorrent + qui) with
+**autobrr** (IRC/RSS filtering + Telegram notify) — deliberately *not* wired to
+qBittorrent, notify-only.
 
 ## The shared network
 
@@ -44,7 +46,8 @@ address in off-git config:
 | 172.22.0.9 | tautulli | — |
 
 **These addresses must not change** — renumbering means editing `/srv/.../` configs on the
-host, not just compose files. kometa joins the network without a fixed IP (outbound-only).
+host, not just compose files. kometa and letterboxd-plex-sync join the network without a
+fixed IP (outbound-only).
 
 If the network is ever lost: `docker network create --subnet 172.22.0.0/24 mediacenter-net`,
 then redeploy the member stacks.
