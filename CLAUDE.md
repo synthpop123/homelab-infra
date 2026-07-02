@@ -19,7 +19,10 @@ The `Famesystems` host (where Komodo and all stacks run) is reachable from this 
 `ssh fame` (alias defined in `~/.ssh/config`, logs in as `root`). Use it to inspect the live
 deploy — e.g. `ssh fame 'docker ps'`, check `/srv/<service>/`, or read Komodo's clone under
 `/etc/komodo/repos/`. This is the only way to verify a change actually took effect, since
-nothing deploys from the local repo.
+nothing deploys from the local repo. What runs on the host besides stacks (Caddy, komari,
+fail2ban, firewall, daemon config) is inventoried in `docs/server.md`; health-check and
+troubleshooting commands are in `docs/operations.md`; the multi-stack media pipeline
+(clouddrive2/cms/emby/plex/medialinker and the `mediacenter-net` fixed IPs) in `docs/media.md`.
 
 ### Flow
 
@@ -40,8 +43,8 @@ changes but never deploys):
 If Renovate changes only files inside a stack's local build context (for example an embedded
 `Dockerfile` or `requirements.txt`), Komodo syncs the repo but `BatchDeployStackIfChanged` will not
 select the stack because `file_paths` are compose files. After merging that kind of PR, manually
-deploy the stack through Komodo (for example `km deploy stack autobrr`) so `extra_args = "--build"`
-rebuilds the local image.
+deploy the stack through Komodo — UI, or the `km` CLI with an API key (`docs/operations.md`) —
+so `extra_args = "--build"` rebuilds the local image.
 
 Both `sync.toml` and the redeploy procedure are themselves defined as code in
 `komodo/sync.toml`. Stacks reference their git source via `linked_repo = "homelab-infra"`
@@ -58,8 +61,12 @@ Adding a service is a coordinated change across **four** places, ideally in one 
 3. `docs/ports.md` — claim the next free host port and update **Next free**.
 4. `README.md` — add a row to the Services table.
 
-Migrating an existing `/opt/<service>` deployment into a stack (data move, secrets, cutover) has its
+Adopting an existing deployment from outside the repo (data move, secrets, cutover) has its
 own runbook: `docs/migration.md`.
+
+**This repo is public.** Never commit public IPs, tokens, or other instance-specific
+secrets — hostnames and host ports are fine (established practice), but IPs stay in off-git
+config (`/etc/fame-firewall.conf`, `/srv/...`) and secrets in Komodo Variables.
 
 ## Non-obvious conventions (enforced; see `docs/conventions.md`)
 
@@ -67,8 +74,8 @@ own runbook: `docs/migration.md`.
   **databases/caches to their major line** (`pgvector/pgvector:pg16`, `redis:7`) since a major
   bump needs a manual data migration. Renovate relies on these tags to detect updates.
 - **Host ports are sequential from `20000`** (range `20000–20999` reserved). `docs/ports.md`
-  is the single source of truth; only *published* services consume a number. Legacy `/opt`
-  services use ad-hoc `13xxx`/`1<port>` and are left untouched.
+  is the single source of truth; only *published* services consume a number. (The legacy
+  `/opt` services and their ad-hoc `13xxx` ports are fully migrated away.)
 - **Persistent data goes under `/srv/<service>/…` as absolute bind mounts**, never named
   volumes (unless an image needs them) and never relative paths — Komodo clones this repo
   under `/etc/komodo/repos/`, so data must live outside the clone to survive re-clones.

@@ -1,0 +1,13 @@
+# Installs to /etc/fail2ban/jail.local — local overrides on top of Debian's defaults.
+#
+# Why: Debian 12 ships no rsyslog, so /var/log/auth.log does not exist and the stock sshd
+# jail dies with "Have not found any log file" (fail2ban sat failed for months this way).
+# `backend = systemd` reads the journal directly instead.
+[DEFAULT]
+backend = systemd
+
+[sshd]
+enabled = true
+# sshd listens on a non-default port here (see docs/server.md); without this the ban
+# would only cover port 22.
+port = 11322

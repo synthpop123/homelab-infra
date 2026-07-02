@@ -6,7 +6,8 @@
 - **VPS:** Komodo clones this repo under `/etc/komodo/repos/`. Persistent **data lives under
   `/srv/<service>/`** via *absolute* bind mounts, so data never lands inside the git clone and
   survives re-clones / redeploys.
-- **Legacy:** services still under `/opt/<service>/` are left untouched and migrated one at a time.
+- **Legacy:** the `/opt/<service>` era is fully migrated — `/opt` now holds only host tooling
+  (Komodo itself, komari). The runbook that got us here: [migration.md](./migration.md).
 
 ## Image pinning
 - **App images:** pin to an explicit version (`org/name:1.2.3`, never `:latest`) so Renovate can

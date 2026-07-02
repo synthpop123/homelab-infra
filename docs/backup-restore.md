@@ -16,7 +16,7 @@ radius. You need **all three** to come back from a total loss:
 |-------|----------|----------|--------------|----------------|
 | **1. Code / IaC** | `stacks/*/compose.yaml`, `komodo/sync.toml`, docs | this git repo | pushed to **GitHub** (off-box) | `git clone` to recover |
 | **2. Komodo metadata** | resource defs, **Variables/secrets**, users, API keys, git/registry accounts, audit log | MongoDB (`komodo-mongo`) | **built-in** dump → `/etc/komodo/backups` (daily) | secrets & accounts gone; stacks must be reconfigured by hand |
-| **3. Application data** | each service's DB, uploads, app-held keys | `/srv/<service>/` (~56 GB, mostly emby) | **nothing yet** — see [Layer 2 below](#layer-2--application-data-srv) | the actual user data is gone for good |
+| **3. Application data** | each service's DB, uploads, app-held keys | `/srv/<service>/` (~100 GB, mostly emby + plex) | **nothing yet** — see [Layer 2 below](#layer-2--application-data-srv) | the actual user data is gone for good |
 
 Why all three, and why git alone is **not** enough:
 
@@ -93,8 +93,8 @@ bring Core back and are **not** in git:
 Komodo's own `komodo_mongo-data` / `komodo_keys`). Nothing backs `/srv` up today.
 
 ```
-~56G  /srv total   — dominated by emby ~50G (.strm + scraped metadata/artwork, mostly
-       rebuildable), cms 3.1G; then immich 1.4G, openwebui 1.1G, new-api ~320M, koito 176M, ...
+~103G  /srv total  — dominated by emby ~50G and plex ~45G (.strm + scraped metadata/artwork,
+       mostly rebuildable), cms 3.3G; then immich 1.4G, openwebui 1.1G, new-api ~340M, ...
 ```
 
 ### Make the backup consistent
@@ -179,7 +179,7 @@ Pick one (GitOps-native first):
 ## Layer 3 — get it off the box (3-2-1)
 
 Right now **every** backup (Mongo dumps, and any `/srv` copy you add) sits on the **same
-disk** as the data it protects (`/dev/sda3`, 41% used). One disk/VPS failure loses the
+disk** as the data it protects. One disk/VPS failure loses the
 data *and* its backups. The [3-2-1 rule](https://en.wikipedia.org/wiki/Backup): **3**
 copies, on **2** media, **1** off-site.
 

@@ -1,10 +1,13 @@
 # Migrating a service into Komodo
 
-Runbook for moving an existing `/opt/<service>` Docker Compose deployment into this repo as a
-Komodo-managed stack. The steady-state rules (pinning, ports, networks, secrets, volumes) live in
+Runbook for moving an existing Docker Compose deployment into this repo as a Komodo-managed
+stack. The steady-state rules (pinning, ports, networks, secrets, volumes) live in
 [conventions.md](./conventions.md); this doc is the *procedure* and the gotchas, distilled from
 migrating ~15 services — single apps, multi-container stacks, and splitting a shared Postgres into
 per-stack instances (§10–11).
+
+> **Status:** the `/opt` migration wave is complete — everything is a stack now. Kept for the
+> next time something is adopted from outside the repo.
 
 > Expect a short outage during cutover (the old stack is down until the new one is healthy).
 > All shell examples run **on the VPS** unless noted.

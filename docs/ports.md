@@ -6,9 +6,8 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 
 - Host ports are allocated **sequentially from a base**, one number per published service.
 - **Base: `20000`**, incrementing by 1 → `20000`, `20001`, `20002`, …
-- The range **`20000–20999`** is reserved for this scheme (1000 slots) and is currently
-  free of conflicts with the legacy services still running under `/opt`
-  (those use an ad-hoc `13xxx` / `1<port>` convention and are left untouched for now).
+- The range **`20000–20999`** is reserved for this scheme (1000 slots). The legacy ad-hoc
+  `13xxx` / `1<port>` ports are gone — every service has been migrated into the scheme.
 - Only **published** services (those exposing a host port) consume a number.
   Internal-only containers (databases, redis, etc.) get no host port.
 - When adding a service: take the next free number, **record it here in the same commit**,
@@ -63,17 +62,16 @@ Single source of truth for **host** port allocation across Komodo-managed stacks
 > sequential number (**Next free** above), not this gap.
 >
 > **Outside the scheme** (host-networked; ports fixed by the app, not the registry):
-> - `beszel-agent` listens on host port **45876**.
+> - `beszel-agent` reserves host port **45876** (only bound as a fallback when its WebSocket
+>   link to the hub is down).
 > - `clouddrive2` runs with `network_mode: host` (web UI on its built-in port, FUSE mounts under `/mnt`).
 > - `gitea` SSH stays on host port **222** (clone URLs), separate from its HTTP port above.
 > - `qbittorrent` BitTorrent listen port stays on host port **65231** (tcp + udp), separate from its WebUI above.
 >
-> **Fixed IPs on the shared external `mediacenter-net`** (docker network addresses, not host ports):
-> `emby` = `172.22.0.4`, `cloud-media-sync` = `172.22.0.5`, `seerr` = `172.22.0.6`, `plex` = `172.22.0.7`,
-> `medialinker` = `172.22.0.8`, `tautulli` = `172.22.0.9`. cloud-media-sync reaches Emby by that fixed IP,
-> medialinker reaches Plex at `172.22.0.7:32400`, and Tautulli should use the same Plex address — so these
-> must not change. The plex stack's `kometa` also joins `mediacenter-net` but makes only outbound calls
-> (Plex `172.22.0.7:32400` + TMDb), so it takes no fixed IP and no host port.
+> **Fixed IPs on the shared external `mediacenter-net`** (`172.22.0.4`–`.9`: emby,
+> cloud-media-sync, seerr, plex, medialinker, tautulli) are docker network addresses, not host
+> ports, and must not change — the full table and rationale live in
+> [media.md](./media.md#the-shared-network).
 
 ## Firewall exposure
 

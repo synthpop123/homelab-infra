@@ -1,8 +1,22 @@
 # homelab-infra
 
+[![lint](https://github.com/synthpop123/homelab-infra/actions/workflows/lint.yml/badge.svg)](https://github.com/synthpop123/homelab-infra/actions/workflows/lint.yml)
+
 GitOps for self-hosted services managed by [Komodo](https://komo.do). Each service is a Docker
 Compose **Stack** with **pinned** image versions, updated automatically via
 [Renovate](https://docs.renovatebot.com) pull requests.
+
+![Architecture](./docs/assets/architecture.png)
+
+## How it works
+
+**Merging is deploying.** A push to `main` fires one webhook into Komodo on the VPS, which
+first reconciles stack *definitions* from [`komodo/sync.toml`](./komodo/sync.toml), then
+`docker compose up`s only the stacks whose compose files changed. There is no CI in the
+deploy path — the only gate is a lint workflow on every PR (`yamllint` + `docker compose
+config`, runnable locally as `./scripts/validate.sh`). Renovate watches every pinned
+`image:` tag and opens bump PRs, so routine updates are review-and-merge.
+Details: [workflow.md](./docs/workflow.md).
 
 ## Layout
 
@@ -12,13 +26,18 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 ├── komodo/sync.toml                # Komodo Resource Sync + redeploy Procedure (IaC)
 ├── bootstrap/komodo/               # Komodo itself (Core/Periphery/Mongo): deployed by hand
 ├── bootstrap/firewall/             # host firewall (DOCKER-USER rules): deployed by hand
+├── bootstrap/fail2ban/             # sshd brute-force jail: deployed by hand
 ├── renovate.json                   # Renovate config (auto-detects stacks/*/compose.yaml)
 ├── scripts/validate.sh             # pre-deploy lint (compose/sync.toml/renovate.json)
 ├── .github/workflows/lint.yml      # runs validate.sh on every PR (no VPS access)
-└── docs/                           # conventions, ports, workflow, migration, backup runbooks
+└── docs/                           # conventions, host/ops/media docs, runbooks
 ```
 
 ## Services
+
+Every service is reached as `https://<name>.lkwplus.com` through the Akko reverse proxy;
+the host ports below are not directly reachable from the internet (see
+[Networking](#networking--security)).
 
 | Service | URL | Port | Description |
 |---------|-----|------|-------------|
@@ -51,24 +70,69 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 | [plex](./stacks/plex) | [plex.lkwplus.com](https://plex.lkwplus.com) / [tautulli.lkwplus.com](https://tautulli.lkwplus.com) | 20031 / 20033 | Plex media server (fixed IP 172.22.0.7) + Tautulli Plex monitor (172.22.0.9) + Kometa metadata/collections |
 | [medialinker](./stacks/medialinker) | [plex.lkwplus.com](https://plex.lkwplus.com) | 20032 | strm 302 reverse proxy in front of Plex for direct play (fixed IP 172.22.0.8) |
 
-## Docs
+## Conventions
 
-- [Conventions](./docs/conventions.md) — file layout, `/srv` data, ports, networks, env vars, volumes
-- [Komodo Variables](./docs/komodo-variables.md) — creating/inspecting secret values (UI + headless via Mongo)
-- [Port registry](./docs/ports.md)
-- [Update & deploy workflow](./docs/workflow.md) — Komodo sync + redeploy procedure + Renovate
-- [Migrating a service](./docs/migration.md) — runbook for moving an existing `/opt` service in
-- [Backup & restore](./docs/backup-restore.md) — the three data layers, Komodo's built-in DB backup, `/srv` + off-site, restore runbooks
-- [Host firewall](./docs/firewall.md) — restricting published ports to the Akko reverse proxy (Docker-safe, no-lockout design)
+App images pin an exact version (Renovate's food); databases pin their major line
+(`postgres:18-alpine`, `redis:7`) so majors — which need a data migration — arrive as one
+deliberate PR. All persistent data sits in absolute bind mounts under `/srv/<service>/`,
+outside Komodo's git clone. Host ports are allocated sequentially from `20000`
+([the registry](./docs/ports.md) is the single source of truth), and each stack names its
+default network after itself. Full rules: [conventions.md](./docs/conventions.md).
+
+## Secrets
+
+Git never holds a secret — composes reference `${VAR}`, `sync.toml` maps `VAR = [[VAR]]`,
+and Komodo interpolates the real value from its **Variables** store into a git-ignored
+`.env` at deploy time. Whole secret-bearing config files live on the host under
+`/srv/<service>/` with a sanitized `*.example` committed instead. Creating and inspecting
+the values (UI, or headless via Mongo): [komodo-variables.md](./docs/komodo-variables.md).
+
+## Networking & security
+
+Only Caddy (80/443), sshd, and three deliberate exceptions (gitea SSH, BitTorrent,
+beszel hub) face the internet. Every other published port answers **only to the Akko
+reverse proxy**, enforced in Docker's `DOCKER-USER` iptables chain — designed so a bad rule
+can never lock SSH out ([firewall.md](./docs/firewall.md)). sshd itself sits behind
+fail2ban ([bootstrap/fail2ban](./bootstrap/fail2ban/)).
+
+## Media pipeline
+
+The most intertwined subsystem: clouddrive2 FUSE-mounts a 115 netdisk, cms turns it into a
+`.strm` library that Emby and Plex share, mdc scrapes metadata into it, and playback is a
+302-redirect straight to the cloud — media bytes never transit the VPS. Plex needs a
+helper proxy (medialinker) for that trick; seerr, tautulli and kometa orbit around.
+Topology, fixed IPs, and failure modes: [media.md](./docs/media.md).
+
+## Host & operations
+
+Everything runs on one Debian 12 VPS (**fame**, 6 vCPU / 24 GiB). Three things are managed
+by hand outside Komodo, versioned under [`bootstrap/`](./bootstrap/): Komodo itself, the
+firewall, and fail2ban. What else lives on the host and its known state:
+[server.md](./docs/server.md). Health checks, `km` CLI, "my push didn't deploy",
+reboot/housekeeping runbooks: [operations.md](./docs/operations.md).
+
+## Backup
+
+Komodo's own database (definitions, secrets) dumps itself daily on-box; the repo is its own
+off-site copy for code. The known gap is `/srv` application data + off-site shipping — the
+plan and restore runbooks (single service through bare-metal rebuild) are in
+[backup-restore.md](./docs/backup-restore.md).
 
 ## Add a service
 
-1. Create `stacks/<service>/compose.yaml` — pin the image, put volumes under `/srv/<service>/…`,
-   take the next free port from [docs/ports.md](./docs/ports.md).
-2. Add a `[[stack]]` block to [`komodo/sync.toml`](./komodo/sync.toml) and record the port.
-3. Commit & push — the `Redeploy On Push` procedure runs the `homelab` sync (creates the stack
-   definition) and then deploys what changed, all in one ordered run. A brand-new stack comes up on
-   its first push (and later version bumps redeploy automatically) — see [workflow.md](./docs/workflow.md).
+One commit, four places:
+
+1. `stacks/<service>/compose.yaml` — pin the image, volumes under `/srv/<service>/…`,
+   next free port from [docs/ports.md](./docs/ports.md).
+2. [`komodo/sync.toml`](./komodo/sync.toml) — add the `[[stack]]` block (+ `[[VAR]]` mappings
+   for any secrets).
+3. [`docs/ports.md`](./docs/ports.md) — record the port, bump **Next free**.
+4. This README — add the service row above.
+
+Push — the `Redeploy On Push` procedure syncs the definition and deploys it in one ordered
+run; a brand-new stack comes up on its first push ([workflow.md](./docs/workflow.md)).
+Adopting something that already runs elsewhere (data move, secrets, cutover) has its own
+runbook: [migration.md](./docs/migration.md).
 
 ## License
 
