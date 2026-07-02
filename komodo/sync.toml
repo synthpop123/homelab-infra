@@ -517,6 +517,9 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/plex"
 file_paths = ["compose.yaml"]
+# `letterboxd-plex-sync` is built locally from ./letterboxd-sync (upstream image + Cloudflare
+# TLS-fingerprint patch), so the deploy runs `docker compose up --build`.
+extra_args = "--build"
 # Plex + Tautulli + Kometa + letterboxd-plex-sync on the external mediacenter-net. Plex at fixed IP
 # 172.22.0.7 so medialinker reaches it at 172.22.0.7:32400; Tautulli at 172.22.0.9 (monitor Plex
 # there). Kometa and letterboxd-plex-sync are outbound-only (no fixed IP / host port). Kometa's whole

@@ -22,9 +22,11 @@
 # trigger a sync; the first run is kicked off manually after deploy:
 #   docker exec -d letterboxd-plex-sync /app/sync_job_wrapper.sh   (watch: docker logs -f letterboxd-plex-sync)
 # /srv/plex/letterboxd-sync caches the Letterboxd-URL→TMDB-id map — the first build crawls ~15 s
-# per film (hours for a large history), weekly runs only map new films. Upstream publishes no
-# version tags, so the image pins :latest by digest (Renovate still bumps digests). Letterboxd
-# credentials, the Plex token and the TMDB key are LETTERBOXD_* Komodo Variables.
+# per film (hours for a large history), weekly runs only map new films. The image is built locally
+# from ./letterboxd-sync: the upstream image (digest-pinned in that Dockerfile, still Renovate-
+# tracked) plus a curl_cffi patch that gets logins past Letterboxd's Cloudflare TLS-fingerprint
+# wall — the stock cloudscraper session 403s (upstream issue #18). Letterboxd credentials, the
+# Plex token and the TMDB key are LETTERBOXD_* Komodo Variables.
 #
 # On the external mediacenter-net at the FIXED IP 172.22.0.7 so medialinker reaches it at
 # 172.22.0.7:32400 (plexHost in medialinker's constant.js). The network is created/managed outside
@@ -96,7 +98,9 @@ services:
 
   letterboxd-plex-sync:
     container_name: letterboxd-plex-sync
-    image: treysu/letterboxd-plex-sync:latest@sha256:67a8b5dbe9b54a3a3261a93d367fc9a98abec1fb3efdf48f36b831d38080e6d1
+    # Built locally from ./letterboxd-sync (upstream image + Cloudflare TLS-fingerprint patch —
+    # see that Dockerfile); the stack deploys with `--build` (komodo/sync.toml).
+    build: ./letterboxd-sync
     restart: unless-stopped
     depends_on:
       - plex
