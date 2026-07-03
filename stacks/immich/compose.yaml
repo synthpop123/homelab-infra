@@ -8,7 +8,7 @@
 services:
   immich-server:
     container_name: immich-server
-    image: ghcr.io/immich-app/immich-server:v2.7.5
+    image: ghcr.io/immich-app/immich-server:v3.0.1
     volumes:
       - /srv/immich/library:/data
       - /etc/localtime:/etc/localtime:ro
@@ -26,7 +26,7 @@ services:
 
   immich-machine-learning:
     container_name: immich-machine-learning
-    image: ghcr.io/immich-app/immich-machine-learning:v2.7.5
+    image: ghcr.io/immich-app/immich-machine-learning:v3.0.1
     volumes:
       - /srv/immich/model-cache:/cache
     env_file:
@@ -37,7 +37,7 @@ services:
 
   redis:
     container_name: immich-redis
-    image: docker.io/valkey/valkey:9@sha256:3b55fbaa0cd93cf0d9d961f405e4dfcc70efe325e2d84da207a0a8e6d8fde4f9
+    image: docker.io/valkey/valkey:9@sha256:4963247afc4cd33c7d3b2d2816b9f7f8eeebab148d29056c2ca4d7cbc966f2d9
     healthcheck:
       test: redis-cli ping || exit 1
     restart: unless-stopped
@@ -54,6 +54,8 @@ services:
       - /srv/immich/postgres:/var/lib/postgresql/data
     shm_size: 128mb
     restart: unless-stopped
+    healthcheck:
+      disable: false
 
 networks:
   default:
