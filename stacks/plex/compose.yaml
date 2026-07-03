@@ -15,7 +15,7 @@
 # file lives off-git at /srv/plex/kometa/config/config.yml (a sanitized kometa-config.yml.example is
 # committed). Kometa runs on a daily schedule (KOMETA_TIMES), not on every container start.
 #
-# letterboxd-plex-sync mirrors Letterboxd → Plex one-way on a weekly cron (Monday 07:00 local):
+# letterboxd-plex-sync mirrors Letterboxd → Plex one-way on a weekly cron (Monday 10:00 local):
 # watched status, ratings and the watchlist (custom lists unsupported upstream; the optional Radarr
 # integration stays off by default). Outbound-only like Kometa (Plex at 172.22.0.7:32400, plex.tv,
 # letterboxd.com, TMDb) — no host port, no fixed IP. RUN_NOW=false so container (re)starts never
@@ -86,9 +86,11 @@ services:
       - PGID=1000
       - TZ=Asia/Shanghai
       # Daily run time(s) only — Kometa is a batch job, not a server (comma-separate for multiple).
-      # KOMETA_RUN stays False so it does NOT run on container start; it waits for the schedule (the
-      # first run is triggered manually once right after deploy).
-      - KOMETA_TIMES=05:00
+      # 08:30 stays clear of Plex's 04:00-08:00 maintenance window (Butler DB optimize / deep
+      # analysis contend for the Plex DB and made runs 3x slower). KOMETA_RUN stays False so it
+      # does NOT run on container start; it waits for the schedule (the first run is triggered
+      # manually once right after deploy).
+      - KOMETA_TIMES=08:30
       - KOMETA_RUN=False
     volumes:
       - /srv/plex/kometa/config:/config
@@ -111,9 +113,9 @@ services:
       - LB_USERNAME=${LETTERBOXD_USERNAME}
       - LB_PASSWORD=${LETTERBOXD_PASSWORD}
       - TMDB_API_KEY=${LETTERBOXD_TMDB_API_KEY}
-      # Monday 07:00 (container runs on Asia/Shanghai via TZ + the /etc/localtime mount).
+      # Monday 10:00 (container runs on Asia/Shanghai via TZ + the /etc/localtime mount).
       # RUN_NOW=false: syncs only on schedule, never on container start (see header).
-      - CRON_SCHEDULE=0 7 * * 1
+      - CRON_SCHEDULE=0 10 * * 1
       - RUN_NOW=false
     volumes:
       - /etc/localtime:/etc/localtime:ro

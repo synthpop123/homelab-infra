@@ -11,15 +11,22 @@ libraries:
   电影:
     collection_files:
       # Per-country collections. `country` builds smart collections, so item order uses `sort_by`.
+      # Country collections track the library, so they run every daily run; the chart/award/
+      # universe files below are gated to the 1st and 15th (Kometa has no every-N-weeks option,
+      # so twice-monthly ~= biweekly) — their lists barely change and each full rebuild costs
+      # 30-90 min of TMDb/Plex churn for zero changes (delete_not_scheduled defaults to false,
+      # so on other days they are left untouched, not deleted).
       - default: country
         template_variables:
           style: color
           sort_by: random                # item order: random (reshuffles each Plex refresh)
           minimum_items: 10              # only build a country collection with >= 10 films
           use_separator: false           # no "Countries" separator card
+          use_other: false               # no "Other Countries" collection (was warning "not needed")
       # Letterboxd charts — Top 500 / 1001 Movies / One Million Watched Club only.
       - default: letterboxd
         template_variables:
+          schedule: monthly(1), monthly(15)
           use_all: false                 # turn everything off, then re-enable only these:
           use_top_500: true              # Letterboxd Top 500
           use_1001_movies: true          # 1,001 Movies You Must See Before You Die
@@ -30,6 +37,7 @@ libraries:
       # IMDb charts — Top 250 only.
       - default: imdb
         template_variables:
+          schedule: monthly(1), monthly(15)
           use_all: false
           use_top: true                  # IMDb Top 250 (drops IMDb Popular / Lowest Rated)
           use_separator: false
@@ -37,12 +45,14 @@ libraries:
       # Cannes — Palme d'Or winners only, no per-year collections.
       - default: cannes
         template_variables:
+          schedule: monthly(1), monthly(15)
           use_year_collections: false    # drop "Cannes <year>", keep only the Palme d'Or collection
           collection_order: custom       # follow the winners-list order
           use_separator: false
       # Oscars — keep Best Picture / Director / etc., drop per-year collections.
       - default: oscars
         template_variables:
+          schedule: monthly(1), monthly(15)
           use_year_collections: false
           collection_order: custom
           use_separator: false
@@ -50,6 +60,7 @@ libraries:
       # Wizarding World, X-Men. Everything below is turned off.
       - default: universe
         template_variables:
+          schedule: monthly(1), monthly(15)
           use_arrow: false               # Arrowverse
           use_mummy: false               # Mummy Universe
           use_askew: false               # View Askewniverse
@@ -69,6 +80,7 @@ libraries:
           sort_by: random                # item order: random
           minimum_items: 10
           use_separator: false
+          use_other: false               # no "Other Countries" collection (was warning "not needed")
 
 plex:
   url: http://172.22.0.7:32400
@@ -79,3 +91,8 @@ tmdb:
 mdblist:
   apikey: <MDBLIST_API_KEY>    # real value only in the /srv copy, never in git
   cache_expiration: 60
+settings:
+  # Kometa looks this up under `settings` (not `plex`) and warns every run when absent;
+  # explicit true == the default. Kometa writes the rest of its defaults back into the
+  # live /srv copy on each run, so this block stays minimal here.
+  verify_ssl: true
