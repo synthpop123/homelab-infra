@@ -15,12 +15,20 @@ files on disk. This doc is the topology — each stack's compose has the per-ser
   │        (flaresolverr sidecar for Cloudflare)                     │
   │                                                                  ▼
   │                                             ┌── emby   reads /srv/emby/data
-  │                                             └── plex   reads Movie/TV read-only
+  │                                             └── plex   reads Movie/TV/JAV/Hentai ro
   │                                                  ▲
   └─ playback: client follows a 302 to the real     medialinker (nginx+njs) fronts Plex,
      115 download link served by cms's emby-302      302-redirects .strm playback the same
      proxy — no media bytes transit this host        way Emby does natively
 ```
+
+Plex mounts four subtrees of `/srv/emby/data` read-only. Movie and TV are ordinary
+online-agent libraries (电影 / 电视节目, zh-CN); JAV and Hentai are **"Plex NFO Movie"
+agent libraries** (PMS ≥ 1.43.1) built entirely from the nfo/poster files sitting next to
+each `.strm` — no online matching. The Plex-side tooling deliberately ignores those two
+libraries: kometa's config whitelists only 电影/电视节目, letterboxd-plex-sync is pinned
+with `PLEX_LIBRARY_NAME=电影` (compose), and the local plex-metadata-fixer tool sets
+`PLEX_LIBRARIES=电影,电视节目` in its `.env`.
 
 Around the core: **seerr** takes media requests, **tautulli** monitors Plex sessions,
 **kometa** maintains Plex collections on a daily schedule (outbound-only),

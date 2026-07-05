@@ -1,7 +1,9 @@
 # Plex stack — Plex media server + Tautulli (Plex monitoring/stats).
 #
-# Plex shares Emby's .strm libraries: mounts /srv/emby/data/{Movie,TV} (the strm tree
-# cloud-media-sync writes) read-only as /data/{Movie,TV} and scrapes them with Plex's own agent. Plex can't
+# Plex shares Emby's .strm libraries: mounts /srv/emby/data/{Movie,TV,JAV,Hentai} (the strm trees
+# cloud-media-sync writes) read-only as /data/{Movie,TV,JAV,Hentai}. Movie/TV are scraped with Plex's
+# own online agent; JAV and Hentai are "Plex NFO Movie" agent libraries (PMS >= 1.43.1) built entirely
+# from the nfo/poster files mdc writes next to each .strm — no online matching. Plex can't
 # natively play .strm, so playback is intercepted by the medialinker stack (nginx+njs reverse proxy)
 # which 302-redirects to the cms.lkwplus.com direct-link service — the same path Emby already uses,
 # which is why no MoviePilot is needed. Plex's own config/database lives in /srv/plex/config.
@@ -18,7 +20,9 @@
 # letterboxd-plex-sync mirrors Letterboxd → Plex one-way on a weekly cron (Monday 10:00 local):
 # watched status, ratings and the watchlist (custom lists unsupported upstream; the optional Radarr
 # integration stays off by default). Outbound-only like Kometa (Plex at 172.22.0.7:32400, plex.tv,
-# letterboxd.com, TMDb) — no host port, no fixed IP. RUN_NOW=false so container (re)starts never
+# letterboxd.com, TMDb) — no host port, no fixed IP. PLEX_LIBRARY_NAME pins it to the 电影 library:
+# left unset, the script walks EVERY movie-type library, i.e. it would pointlessly crawl the
+# JAV/Hentai NFO libraries (whose NFO GUIDs can never match Letterboxd's TMDB ids) each weekly run. RUN_NOW=false so container (re)starts never
 # trigger a sync; the first run is kicked off manually after deploy:
 #   docker exec -d letterboxd-plex-sync /app/sync_job_wrapper.sh   (watch: docker logs -f letterboxd-plex-sync)
 # /srv/plex/letterboxd-sync caches the Letterboxd-URL→TMDB-id map — the first build crawls ~15 s
@@ -50,6 +54,8 @@ services:
       - /srv/plex/config:/config
       - /srv/emby/data/Movie:/data/Movie:ro
       - /srv/emby/data/TV:/data/TV:ro
+      - /srv/emby/data/JAV:/data/JAV:ro
+      - /srv/emby/data/Hentai:/data/Hentai:ro
     ports:
       # host:container — host port from the registry (see docs/ports.md). Clients play through
       # medialinker, not this port; it stays for admin and is Akko-only at the firewall.
@@ -110,6 +116,8 @@ services:
       - TZ=Asia/Shanghai
       - PLEX_BASEURL=http://172.22.0.7:32400
       - PLEX_TOKEN=${LETTERBOXD_PLEX_TOKEN}
+      # Only sync the 电影 library — see header (keeps the JAV/Hentai NFO libraries out).
+      - PLEX_LIBRARY_NAME=电影
       - LB_USERNAME=${LETTERBOXD_USERNAME}
       - LB_PASSWORD=${LETTERBOXD_PASSWORD}
       - TMDB_API_KEY=${LETTERBOXD_TMDB_API_KEY}
