@@ -18,7 +18,7 @@ services:
   # so the two ship as one stack. multi-scrobbler reaches koito at http://koito:4110.
   multi-scrobbler:
     container_name: multi-scrobbler
-    image: foxxmd/multi-scrobbler:0.14.1
+    image: foxxmd/multi-scrobbler:0.14.2
     depends_on:
       - koito
     ports:
