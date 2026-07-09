@@ -26,6 +26,7 @@ services:
     environment:
       TZ: Asia/Shanghai
       SPOTIFY_ID: spotify
+      SPOTIFY_NAME: Spotify
       KOITO_ID: koito
       KOITO_URL: http://koito:4110
       KOITO_NAME: Koito
