@@ -7,6 +7,7 @@
 **/.env
 **/.env.*
 secrets/
+.claude/
 
 # Local, secret-bearing config copies kept off git. The authoritative copy also lives on the host
 # under /srv (backed up there); this pattern lets a working copy sit next to its compose, e.g.
