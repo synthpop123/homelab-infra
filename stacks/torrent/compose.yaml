@@ -35,7 +35,7 @@ services:
 
   qui:
     container_name: qui
-    image: ghcr.io/autobrr/qui:v1.22.0
+    image: ghcr.io/autobrr/qui:v1.23.0
     restart: unless-stopped
     depends_on:
       - qbittorrent
