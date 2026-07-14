@@ -1,0 +1,17 @@
+[Unit]
+Description=Arm host firewall (DOCKER-USER deny-by-default + rpcbind drop)
+Documentation=https://github.com/synthpop123/homelab-infra/blob/main/docs/firewall.md
+# Run after Docker so the DOCKER-USER chain exists; re-run if Docker restarts (which
+# rebuilds the chain and would otherwise drop our rules).
+After=docker.service
+Requires=docker.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/arm-firewall.conf
+ExecStart=/usr/local/sbin/arm-firewall.sh
+
+[Install]
+WantedBy=multi-user.target

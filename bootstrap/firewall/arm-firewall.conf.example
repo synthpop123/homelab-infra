@@ -1,0 +1,8 @@
+# /etc/arm-firewall.conf — host-specific values for arm-firewall.sh.
+#
+# Copy to /etc/arm-firewall.conf on the host. Nothing here is secret (unlike fame's,
+# which names the Akko IP), but the same conf-on-host pattern is kept for consistency.
+
+# Public WAN interface — the NIC that holds the (Oracle-NATed) address.
+#   check: ip -4 route show default   (the `dev <iface>` field)
+WAN_IF=enp0s6

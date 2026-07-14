@@ -13,16 +13,24 @@ Komodo, not from this machine — you cannot run or verify a *deploy* locally.
 
 ## Deployment model (the big picture)
 
-### Accessing the VPS
+### Accessing the servers
 
-The `Famesystems` host (where Komodo and all stacks run) is reachable from this machine via
-`ssh fame` (alias defined in `~/.ssh/config`, logs in as `root`). Use it to inspect the live
-deploy — e.g. `ssh fame 'docker ps'`, check `/srv/<service>/`, or read Komodo's clone under
-`/etc/komodo/repos/`. This is the only way to verify a change actually took effect, since
-nothing deploys from the local repo. What runs on the host besides stacks (Caddy, komari,
-fail2ban, firewall, daemon config) is inventoried in `docs/server.md`; health-check and
-troubleshooting commands are in `docs/operations.md`; the multi-stack media pipeline
-(clouddrive2/cms/emby/plex/medialinker and the `mediacenter-net` fixed IPs) in `docs/media.md`.
+Two hosts, both reachable from this machine via ssh aliases in `~/.ssh/config` (log in as
+`root`):
+
+- **`ssh fame`** — `Famesystems`, the primary VPS: Komodo Core + every current stack. Use
+  it to inspect the live deploy — e.g. `ssh fame 'docker ps'`, check `/srv/<service>/`, or
+  read Komodo's clone under `/etc/komodo/repos/`. This is the only way to verify a change
+  actually took effect, since nothing deploys from the local repo.
+- **`ssh arm`** — `Oracle-Arm`, an Oracle Cloud **aarch64** machine managed by the same
+  Komodo Core through an outbound Periphery agent, currently running **no stacks** (images
+  targeted there must be arm64). Inventory: `docs/server-arm.md`; how servers join/rejoin
+  Komodo (incl. the headless re-adopt via Mongo): `docs/komodo-servers.md`.
+
+What runs on fame besides stacks (Caddy, komari, fail2ban, firewall, daemon config) is
+inventoried in `docs/server.md`; health-check and troubleshooting commands are in
+`docs/operations.md`; the multi-stack media pipeline (clouddrive2/cms/emby/plex/medialinker
+and the `mediacenter-net` fixed IPs) in `docs/media.md`.
 
 ### Flow
 
@@ -56,8 +64,9 @@ in Komodo, not in this file.
 Adding a service is a coordinated change across **four** places, ideally in one commit:
 
 1. `stacks/<service>/compose.yaml` — the compose file (conventions below).
-2. `komodo/sync.toml` — add a `[[stack]]` block (`server = "Famesystems"`,
-   `linked_repo = "homelab-infra"`, `run_directory`, `file_paths`).
+2. `komodo/sync.toml` — add a `[[stack]]` block (`server = "Famesystems"` — or
+ `"Oracle-Arm"` for the arm host, arm64 images only —
+ `linked_repo = "homelab-infra"`, `run_directory`, `file_paths`).
 3. `docs/ports.md` — claim the next free host port and update **Next free**.
 4. `README.md` — add a row to the Services table.
 

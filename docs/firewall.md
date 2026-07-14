@@ -4,6 +4,12 @@ How `Famesystems` (a.k.a. *fame*) restricts who can reach its published ports, a
 built the way it is. The deployable bits live in [`bootstrap/firewall/`](../bootstrap/firewall/);
 this doc is the rationale + runbook.
 
+> The arm host runs the same design as a **deny-by-default variant** (`arm-firewall.*`):
+> no trusted proxy, empty exception lists — any port a future stack publishes there stays
+> internet-unreachable until deliberately excepted — plus a WAN-side drop for rpcbind
+> `111` in its `ARM-INPUT` subchain. Everything below (rationale, invariants, the
+> auto-rollback runbook) applies to both hosts; the port policy tables are fame's.
+
 > Like [`bootstrap/komodo`](../bootstrap/komodo/), the firewall is **not** a Komodo-managed
 > stack — it is host infrastructure, deployed by hand and kept in git as a versioned record.
 

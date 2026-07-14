@@ -92,8 +92,9 @@ the values (UI, or headless via Mongo): [komodo-variables.md](./docs/komodo-vari
 Only Caddy (80/443), sshd, and three deliberate exceptions (gitea SSH, BitTorrent,
 beszel hub) face the internet. Every other published port answers **only to the Akko
 reverse proxy**, enforced in Docker's `DOCKER-USER` iptables chain — designed so a bad rule
-can never lock SSH out ([firewall.md](./docs/firewall.md)). sshd itself sits behind
-fail2ban ([bootstrap/fail2ban](./bootstrap/fail2ban/)).
+can never lock SSH out ([firewall.md](./docs/firewall.md)). The arm host runs the same
+design as a deny-by-default variant (nothing published there yet). sshd on both hosts sits
+behind fail2ban ([bootstrap/fail2ban](./bootstrap/fail2ban/)).
 
 ## Media pipeline
 
@@ -103,13 +104,19 @@ The most intertwined subsystem: clouddrive2 FUSE-mounts a 115 netdisk, cms turns
 helper proxy (medialinker) for that trick; seerr, tautulli and kometa orbit around.
 Topology, fixed IPs, and failure modes: [media.md](./docs/media.md).
 
-## Host & operations
+## Hosts & operations
 
-Everything runs on one Debian 12 VPS (**fame**, 6 vCPU / 24 GiB). Three things are managed
-by hand outside Komodo, versioned under [`bootstrap/`](./bootstrap/): Komodo itself, the
-firewall, and fail2ban. What else lives on the host and its known state:
-[server.md](./docs/server.md). Health checks, `km` CLI, "my push didn't deploy",
-reboot/housekeeping runbooks: [operations.md](./docs/operations.md).
+All current stacks run on one Debian 12 VPS (**fame**, 6 vCPU / 24 GiB), which also hosts
+the Komodo Core. A second host — **arm** (Oracle Cloud Chuncheon, 2 vCPU aarch64 / 12 GiB)
+— is connected to the same control plane via an outbound Periphery agent but carries no
+stacks yet; declaring a stack with `server = "Oracle-Arm"` in `sync.toml` is all it
+takes to target it. How servers join Komodo: [komodo-servers.md](./docs/komodo-servers.md).
+Three things are managed by hand outside Komodo, versioned under
+[`bootstrap/`](./bootstrap/): Komodo itself, the host firewalls, and fail2ban (the latter
+two on both hosts). Host inventories
+and known state: [server.md](./docs/server.md) (fame), [server-arm.md](./docs/server-arm.md)
+(arm). Health checks, `km` CLI, "my push didn't deploy", reboot/housekeeping runbooks:
+[operations.md](./docs/operations.md).
 
 ## Backup
 

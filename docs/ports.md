@@ -1,6 +1,8 @@
 # Port Registry
 
-Single source of truth for **host** port allocation across Komodo-managed stacks.
+Single source of truth for **host** port allocation across Komodo-managed stacks. This
+registry covers **fame**; the arm host ([server-arm.md](./server-arm.md)) publishes no
+ports yet and will get its own section when its first service lands.
 
 ## Scheme
 

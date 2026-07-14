@@ -22,6 +22,31 @@
 #
 # Docs: https://komo.do/docs/sync
 
+# ----------------------------------------------------------------------------
+# Servers — the hosts stacks deploy onto. Declared here so the fleet is visible
+# in git, but note the sync only reconciles *config* fields listed below:
+# the Core <-> Periphery keypair exchange (onboarding / public key acceptance)
+# happens out-of-band — see docs/komodo-servers.md for the runbook.
+# All Periphery agents connect OUTBOUND to Core (config.address stays empty),
+# so no inbound port is needed on any server.
+# ----------------------------------------------------------------------------
+
+[[server]]
+name = "Famesystems"
+description = "Primary VPS (fame) — Komodo Core + all current stacks"
+
+[server.config]
+region = "Frankfurt, DE"
+enabled = true
+
+[[server]]
+name = "Oracle-Arm"
+description = "Oracle Cloud Chuncheon (arm) — aarch64, no stacks yet"
+
+[server.config]
+region = "Chuncheon, KR"
+enabled = true
+
 [[stack]]
 name = "wallos"
 description = "https://wallos.lkwplus.com"

@@ -1,8 +1,10 @@
 # Day-2 operations
 
-Routine checks and the short paths for poking the live deploy. Host inventory:
-[server.md](./server.md). Deploy flow: [workflow.md](./workflow.md). All commands run from
-this machine via `ssh fame` unless noted.
+Routine checks and the short paths for poking the live deploy. Host inventories:
+[server.md](./server.md) (fame), [server-arm.md](./server-arm.md) (arm). Deploy flow:
+[workflow.md](./workflow.md). All commands run from this machine via `ssh fame` unless
+noted — arm carries no stacks yet, so day-2 work there is just the Periphery agent
+(`ssh arm 'systemctl status periphery'`; see [komodo-servers.md](./komodo-servers.md)).
 
 ## Health check
 
