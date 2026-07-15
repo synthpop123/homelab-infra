@@ -7,6 +7,7 @@ services:
       - "20005:4110/tcp"
     environment:
       KOITO_FORCE_TZ: Asia/Shanghai
+      KOITO_CORS_ALLOWED_ORIGINS: https://lkwplus.com,http://localhost:4321
       # Secret injected from a Komodo Variable at deploy time.
       KOITO_LASTFM_API_KEY: ${KOITO_LASTFM_API_KEY}
     volumes:
