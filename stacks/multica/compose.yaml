@@ -15,6 +15,13 @@ services:
     container_name: multica-backend
     image: ghcr.io/multica-ai/multica-backend:v0.4.1
     restart: unless-stopped
+    networks:
+      # The web image's Next.js SSR proxy has REMOTE_API_URL baked at build time as
+      # http://backend:8080 — without this alias, browser POSTs (e.g. /auth/send-code)
+      # that go through the frontend's server side fail with a 500 (EAI_AGAIN backend).
+      default:
+        aliases:
+          - backend
     depends_on:
       multica-postgres:
         condition: service_healthy
