@@ -598,6 +598,25 @@ file_paths = ["compose.yaml"]
 # (plexHost + rules) lives off-git at /srv/medialinker/constant.js (a sanitized constant.js.example
 # is committed). Fixed IP 172.22.0.8 on the external mediacenter-net.
 
+[[stack]]
+name = "beszel-agent"
+description = "arm metrics agent -> beszel hub on fame"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Oracle-Arm"
+linked_repo = "homelab-infra"
+run_directory = "stacks/beszel-agent"
+file_paths = ["compose.yaml"]
+# Reports straight to fame's hub port (the firewall's public exception), skipping Akko.
+# BESZEL_KEY is the same hub public key fame's own agent uses; BESZEL_ARM_TOKEN is this
+# host's own enrolment token (universal token from the hub's "Add system" dialog).
+environment = """
+BESZEL_KEY=[[BESZEL_KEY]]
+BESZEL_ARM_TOKEN=[[BESZEL_ARM_TOKEN]]
+"""
+
 # ----------------------------------------------------------------------------
 # Sync-then-deploy on git push (the Renovate flow), as ONE ordered procedure.
 #

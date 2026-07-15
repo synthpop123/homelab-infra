@@ -90,6 +90,10 @@ to them, so nothing rides the `DOCKER-USER` exposure path at all (see
 
 **Next free (arm): `20002`**
 
+> **Outside the scheme (arm)**: `beszel-agent` is host-networked and reserves host port
+> **45876** (only bound as a fallback when its outbound WebSocket to the hub on fame is
+> down; nothing needs to reach it, and arm's deny-by-default firewall keeps it closed).
+
 ## Firewall exposure
 
 A host firewall governs who can reach these ports from the public internet — see

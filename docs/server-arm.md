@@ -2,7 +2,8 @@
 
 One-page inventory of the second VPS — an Oracle Cloud ARM machine in Chuncheon, South
 Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md)).
-Runs its first stack, **multica** (see below). The primary host's page: [server.md](./server.md).
+Runs the **multica** and **beszel-agent** stacks (see below). The primary host's page:
+[server.md](./server.md).
 
 ## System
 
@@ -73,6 +74,10 @@ Docker **29.5.3**, default address pools.
   web + bundled Postgres; data under `/srv/multica/`; ports `127.0.0.1:20000/20001`
   fronted by the host Caddy at `multica.lkwplus.com`. The daemon side (the `multica` CLI
   + an AI coding tool) runs as a host process, not a container.
+- **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
+  the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
+  (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;
+  fallback listener 45876 stays closed by the deny-by-default firewall.
 
 ## Known state / pending
 

@@ -1,0 +1,22 @@
+# Beszel agent on the arm host — metrics collector only; the hub (web UI) lives in the
+# beszel stack on fame. It reports STRAIGHT to fame's hub port (fame.lkwplus.com:20011,
+# the deliberate public exception in fame's firewall — see docs/firewall.md) instead of
+# https://beszel.lkwplus.com, which would bounce the persistent agent WebSocket through
+# the Akko proxy for no reason. The hub's public KEY and this host's enrolment TOKEN
+# come from Komodo Variables (kept out of git).
+services:
+  beszel-agent:
+    container_name: beszel-agent
+    image: henrygd/beszel-agent:0.18.7
+    restart: unless-stopped
+    # Host networking so the agent sees real host interfaces; 45876 is only bound as a
+    # fallback listener when the outbound WebSocket to the hub is down.
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /srv/beszel-agent:/var/lib/beszel-agent
+    environment:
+      LISTEN: 45876
+      KEY: ${BESZEL_KEY}
+      TOKEN: ${BESZEL_ARM_TOKEN}
+      HUB_URL: http://fame.lkwplus.com:20011
