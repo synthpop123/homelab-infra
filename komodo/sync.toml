@@ -561,6 +561,29 @@ LETTERBOXD_TMDB_API_KEY=[[LETTERBOXD_TMDB_API_KEY]]
 """
 
 [[stack]]
+name = "multica"
+description = "https://multica.lkwplus.com"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Oracle-Arm"
+linked_repo = "homelab-infra"
+run_directory = "stacks/multica"
+file_paths = ["compose.yaml"]
+# First stack on the arm host (aarch64 — images are multi-arch). Secrets are Komodo Variables:
+# JWT + bundled Postgres password (generated), Resend API key, GitHub App webhook secret and
+# the App's RSA private key. The PEM is stored \n-escaped on a single line; compose's .env
+# parser expands the \n sequences inside the double quotes back into a real multiline key.
+environment = """
+MULTICA_JWT_SECRET=[[MULTICA_JWT_SECRET]]
+MULTICA_POSTGRES_PASSWORD=[[MULTICA_POSTGRES_PASSWORD]]
+MULTICA_RESEND_API_KEY=[[MULTICA_RESEND_API_KEY]]
+MULTICA_GITHUB_WEBHOOK_SECRET=[[MULTICA_GITHUB_WEBHOOK_SECRET]]
+MULTICA_GITHUB_APP_PRIVATE_KEY="[[MULTICA_GITHUB_APP_PRIVATE_KEY]]"
+"""
+
+[[stack]]
 name = "medialinker"
 description = "https://plex.lkwplus.com"
 deploy = false

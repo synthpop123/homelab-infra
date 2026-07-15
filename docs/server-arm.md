@@ -1,8 +1,8 @@
 # Host: Oracle-Arm (arm)
 
 One-page inventory of the second VPS — an Oracle Cloud ARM machine in Chuncheon, South
-Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md))
-but **running no stacks yet**. The primary host's page: [server.md](./server.md).
+Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md)).
+Runs its first stack, **multica** (see below). The primary host's page: [server.md](./server.md).
 
 ## System
 
@@ -29,11 +29,21 @@ images are multi-arch, but check before pointing a `[[stack]]` here.
   until 2026-07-14, when it was headlessly re-adopted with its existing keypair, the
   service `enable`d, and the whole thing renamed to `Oracle-Arm`.
 
+## Reverse proxy (the arm model)
+
+Unlike fame (whose services sit behind the **Akko** proxy host), arm serves directly:
+DNS (`multica.lkwplus.com` → CNAME `arm.lkwplus.com`) points at this machine, and a
+**host Caddy** (80/443, apt package from Caddy's official repo) terminates TLS and
+reverse-proxies to stack ports bound on `127.0.0.1` (arm's own registry section in
+[ports.md](./ports.md#allocations-arm)). Loopback binding means container ports never
+touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the host.
+
 ## Host processes (not Docker)
 
 | Process | Port | Purpose |
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
+| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica.lkwplus.com) |
 | komari-agent | outbound | reports to the komari status page on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
 | rpcbind | 111 (WAN-dropped) | stock on OCI images; left running but closed by `ARM-INPUT` |
@@ -44,6 +54,7 @@ images are multi-arch, but check before pointing a `[[stack]]` here.
   published port starts internet-unreachable, plus an `ARM-INPUT` drop for rpcbind.
   `PartOf=docker.service`, so it re-runs whenever Docker restarts. Source:
   [`bootstrap/firewall/`](../bootstrap/firewall/) (`arm-firewall.*`).
+- **`caddy.service`** — host reverse proxy for this host's stacks (see above).
 - **`fail2ban.service`** — sshd jail on the journal backend, ban targets port 11322
   (same [`jail.local`](../bootstrap/fail2ban/jail.local) as fame; banning within minutes
   of deploy).
@@ -54,16 +65,19 @@ images are multi-arch, but check before pointing a `[[stack]]` here.
 ## Docker daemon (`/etc/docker/daemon.json`)
 
 Mirrors fame: log rotation `json-file` 10 MB × 3 per container, `live-restore: true`.
-Docker **29.5.3**, idle — no containers, no data, default address pools, default networks
-only.
+Docker **29.5.3**, default address pools.
 
-## Known state / pending (before the first stack lands here)
+## Stacks on this host
 
-- **No `/srv` layout yet** — created per-service when the first stack arrives.
-- **Port registry** — [ports.md](./ports.md) is fame's allocation; ports on this host will
-  get their own scheme when the first published service lands. Every published port is
-  dropped by `arm-firewall.sh` until explicitly excepted there — decide per service
-  whether it's public or proxied.
-- **No reverse-proxy story yet** — fame's services sit behind Akko; nothing equivalent is
-  decided for arm.
-- **No swap** — 12 GiB RAM idle machine; add a swapfile only if workloads ever need it.
+- **multica** ([stacks/multica](../stacks/multica/)) — the first stack here. Backend +
+  web + bundled Postgres; data under `/srv/multica/`; ports `127.0.0.1:20000/20001`
+  fronted by the host Caddy at `multica.lkwplus.com`. The daemon side (the `multica` CLI
+  + an AI coding tool) runs as a host process, not a container.
+
+## Known state / pending
+
+- **Port registry** — this host's own allocation lives in
+  [ports.md → Allocations (arm)](./ports.md#allocations-arm), starting at `20000`,
+  loopback-bound behind the host Caddy. Any future port that must be *publicly* published
+  needs an explicit exception in `arm-firewall.sh` (`PUBLIC_TCP`/`PUBLIC_UDP`).
+- **No swap** — 12 GiB RAM machine; add a swapfile only if workloads ever need it.

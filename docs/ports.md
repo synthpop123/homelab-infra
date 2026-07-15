@@ -1,8 +1,8 @@
 # Port Registry
 
-Single source of truth for **host** port allocation across Komodo-managed stacks. This
-registry covers **fame**; the arm host ([server-arm.md](./server-arm.md)) publishes no
-ports yet and will get its own section when its first service lands.
+Single source of truth for **host** port allocation across Komodo-managed stacks. The
+main table covers **fame**; the arm host ([server-arm.md](./server-arm.md)) has its own
+section [below](#allocations-arm) with an independent numbering starting at `20000`.
 
 ## Scheme
 
@@ -74,6 +74,21 @@ ports yet and will get its own section when its first service lands.
 > cloud-media-sync, seerr, plex, medialinker, tautulli) are docker network addresses, not host
 > ports, and must not change — the full table and rationale live in
 > [media.md](./media.md#the-shared-network).
+
+## Allocations (arm)
+
+Same scheme, independent range: the arm host starts its own count at `20000` (the two
+hosts never share a network namespace, so numbers may repeat across hosts). Ports here
+bind to **`127.0.0.1` only** — the host Caddy on arm terminates TLS and reverse-proxies
+to them, so nothing rides the `DOCKER-USER` exposure path at all (see
+[server-arm.md](./server-arm.md)).
+
+| Port  | Service            | Container port | Notes                              |
+|-------|--------------------|----------------|------------------------------------|
+| 20000 | multica (backend)  | 8080           | API + WebSocket, loopback-only     |
+| 20001 | multica (frontend) | 3000           | Web UI, loopback-only              |
+
+**Next free (arm): `20002`**
 
 ## Firewall exposure
 

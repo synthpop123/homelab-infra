@@ -1,0 +1,83 @@
+# multica — self-hosted Multica (AI-agent issue tracker): backend + web + bundled Postgres.
+# FIRST stack on the arm host (Oracle-Arm, aarch64) — images are multi-arch incl. linux/arm64.
+# Served directly by the host Caddy on arm (multica.lkwplus.com), no Akko hop; both published
+# ports bind to 127.0.0.1 so only the local reverse proxy can reach them (upstream's own
+# hardening advice — Docker bypasses the host firewall for 0.0.0.0 binds).
+#
+# Secrets (JWT, DB password, Resend key, GitHub App webhook secret + private key) are Komodo
+# Variables. GITHUB_APP_PRIVATE_KEY is stored \n-escaped on ONE line; Komodo writes it into the
+# git-ignored .env double-quoted, and compose's .env parser expands \n back into real newlines.
+#
+# Backend runs DB migrations automatically on startup (entrypoint runs `./migrate up`).
+# Upstream compose: https://github.com/multica-ai/multica/blob/main/docker-compose.selfhost.yml
+services:
+  multica-backend:
+    container_name: multica-backend
+    image: ghcr.io/multica-ai/multica-backend:v0.4.1
+    restart: unless-stopped
+    depends_on:
+      multica-postgres:
+        condition: service_healthy
+    ports:
+      # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
+      - "127.0.0.1:20000:8080/tcp"
+    volumes:
+      - /srv/multica/uploads:/app/data/uploads
+    environment:
+      DATABASE_URL: postgres://multica:${MULTICA_POSTGRES_PASSWORD}@multica-postgres:5432/multica?sslmode=disable
+      PORT: "8080"
+      APP_ENV: production
+      JWT_SECRET: ${MULTICA_JWT_SECRET}
+      # Single-hostname deployment behind the host Caddy: frontend + API + WS all on this origin.
+      FRONTEND_ORIGIN: https://multica.lkwplus.com
+      MULTICA_APP_URL: https://multica.lkwplus.com
+      MULTICA_PUBLIC_URL: https://multica.lkwplus.com
+      # Same-host Caddy terminates TLS — let both rate limiters trust its X-Forwarded-For.
+      MULTICA_TRUSTED_PROXIES: 127.0.0.1/32,::1/128
+      RATE_LIMIT_TRUSTED_PROXIES: 127.0.0.1/32,::1/128
+      # Email: Resend (domain verified in the Resend console)
+      RESEND_API_KEY: ${MULTICA_RESEND_API_KEY}
+      RESEND_FROM_EMAIL: multica@lkwplus.com
+      # Signup allowlist — single-user instance for now; extend the list to admit others.
+      ALLOW_SIGNUP: "true"
+      ALLOWED_EMAILS: lkw20010211@gmail.com
+      # GitHub App integration (app: lkw123-s-multica)
+      GITHUB_APP_SLUG: lkw123-s-multica
+      GITHUB_APP_ID: "3987372"
+      GITHUB_WEBHOOK_SECRET: ${MULTICA_GITHUB_WEBHOOK_SECRET}
+      GITHUB_APP_PRIVATE_KEY: ${MULTICA_GITHUB_APP_PRIVATE_KEY}
+      # Attachments on local disk (no S3); absolute URLs resolve via the public origin.
+      LOCAL_UPLOAD_BASE_URL: https://multica.lkwplus.com
+      ANALYTICS_DISABLED: "true"
+
+  multica-frontend:
+    container_name: multica-frontend
+    image: ghcr.io/multica-ai/multica-web:v0.4.1
+    restart: unless-stopped
+    depends_on:
+      - multica-backend
+    ports:
+      # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
+      - "127.0.0.1:20001:3000/tcp"
+    environment:
+      HOSTNAME: 0.0.0.0
+
+  multica-postgres:
+    container_name: multica-postgres
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: multica
+      POSTGRES_USER: multica
+      POSTGRES_PASSWORD: ${MULTICA_POSTGRES_PASSWORD}
+    volumes:
+      - /srv/multica/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U multica -d multica"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: multica

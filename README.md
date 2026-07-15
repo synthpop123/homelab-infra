@@ -35,9 +35,10 @@ Details: [workflow.md](./docs/workflow.md).
 
 ## Services
 
-Every service is reached as `https://<name>.lkwplus.com` through the Akko reverse proxy;
-the host ports below are not directly reachable from the internet (see
-[Networking](#networking--security)).
+Every fame service is reached as `https://<name>.lkwplus.com` through the Akko reverse
+proxy; the host ports below are not directly reachable from the internet (see
+[Networking](#networking--security)). Services on the arm host are served directly by
+arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopback.
 
 | Service | URL | Port | Description |
 |---------|-----|------|-------------|
@@ -69,6 +70,7 @@ the host ports below are not directly reachable from the internet (see
 | [cliproxyapi](./stacks/cliproxyapi) | [cpa.lkwplus.com](https://cpa.lkwplus.com) / [cpa-manager.lkwplus.com](https://cpa-manager.lkwplus.com) | 20029 / 20030 | CLIProxyAPI AI proxy (CPA) + CPA-Manager-Plus panel |
 | [plex](./stacks/plex) | [plex.lkwplus.com](https://plex.lkwplus.com) / [tautulli.lkwplus.com](https://tautulli.lkwplus.com) | 20031 / 20033 | Plex media server (fixed IP 172.22.0.7) + Tautulli Plex monitor (172.22.0.9) + Kometa metadata/collections + letterboxd-plex-sync (weekly Letterboxd → Plex) |
 | [medialinker](./stacks/medialinker) | [plex.lkwplus.com](https://plex.lkwplus.com) | 20032 | strm 302 reverse proxy in front of Plex for direct play (fixed IP 172.22.0.8) |
+| [multica](./stacks/multica) | [multica.lkwplus.com](https://multica.lkwplus.com) | arm 20000 / 20001 | Multica self-host — AI-agent issue tracker (backend + web + Postgres; **runs on arm**, served by arm's host Caddy) |
 
 ## Conventions
 
@@ -93,8 +95,9 @@ Only Caddy (80/443), sshd, and three deliberate exceptions (gitea SSH, BitTorren
 beszel hub) face the internet. Every other published port answers **only to the Akko
 reverse proxy**, enforced in Docker's `DOCKER-USER` iptables chain — designed so a bad rule
 can never lock SSH out ([firewall.md](./docs/firewall.md)). The arm host runs the same
-design as a deny-by-default variant (nothing published there yet). sshd on both hosts sits
-behind fail2ban ([bootstrap/fail2ban](./bootstrap/fail2ban/)).
+design as a deny-by-default variant; its stacks bind to loopback and are fronted by arm's
+own host Caddy (80/443), so no container port is internet-reachable there either. sshd on
+both hosts sits behind fail2ban ([bootstrap/fail2ban](./bootstrap/fail2ban/)).
 
 ## Media pipeline
 
@@ -106,11 +109,11 @@ Topology, fixed IPs, and failure modes: [media.md](./docs/media.md).
 
 ## Hosts & operations
 
-All current stacks run on one Debian 12 VPS (**fame**, 6 vCPU / 24 GiB), which also hosts
+Most stacks run on one Debian 12 VPS (**fame**, 6 vCPU / 24 GiB), which also hosts
 the Komodo Core. A second host — **arm** (Oracle Cloud Chuncheon, 2 vCPU aarch64 / 12 GiB)
-— is connected to the same control plane via an outbound Periphery agent but carries no
-stacks yet; declaring a stack with `server = "Oracle-Arm"` in `sync.toml` is all it
-takes to target it. How servers join Komodo: [komodo-servers.md](./docs/komodo-servers.md).
+— is connected to the same control plane via an outbound Periphery agent and runs its
+first stack (multica); declaring a stack with `server = "Oracle-Arm"` in `sync.toml` is
+all it takes to target it (arm64 images only). How servers join Komodo: [komodo-servers.md](./docs/komodo-servers.md).
 Three things are managed by hand outside Komodo, versioned under
 [`bootstrap/`](./bootstrap/): Komodo itself, the host firewalls, and fail2ban (the latter
 two on both hosts). Host inventories
