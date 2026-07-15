@@ -45,9 +45,9 @@ services:
       # Email: Resend (domain verified in the Resend console)
       RESEND_API_KEY: ${MULTICA_RESEND_API_KEY}
       RESEND_FROM_EMAIL: multica@lkwplus.com
-      # Signup allowlist — single-user instance for now; extend the list to admit others.
+      # Signup allowlist — extend the list to admit others.
       ALLOW_SIGNUP: "true"
-      ALLOWED_EMAILS: lkw20010211@gmail.com
+      ALLOWED_EMAILS: lkw20010211@gmail.com,yijiangli96@gmail.com
       # GitHub App integration (app: lkw123-s-multica)
       GITHUB_APP_SLUG: lkw123-s-multica
       GITHUB_APP_ID: "3987372"
