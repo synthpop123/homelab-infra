@@ -29,7 +29,7 @@ services:
 
   cpa-manager-plus:
     container_name: cpa-manager-plus
-    image: seakee/cpa-manager-plus:v1.11.1
+    image: seakee/cpa-manager-plus:v1.11.2
     depends_on:
       - cli-proxy-api
     ports:
