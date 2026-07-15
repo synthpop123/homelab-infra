@@ -3,7 +3,7 @@ services:
     container_name: drizzle-gateway
     # ghcr.io/drizzle-team/gateway:latest currently resolves to the same digest as :1.3.0
     # (its version label "1.3.14" is an internal build string, not a published tag).
-    image: ghcr.io/drizzle-team/gateway:1.3.0
+    image: ghcr.io/drizzle-team/gateway:1.4.0
     ports:
       # host:container — host port from the registry (see docs/ports.md)
       - "20003:4983/tcp"
