@@ -45,6 +45,7 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
 | Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica.lkwplus.com) |
+| multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) |
 | komari-agent | outbound | reports to the komari status page on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
 | rpcbind | 111 (WAN-dropped) | stock on OCI images; left running but closed by `ARM-INPUT` |
@@ -73,7 +74,12 @@ Docker **29.5.3**, default address pools.
 - **multica** ([stacks/multica](../stacks/multica/)) — the first stack here. Backend +
   web + bundled Postgres; data under `/srv/multica/`; ports `127.0.0.1:20000/20001`
   fronted by the host Caddy at `multica.lkwplus.com`. The daemon side (the `multica` CLI
-  + an AI coding tool) runs as a host process, not a container.
+  + AI coding tools) runs as host user **`agent`**, not a container. Keep the CLI at
+  `/home/agent/.local/bin/multica` (agent-owned) so web-triggered self-updates can write
+  `multica-update-*` next to the binary — **do not** install it under `/usr/local/bin`
+  (root-owned; update fails with `permission denied`). Prefer
+  `MULTICA_BIN_DIR=/home/agent/.local/bin` when (re)installing as `agent`, or skip
+  sudo so the installer falls back to `~/.local/bin`.
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;
