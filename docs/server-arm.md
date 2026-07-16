@@ -86,3 +86,7 @@ Docker **29.5.3**, default address pools.
   loopback-bound behind the host Caddy. Any future port that must be *publicly* published
   needs an explicit exception in `arm-firewall.sh` (`PUBLIC_TCP`/`PUBLIC_UDP`).
 - **No swap** — 12 GiB RAM machine; add a swapfile only if workloads ever need it.
+- **k3s history** — the host briefly ran a k3s cluster (2026-06, pre-Komodo); it was
+  uninstalled back then, and the last leftovers (helm binary, `/root/.kube`, helm caches,
+  a Tailscale auth key sitting in root's bash history, orphaned `agent-os_*` volumes and
+  build cache) were purged during the 2026-07-16 inspection.
