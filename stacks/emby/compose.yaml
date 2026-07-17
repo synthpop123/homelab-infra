@@ -8,7 +8,7 @@
 services:
   emby:
     container_name: emby
-    image: linuxserver/emby:4.9.5.0-ls283
+    image: linuxserver/emby:4.9.5.0-ls287
     restart: unless-stopped
     environment:
       - PUID=1000
