@@ -13,7 +13,7 @@
 services:
   multica-backend:
     container_name: multica-backend
-    image: ghcr.io/multica-ai/multica-backend:v0.4.2
+    image: ghcr.io/multica-ai/multica-backend:v0.4.3
     restart: unless-stopped
     networks:
       # The web image's Next.js SSR proxy has REMOTE_API_URL baked at build time as
