@@ -20,6 +20,24 @@
       "matchManagers": ["docker-compose"],
       "matchPackageNames": ["ghcr.io/mastodon/**"],
       "groupName": "mastodon"
+    },
+    {
+      "description": "LinuxServer.io tags embed a build hash and -lsNN rebuild counter (1.43.2.10687-563d026ea-ls311); default docker versioning treats that suffix as a compatibility variant that must match exactly, so updates are never offered. Parse the tag explicitly instead.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["linuxserver/plex"],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)-[0-9a-f]+-ls(?<revision>\\d+)$"
+    },
+    {
+      "description": "Same LinuxServer.io problem for emby, whose tags look like 4.9.5.0-ls283 (no build hash).",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["linuxserver/emby"],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)-ls(?<revision>\\d+)$"
+    },
+    {
+      "description": "Same LinuxServer.io problem for kometa, whose tags look like v2.4.4-ls103.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["linuxserver/kometa"],
+      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ls(?<build>\\d+)$"
     }
   ]
 }
