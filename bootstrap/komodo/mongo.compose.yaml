@@ -23,7 +23,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${KOMODO_DATABASE_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${KOMODO_DATABASE_PASSWORD}
-  
+
   core:
     container_name: komodo-core
     image: ghcr.io/moghtech/komodo-core:${COMPOSE_KOMODO_IMAGE_TAG:-2}
@@ -49,7 +49,7 @@ services:
       # - /path/to/root_ca.crt:/usr/local/share/ca-certificates/root_ca.crt
 
   ## Deploy Periphery container using this block,
-  ## or deploy the Periphery binary with systemd using 
+  ## or deploy the Periphery binary with systemd using
   ## https://github.com/moghtech/komodo/tree/main/scripts
   periphery:
     container_name: komodo-periphery

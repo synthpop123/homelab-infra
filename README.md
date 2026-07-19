@@ -13,8 +13,8 @@ Compose **Stack** with **pinned** image versions, updated automatically via
 **Merging is deploying.** A push to `main` fires one webhook into Komodo on the VPS, which
 first reconciles stack *definitions* from [`komodo/sync.toml`](./komodo/sync.toml), then
 `docker compose up`s only the stacks whose compose files changed. There is no CI in the
-deploy path — the only gate is a lint workflow on every PR (`yamllint` + `docker compose
-config`, runnable locally as `./scripts/validate.sh`). Renovate watches every pinned
+deploy path — the only gate is a lint workflow on relevant infrastructure PRs (`yamllint` +
+`docker compose config` + bootstrap shell syntax, runnable locally as `./scripts/validate.sh`). Renovate watches every pinned
 `image:` tag and opens bump PRs, so routine updates are review-and-merge.
 Details: [workflow.md](./docs/workflow.md).
 
@@ -28,8 +28,8 @@ Details: [workflow.md](./docs/workflow.md).
 ├── bootstrap/firewall/             # host firewall (DOCKER-USER rules): deployed by hand
 ├── bootstrap/fail2ban/             # sshd brute-force jail: deployed by hand
 ├── renovate.json                   # Renovate config (auto-detects stacks/*/compose.yaml)
-├── scripts/validate.sh             # pre-deploy lint (compose/sync.toml/renovate.json)
-├── .github/workflows/lint.yml      # runs validate.sh on every PR (no VPS access)
+├── scripts/validate.sh             # pre-deploy lint (stacks/bootstrap/Komodo/Renovate)
+├── .github/workflows/lint.yml      # runs validate.sh on infra PRs (no VPS access)
 └── docs/                           # conventions, host/ops/media docs, runbooks
 ```
 

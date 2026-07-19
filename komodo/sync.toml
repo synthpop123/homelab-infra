@@ -33,7 +33,7 @@
 
 [[server]]
 name = "Famesystems"
-description = "Primary VPS (fame) — Komodo Core + all current stacks"
+description = "Primary VPS (fame) — Komodo Core + primary-host stacks"
 
 [server.config]
 region = "Frankfurt, DE"
@@ -41,7 +41,7 @@ enabled = true
 
 [[server]]
 name = "Oracle-Arm"
-description = "Oracle Cloud Chuncheon (arm) — aarch64, no stacks yet"
+description = "Oracle Cloud Chuncheon (arm) — aarch64, multica + beszel-agent"
 
 [server.config]
 region = "Chuncheon, KR"

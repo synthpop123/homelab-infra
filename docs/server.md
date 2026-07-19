@@ -3,8 +3,8 @@
 One-page inventory of the primary VPS — what lives on the host *besides* the
 Komodo-managed stacks, and its known state. Day-2 commands are in
 [operations.md](./operations.md). It runs the Komodo Core that also manages the second
-host, [Oracle-Arm](./server-arm.md) (no stacks there yet); how servers join the control
-plane is in [komodo-servers.md](./komodo-servers.md).
+host, [Oracle-Arm](./server-arm.md), which currently runs multica and beszel-agent; how
+servers join the control plane is in [komodo-servers.md](./komodo-servers.md).
 
 ## System
 

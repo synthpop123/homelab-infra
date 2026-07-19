@@ -24,7 +24,7 @@ it back would run two `homelab` syncs in parallel on every push and fight over t
 
 ## How Renovate detects new versions
 - Renovate is **not** built into GitHub and needs **no CI / GitHub Actions** in this repo. Install
-  the **Mend-hosted Renovate App** from the GitHub Marketplace and grant it access to this (private) repo.
+  the **Mend-hosted Renovate App** from the GitHub Marketplace and grant it access to this repo.
 - Mend's own infrastructure then runs Renovate on a schedule (~hourly): it temporarily clones the
   repo, the **docker-compose manager** parses every `image: name:tag`, queries the upstream registry
   (Docker Hub / GHCR) for newer tags, and opens a PR bumping the tag. It does not retain your code.
@@ -43,17 +43,19 @@ it back would run two `homelab` syncs in parallel on every push and fight over t
 Because a merge to `main` flows straight into the `Redeploy On Push` procedure with no
 check in between, a malformed compose or `sync.toml` would only surface mid-deploy on the
 VPS. A GitHub Actions workflow ([`.github/workflows/lint.yml`](../.github/workflows/lint.yml))
-closes that gap: on **every PR** (including the ones Renovate opens) it runs
+closes that gap: on every relevant infrastructure PR (including the ones Renovate opens) it runs
 [`scripts/validate.sh`](../scripts/validate.sh), which
 
-- `yamllint`s every `stacks/*/compose.yaml` (duplicate keys, tabs, broken structure),
-- runs `docker compose config -q` on each stack — the **same parser Komodo uses**, so
+- `yamllint`s every stack compose plus the Komodo bootstrap compose,
+- runs `docker compose config -q` on every stack and bootstrap compose — the **same parser
+  Komodo uses**, so
   schema errors are caught here instead of on the box, and
+- syntax-checks the bootstrap firewall shell scripts with `bash -n`, and
 - syntax-checks `komodo/sync.toml` (TOML) and `renovate.json` (JSON).
 
 It runs entirely on GitHub's runners — it **does not touch the VPS and deploys nothing**.
 Run it locally before pushing with `./scripts/validate.sh` (it skips any tool you don't
-have installed; CI sets `STRICT=1` so all three checks are mandatory there).
+have installed; CI sets `STRICT=1` so all checks are mandatory there).
 
 ## End-to-end
 

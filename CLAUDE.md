@@ -6,10 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 GitOps for self-hosted services — declarative infrastructure, so there is **no build or
 test step**. The one local check is a **lint gate**: `./scripts/validate.sh` (also run in CI
-on every PR via `.github/workflows/lint.yml`) validates every `stacks/*/compose.yaml` with
-`yamllint` + `docker compose config`, plus `sync.toml`/`renovate.json` syntax. Run it before
-pushing. The unit of work is editing YAML/TOML and pushing; deployment happens on the VPS via
-Komodo, not from this machine — you cannot run or verify a *deploy* locally.
+on relevant infrastructure PRs via `.github/workflows/lint.yml`) validates stack and bootstrap
+Compose files with `yamllint` + `docker compose config`, bootstrap shell syntax, and
+`sync.toml`/`renovate.json` syntax. Run it before pushing. The unit of work is editing YAML/TOML
+and pushing; deployment happens on the VPS via Komodo, not from this machine — you cannot run
+or verify a *deploy* locally.
 
 ## Deployment model (the big picture)
 
@@ -18,14 +19,15 @@ Komodo, not from this machine — you cannot run or verify a *deploy* locally.
 Two hosts, both reachable from this machine via ssh aliases in `~/.ssh/config` (log in as
 `root`):
 
-- **`ssh fame`** — `Famesystems`, the primary VPS: Komodo Core + every current stack. Use
+- **`ssh fame`** — `Famesystems`, the primary VPS: Komodo Core + primary-host stacks. Use
   it to inspect the live deploy — e.g. `ssh fame 'docker ps'`, check `/srv/<service>/`, or
   read Komodo's clone under `/etc/komodo/repos/`. This is the only way to verify a change
   actually took effect, since nothing deploys from the local repo.
 - **`ssh arm`** — `Oracle-Arm`, an Oracle Cloud **aarch64** machine managed by the same
-  Komodo Core through an outbound Periphery agent, currently running **no stacks** (images
-  targeted there must be arm64). Inventory: `docs/server-arm.md`; how servers join/rejoin
-  Komodo (incl. the headless re-adopt via Mongo): `docs/komodo-servers.md`.
+  Komodo Core through an outbound Periphery agent, currently running **multica** and
+  **beszel-agent** (images targeted there must be arm64). Inventory: `docs/server-arm.md`;
+  how servers join/rejoin Komodo (incl. the headless re-adopt via Mongo):
+  `docs/komodo-servers.md`.
 
 What runs on fame besides stacks (Caddy, komari, fail2ban, firewall, daemon config) is
 inventoried in `docs/server.md`; health-check and troubleshooting commands are in
@@ -39,12 +41,10 @@ is webhook-driven, not CI-driven (the PR lint gate in `.github/workflows/lint.ym
 changes but never deploys):
 
 1. Edit a `stacks/<service>/compose.yaml` (or add one) and push to `main`.
-2. Two GitHub `push` webhooks fire into Komodo on the VPS:
-   - **Resource Sync `homelab`** reads `komodo/sync.toml` and reconciles resource
-     *definitions* only — every stack is `deploy = false`, so it creates/updates Stacks but
-     **never deploys** (otherwise it races the procedure for the deploy lock → "Resource is busy").
-   - **Procedure `Redeploy On Push`** is the sole deployer: runs `BatchDeployStackIfChanged`
-     (pattern `*`), deploying only the stacks whose compose files actually changed.
+2. One GitHub `push` webhook fires **Procedure `Redeploy On Push`** on the VPS. It first runs
+   Resource Sync `homelab` to reconcile definitions, then runs `BatchDeployStackIfChanged`
+   (pattern `*`) to deploy only stacks whose compose files changed. The Resource Sync's own
+   webhook stays disabled so the two stages cannot race for the deploy lock.
 3. **Renovate** (Mend-hosted app, not CI here) watches every `image: name:tag`, opens PRs
    bumping pinned versions. Merging a bump triggers step 2's redeploy.
 
