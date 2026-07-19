@@ -1,7 +1,7 @@
 services:
   wallos:
     container_name: wallos
-    image: bellamy/wallos:5.2.0
+    image: bellamy/wallos:5.4.1
     ports:
       # host:container — host port allocated from the registry (see docs/ports.md)
       - "20000:80/tcp"
