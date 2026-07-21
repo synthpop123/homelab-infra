@@ -1,7 +1,7 @@
 services:
   opengist:
     container_name: opengist
-    image: ghcr.io/thomiceli/opengist:1.13.1
+    image: ghcr.io/thomiceli/opengist:1.14.0
     ports:
       # host:container — host port from the registry (see docs/ports.md)
       - "20008:6157/tcp"
