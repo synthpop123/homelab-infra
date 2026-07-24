@@ -5,7 +5,7 @@
 services:
   clouddrive2:
     container_name: clouddrive2
-    image: cloudnas/clouddrive2:1.0.12
+    image: cloudnas/clouddrive2:1.0.13
     environment:
       - TZ=Asia/Shanghai
       - CLOUDDRIVE_HOME=/Config
