@@ -87,8 +87,9 @@ to them, so nothing rides the `DOCKER-USER` exposure path at all (see
 |-------|--------------------|----------------|------------------------------------|
 | 20000 | multica (backend)  | 8080           | API + WebSocket, loopback-only     |
 | 20001 | multica (frontend) | 3000           | Web UI, loopback-only              |
+| 20002 | storageui          | 3000           | Storage UI (S3/R2 file manager), loopback-only |
 
-**Next free (arm): `20002`**
+**Next free (arm): `20003`**
 
 > **Outside the scheme (arm)**: `beszel-agent` is host-networked and reserves host port
 > **45876** (only bound as a fallback when its outbound WebSocket to the hub on fame is

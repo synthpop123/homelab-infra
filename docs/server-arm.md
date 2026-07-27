@@ -2,8 +2,8 @@
 
 One-page inventory of the second VPS — an Oracle Cloud ARM machine in Chuncheon, South
 Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md)).
-Runs the **multica** and **beszel-agent** stacks (see below). The primary host's page:
-[server.md](./server.md).
+Runs the **multica**, **storageui** and **beszel-agent** stacks (see below). The primary
+host's page: [server.md](./server.md).
 
 ## System
 
@@ -44,7 +44,7 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 | Process | Port | Purpose |
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
-| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica.lkwplus.com) |
+| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui) |
 | multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) |
 | komari-agent | outbound | reports to the komari status page on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
@@ -80,6 +80,10 @@ Docker **29.5.3**, default address pools.
   (root-owned; update fails with `permission denied`). Prefer
   `MULTICA_BIN_DIR=/home/agent/.local/bin` when (re)installing as `agent`, or skip
   sudo so the installer falls back to `~/.local/bin`.
+- **storageui** ([stacks/storageui](../stacks/storageui/)) — Storage UI, web file manager
+  for the two Cloudflare R2 buckets (`imagebed` / `public`). Single stateless container, no
+  volumes; config is all env vars (credentials via Komodo Variables). Port `127.0.0.1:20002`
+  fronted by the host Caddy at `storageui.lkwplus.com`.
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;

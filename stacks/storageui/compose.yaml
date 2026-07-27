@@ -1,0 +1,48 @@
+# storageui — Storage UI (https://storageui.dev): web file manager for S3-compatible object
+# storage. A single stateless Next.js container — no database, no volumes; all server config
+# comes from environment variables. Runs on the arm host (Oracle-Arm, aarch64 — the Docker Hub
+# image is multi-arch incl. linux/arm64), served by arm's host Caddy at storageui.lkwplus.com;
+# the published port binds to 127.0.0.1 so only the local reverse proxy can reach it.
+#
+# Two Cloudflare R2 connections (buckets `imagebed` + `public`, same account API token,
+# read-write), each with its bucket's public domain as PUBLIC_BASE_URL for share links.
+# Login credentials and the R2 token/account id are Komodo Variables — this repo is public,
+# so the personal username and account id stay out of git alongside the real secrets.
+services:
+  storageui:
+    container_name: storageui
+    image: hahahumble/storageui:0.2.0
+    restart: unless-stopped
+    ports:
+      # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
+      - "127.0.0.1:20002:3000/tcp"
+    environment:
+      NEXT_PUBLIC_APP_URL: https://storageui.lkwplus.com
+      # Setting both username and password enables the built-in login page. AUTH_SECRET signs
+      # the session cookie (without it the password doubles as the signing key, so a password
+      # change would log everyone out).
+      AUTH_USERNAME: ${STORAGEUI_AUTH_USERNAME}
+      AUTH_PASSWORD: ${STORAGEUI_AUTH_PASSWORD}
+      AUTH_SECRET: ${STORAGEUI_AUTH_SECRET}
+      # Connection 1 — R2 bucket "imagebed", public domain img.lkwplus.com. R2 derives its
+      # endpoint from ACCOUNT_ID; READ_ONLY stays unset (read-write token).
+      STORAGE_1_PROVIDER: r2
+      STORAGE_1_NAME: imagebed
+      STORAGE_1_BUCKET: imagebed
+      STORAGE_1_ACCOUNT_ID: ${STORAGEUI_R2_ACCOUNT_ID}
+      STORAGE_1_ACCESS_KEY_ID: ${STORAGEUI_R2_ACCESS_KEY_ID}
+      STORAGE_1_SECRET_ACCESS_KEY: ${STORAGEUI_R2_SECRET_ACCESS_KEY}
+      STORAGE_1_PUBLIC_BASE_URL: https://img.lkwplus.com
+      # Connection 2 — R2 bucket "public", public domain public.lkwplus.com (same token).
+      STORAGE_2_PROVIDER: r2
+      STORAGE_2_NAME: public
+      STORAGE_2_BUCKET: public
+      STORAGE_2_ACCOUNT_ID: ${STORAGEUI_R2_ACCOUNT_ID}
+      STORAGE_2_ACCESS_KEY_ID: ${STORAGEUI_R2_ACCESS_KEY_ID}
+      STORAGE_2_SECRET_ACCESS_KEY: ${STORAGEUI_R2_SECRET_ACCESS_KEY}
+      STORAGE_2_PUBLIC_BASE_URL: https://public.lkwplus.com
+
+networks:
+  # Name the project network explicitly to avoid the auto-generated "<project>_default".
+  default:
+    name: storageui

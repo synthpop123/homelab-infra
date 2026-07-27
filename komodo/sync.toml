@@ -599,6 +599,29 @@ file_paths = ["compose.yaml"]
 # is committed). Fixed IP 172.22.0.8 on the external mediacenter-net.
 
 [[stack]]
+name = "storageui"
+description = "https://storageui.lkwplus.com"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Oracle-Arm"
+linked_repo = "homelab-infra"
+run_directory = "stacks/storageui"
+file_paths = ["compose.yaml"]
+# Stateless S3/R2 web file manager on the arm host (image is multi-arch incl. linux/arm64).
+# Login credentials (username kept private — public repo) and the shared R2 API token/account id
+# are Komodo Variables; bucket names and public domains are non-secret and live in the compose.
+environment = """
+STORAGEUI_AUTH_USERNAME=[[STORAGEUI_AUTH_USERNAME]]
+STORAGEUI_AUTH_PASSWORD=[[STORAGEUI_AUTH_PASSWORD]]
+STORAGEUI_AUTH_SECRET=[[STORAGEUI_AUTH_SECRET]]
+STORAGEUI_R2_ACCOUNT_ID=[[STORAGEUI_R2_ACCOUNT_ID]]
+STORAGEUI_R2_ACCESS_KEY_ID=[[STORAGEUI_R2_ACCESS_KEY_ID]]
+STORAGEUI_R2_SECRET_ACCESS_KEY=[[STORAGEUI_R2_SECRET_ACCESS_KEY]]
+"""
+
+[[stack]]
 name = "beszel-agent"
 description = "arm metrics agent -> beszel hub on fame"
 deploy = false
