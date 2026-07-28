@@ -59,7 +59,7 @@ services:
 
   multica-frontend:
     container_name: multica-frontend
-    image: ghcr.io/multica-ai/multica-web:v0.4.11
+    image: ghcr.io/multica-ai/multica-web:v0.4.12
     restart: unless-stopped
     depends_on:
       - multica-backend
