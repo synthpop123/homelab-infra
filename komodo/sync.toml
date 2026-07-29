@@ -120,7 +120,7 @@ file_paths = ["compose.yaml"]
 
 [[stack]]
 name = "koito"
-description = "https://music.lkwplus.com"
+description = "https://music.lkwplus.com / https://scrobble.lkwplus.com"
 deploy = false
 tags = ["app"]
 

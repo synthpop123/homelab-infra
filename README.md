@@ -47,7 +47,7 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [deeix-chat](./stacks/deeix-chat) | [ai.lkwplus.com](https://ai.lkwplus.com) | 20002 | AI chat (app + Postgres + Redis) |
 | [drizzle-gateway](./stacks/drizzle-gateway) | [db.lkwplus.com](https://db.lkwplus.com) | 20003 | Drizzle Gateway (DB studio) |
 | [cloudreve](./stacks/cloudreve) | [cloud.lkwplus.com](https://cloud.lkwplus.com) | 20004 | Cloudreve cloud storage (+ Postgres + Redis) |
-| [koito](./stacks/koito) | [music.lkwplus.com](https://music.lkwplus.com) | 20005 / 20006 | Koito scrobble server + multi-scrobbler |
+| [koito](./stacks/koito) | [music.lkwplus.com](https://music.lkwplus.com) / [scrobble.lkwplus.com](https://scrobble.lkwplus.com) | 20005 / 20006 | Koito scrobble server + multi-scrobbler |
 | [new-api](./stacks/new-api) | [api.lkwplus.com](https://api.lkwplus.com) | 20007 | LLM API gateway (app + Postgres + Redis) |
 | [opengist](./stacks/opengist) | [gist.lkwplus.com](https://gist.lkwplus.com) | 20008 | Git-powered pastebin |
 | [mastodon](./stacks/mastodon) | [mastodon.lkwplus.com](https://mastodon.lkwplus.com) | 20009 / 20010 | Fediverse server (web + streaming + sidekiq + Postgres/Redis/ES) |
