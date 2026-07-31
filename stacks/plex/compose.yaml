@@ -42,7 +42,7 @@
 services:
   plex:
     container_name: plex
-    image: linuxserver/plex:1.43.3.10828-00f62d37d-ls315
+    image: linuxserver/plex:1.43.3.10828-00f62d37d-ls316
     restart: unless-stopped
     environment:
       - PUID=1000
