@@ -2,7 +2,7 @@
 
 One-page inventory of the second VPS — an Oracle Cloud ARM machine in Chuncheon, South
 Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md)).
-Runs the **multica**, **storageui** and **beszel-agent** stacks (see below). The primary
+Runs the **multica**, **storageui**, **dsh** and **beszel-agent** stacks (see below). The primary
 host's page: [server.md](./server.md).
 
 ## System
@@ -44,7 +44,7 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 | Process | Port | Purpose |
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
-| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui) |
+| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh) |
 | multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) |
 | komari-agent | outbound | reports to the komari status page on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
@@ -84,6 +84,27 @@ Docker **29.5.3**, default address pools.
   for the two Cloudflare R2 buckets (`imagebed` / `public`). Single stateless container, no
   volumes; config is all env vars (credentials via Komodo Variables). Port `127.0.0.1:20002`
   fronted by the host Caddy at `storageui.lkwplus.com`.
+- **dsh** ([stacks/dsh](../stacks/dsh/)) — DeepSeek Harness Web UI, image built from upstream
+  source: no container image is published, and upstream carries no git tags, so the Dockerfile
+  pins an exact commit in `DSH_REF` (currently `47f9438`, upstream version `0.1.0-rc.5`).
+  Renovate cannot see that ref — upgrades are a manual SHA bump plus a matching `image:` retag,
+  redeployed with `--build`. Host-networked on `127.0.0.1:20003` (dsh rejects
+  `--host 0.0.0.0`); data under `/srv/dsh/`; process uid **1002** matches host user `agent`.
+  DeepSeek API keys can be set in the Web UI or via optional `DEEPSEEK_API_KEY` (Komodo
+  Variable).
+  **Auth is not optional here.** dsh ships no authentication of its own and its default agent
+  preset carries `tool-bash`/`tool-fs`, so an open origin is remote code execution on this
+  host — upstream refuses to bind `0.0.0.0` for exactly that reason, and a reverse proxy
+  bypasses the guard. The `dsh.lkwplus.com` vhost therefore gates on Caddy `basic_auth`
+  (bcrypt hash in `/etc/caddy/Caddyfile`, off git). The container's `--trusted-host` flag is
+  only the `/api` browser-trust fence (Host-header authority), never a credential check.
+  **The Settings pages answer 403 through the reverse proxy, by upstream design.**
+  `PRIVILEGED_METHODS` in `packages/client/connection` (`settings.*`, `credentials.*`,
+  `llm.discoverModels`) re-runs the fence with an *empty* trust list, pinning those calls to a
+  loopback `Host` — no `--trusted-host` value or patch layer can grant them. Symptom in the UI:
+  `加载提供方目录失败: transport failure for /api/settings.describe: HTTP 403`. Ordinary
+  chat/session calls are unaffected. To reach Settings, tunnel instead of proxying:
+  `ssh -L 20003:127.0.0.1:20003 arm`, then open `http://127.0.0.1:20003`.
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;

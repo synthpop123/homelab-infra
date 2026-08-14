@@ -622,6 +622,25 @@ STORAGEUI_R2_SECRET_ACCESS_KEY=[[STORAGEUI_R2_SECRET_ACCESS_KEY]]
 """
 
 [[stack]]
+name = "dsh"
+description = "https://dsh.lkwplus.com"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Oracle-Arm"
+linked_repo = "homelab-infra"
+run_directory = "stacks/dsh"
+file_paths = ["compose.yaml", "Dockerfile"]
+# Built from the upstream deepseek-harness git source (see Dockerfile ARG DSH_REF).
+extra_args = "--build"
+# Optional: inject DEEPSEEK_API_KEY for the native DeepSeek adapter; the Web UI can also
+# store provider keys in $DSH_HOME/.credentials.yaml.
+environment = """
+DEEPSEEK_API_KEY=[[DEEPSEEK_API_KEY]]
+"""
+
+[[stack]]
 name = "beszel-agent"
 description = "arm metrics agent -> beszel hub on fame"
 deploy = false

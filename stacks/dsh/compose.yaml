@@ -1,0 +1,31 @@
+# DeepSeek Harness (dsh) Web UI — built from upstream source (see Dockerfile).
+# Runs on the arm host (Oracle-Arm, aarch64) behind the host Caddy at dsh.lkwplus.com.
+# Host networking is required: dsh web listens on 127.0.0.1 only (upstream rejects
+# --host 0.0.0.0), so a bridge publish would not reach the process.
+#
+# dsh has NO authentication and its default agent preset carries tool-bash/tool-fs, so the
+# Caddy vhost on arm gates dsh.lkwplus.com with basic_auth. Never expose this origin without
+# that gate — the credentials live in /etc/caddy/Caddyfile, off git (this repo is public).
+#
+# Process uid/gid 1002 matches host user `agent` (same pattern as multica's tooling user).
+# DSH_HOME holds profiles, credentials, and session state; /workspaces is the default
+# workspace root (add project dirs under /srv/dsh/workspaces on the host).
+services:
+  dsh:
+    container_name: dsh
+    build: .
+    # Tag tracks the upstream version at Dockerfile's pinned DSH_REF (apps/cli/package.json).
+    # Upstream publishes no git tags, so bump both together.
+    image: dsh:0.1.0-rc.5
+    restart: unless-stopped
+    network_mode: host
+    user: "1002:1002"
+    working_dir: /workspaces
+    environment:
+      TZ: Asia/Shanghai
+      DSH_HOME: /data
+      # Optional fallback; the Web UI can also store keys in $DSH_HOME/.credentials.yaml.
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+    volumes:
+      - /srv/dsh/data:/data
+      - /srv/dsh/workspaces:/workspaces

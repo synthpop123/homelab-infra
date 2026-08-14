@@ -72,6 +72,7 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [medialinker](./stacks/medialinker) | [plex.lkwplus.com](https://plex.lkwplus.com) | 20032 | strm 302 reverse proxy in front of Plex for direct play (fixed IP 172.22.0.8) |
 | [multica](./stacks/multica) | [multica.lkwplus.com](https://multica.lkwplus.com) | arm 20000 / 20001 | Multica self-host — AI-agent issue tracker (backend + web + Postgres; **runs on arm**, served by arm's host Caddy) |
 | [storageui](./stacks/storageui) | [storageui.lkwplus.com](https://storageui.lkwplus.com) | arm 20002 | Storage UI — S3/R2 web file manager, two R2 buckets (**runs on arm**, served by arm's host Caddy) |
+| [dsh](./stacks/dsh) | [dsh.lkwplus.com](https://dsh.lkwplus.com) | arm 20003 | DeepSeek Harness — agent harness Web UI (source-built image, uid 1002 / `agent`) |
 | [beszel-agent](./stacks/beszel-agent) | — | arm, host net | Beszel metrics agent (**runs on arm**, reports straight to the beszel hub on fame) |
 
 ## Conventions
