@@ -631,7 +631,11 @@ tags = ["app"]
 server = "Oracle-Arm"
 linked_repo = "homelab-infra"
 run_directory = "stacks/dsh"
-file_paths = ["compose.yaml", "Dockerfile"]
+# Compose files only — Komodo parses every entry here as a ComposeFile, so listing the
+# Dockerfile makes the whole stack fail to load ("expected struct ComposeFile"). The
+# consequence is the documented one: a Dockerfile-only change (e.g. a DSH_REF bump) syncs
+# but is not selected by BatchDeployStackIfChanged, so deploy that by hand.
+file_paths = ["compose.yaml"]
 # Built from the upstream deepseek-harness git source (see Dockerfile ARG DSH_REF).
 extra_args = "--build"
 # Optional: inject DEEPSEEK_API_KEY for the native DeepSeek adapter; the Web UI can also
