@@ -101,13 +101,27 @@ Docker **29.5.3**, default address pools.
   bypasses the guard. The `dsh.lkwplus.com` vhost therefore gates on Caddy `basic_auth`
   (bcrypt hash in `/etc/caddy/Caddyfile`, off git). The container's `--trusted-host` flag is
   only the `/api` browser-trust fence (Host-header authority), never a credential check.
-  **The Settings pages answer 403 through the reverse proxy, by upstream design.**
+  **The Settings pages would 403 behind a plain reverse proxy, by upstream design.**
   `PRIVILEGED_METHODS` in `packages/client/connection` (`settings.*`, `credentials.*`,
   `llm.discoverModels`) re-runs the fence with an *empty* trust list, pinning those calls to a
-  loopback `Host` — no `--trusted-host` value or patch layer can grant them. Symptom in the UI:
-  `加载提供方目录失败: transport failure for /api/settings.describe: HTTP 403`. Ordinary
-  chat/session calls are unaffected. To reach Settings, tunnel instead of proxying:
-  `ssh -L 20003:127.0.0.1:20003 arm`, then open `http://127.0.0.1:20003`.
+  loopback `Host` — no `--trusted-host` value or patch layer can grant them; the symptom is
+  `transport failure for /api/settings.describe: HTTP 403`. The vhost therefore rewrites the
+  request to look like loopback:
+
+  ```
+  header_up Host 127.0.0.1:20003
+  header_up Origin http://127.0.0.1:20003
+  ```
+
+  That rewrite also neuters dsh's own Origin fence (it would compare our rewritten Origin
+  against our rewritten Host, always equal), so the CSRF defense moves into Caddy: a
+  `@foreign_origin` matcher refuses any request whose `Origin` is not
+  `https://dsh.lkwplus.com`, which is the shape every cross-origin fetch/XHR/form-POST takes.
+  Plain navigations carry no `Origin` and pass — including ones Fetch Metadata labels
+  `cross-site` (bookmark, external link, search result), which only load the page; the app's
+  own API calls afterwards are same-origin. Do **not** add a blanket
+  `Sec-Fetch-Site: cross-site` block here: it rejects those ordinary visits while adding
+  nothing the Origin gate does not already cover.
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;
