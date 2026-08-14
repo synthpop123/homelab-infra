@@ -3,8 +3,8 @@
 # pinned to an exact commit by DSH_REF. Never track a branch here: dsh is a developer preview
 # whose README warns of breaking changes, and a floating ref would let an unrelated redeploy
 # (`extra_args = "--build"`) silently swap the running code. Bump the SHA to upgrade — Renovate
-# cannot see this ref, so upgrades are manual; check the version in apps/cli/package.json and
-# retag `image:` in compose.yaml to match.
+# cannot see this ref, so upgrades are manual, and a Dockerfile-only change is not picked up by
+# BatchDeployStackIfChanged (file_paths is compose-only), so deploy that by hand.
 #
 # dsh web binds 127.0.0.1 only — packages/host/webserver's Config schema accepts just
 # '127.0.0.1' | '0.0.0.0', and the CLI rejects 0.0.0.0 outright ("it would expose remote code

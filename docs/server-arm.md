@@ -87,8 +87,11 @@ Docker **29.5.3**, default address pools.
 - **dsh** ([stacks/dsh](../stacks/dsh/)) — DeepSeek Harness Web UI, image built from upstream
   source: no container image is published, and upstream carries no git tags, so the Dockerfile
   pins an exact commit in `DSH_REF` (currently `47f9438`, upstream version `0.1.0-rc.5`).
-  Renovate cannot see that ref — upgrades are a manual SHA bump plus a matching `image:` retag,
-  redeployed with `--build`. Host-networked on `127.0.0.1:20003` (dsh rejects
+  Renovate cannot see that ref — upgrades are a manual SHA bump, redeployed with `--build`; a
+  Dockerfile-only change is not selected by `BatchDeployStackIfChanged` either (`file_paths` is
+  compose-only), so deploy it by hand. The compose sets no `image:` key on purpose: Komodo's
+  `auto_pull` runs `compose pull` before deploying and aborts on a locally-built tag ("pull
+  access denied"), exactly as for autobrr-notify. Host-networked on `127.0.0.1:20003` (dsh rejects
   `--host 0.0.0.0`); data under `/srv/dsh/`; process uid **1002** matches host user `agent`.
   DeepSeek API keys can be set in the Web UI or via optional `DEEPSEEK_API_KEY` (Komodo
   Variable).

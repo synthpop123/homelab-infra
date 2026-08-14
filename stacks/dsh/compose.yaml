@@ -13,10 +13,13 @@
 services:
   dsh:
     container_name: dsh
+    # Built locally from ./Dockerfile; the stack deploys with `--build` (see komodo/sync.toml).
+    # Deliberately no `image:` — same as autobrr-notify and letterboxd-plex-sync. Komodo's
+    # auto_pull runs `compose pull` first, which would try to fetch a locally-built tag from a
+    # registry and abort the deploy ("pull access denied for dsh"). Without the key, compose
+    # names it dsh-dsh and pull skips the service; the upstream commit is on the image's
+    # org.opencontainers.image.revision label.
     build: .
-    # Tag tracks the upstream version at Dockerfile's pinned DSH_REF (apps/cli/package.json).
-    # Upstream publishes no git tags, so bump both together.
-    image: dsh:0.1.0-rc.5
     restart: unless-stopped
     network_mode: host
     user: "1002:1002"
