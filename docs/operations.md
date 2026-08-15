@@ -13,8 +13,10 @@ ssh fame 'docker ps --filter health=unhealthy --filter status=restarting --forma
 ssh fame 'systemctl --failed --no-legend; df -h / | tail -1'
 ```
 
-Empty output + disk under ~80% = healthy. Dashboards: **beszel** (per-container CPU/mem),
-**komari** (public uptime page), **tautulli** (Plex sessions) — URLs in the README table.
+Empty output + disk under ~80% = healthy. Dashboards: **beszel** (per-container CPU/mem)
+and **tautulli** (Plex sessions), both in the README table, plus **komari**, the public
+server probe at [komari.lkwplus.com](https://komari.lkwplus.com) — a host process rather
+than a stack, so it has no row there.
 
 ## Komodo
 

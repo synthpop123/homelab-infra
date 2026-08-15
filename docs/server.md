@@ -25,7 +25,7 @@ directly and is served by the host Caddy — see the host's `/etc/caddy/Caddyfil
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
 | Caddy | 80/443 | one site: the Komodo-UI hostname → `127.0.0.1:9120` (direct admin path, no Akko hop) |
-| komari + komari-agent | 25774 | uptime/status monitor (public on purpose) |
+| komari + komari-agent | 25774 | server probe both hosts report into (public on purpose) |
 | exim4 | local only | MTA for cron mail |
 
 The `clouddrive` process visible on host port `19798` is the **clouddrive2 container**

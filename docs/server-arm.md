@@ -46,7 +46,7 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
 | Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh) |
 | multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) |
-| komari-agent | outbound | reports to the komari status page on fame |
+| komari-agent | outbound | reports to the komari probe on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
 | rpcbind | 111 (WAN-dropped) | stock on OCI images; left running but closed by `ARM-INPUT` |
 
