@@ -4,7 +4,7 @@
 services:
   beszel:
     container_name: beszel
-    image: henrygd/beszel:0.18.7
+    image: henrygd/beszel:0.18.8
     restart: unless-stopped
     ports:
       # host:container — host port from the registry (see docs/ports.md)
