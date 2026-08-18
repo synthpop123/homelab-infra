@@ -9,11 +9,28 @@
   "labels": ["dependencies"],
   "prConcurrentLimit": 0,
   "prHourlyLimit": 0,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "dsh has no published container image, so stacks/dsh builds from upstream's npm package with the version pinned in compose.yaml's build.args (see that file for why it lives there and not in the Dockerfile). The docker-compose manager only reads `image:` keys, so the build arg needs its own manager.",
+      "managerFilePatterns": ["/(^|/)compose\\.ya?ml$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)(?: versioning=(?<versioning>[^\\s]+?))?\\s+[A-Za-z0-9_]+_VERSION:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+    }
+  ],
   "packageRules": [
     {
       "description": "Topic Docker image PRs by the bare image name (Renovate's default prepends a 'dependency ' noun).",
       "matchManagers": ["docker-compose"],
       "commitMessageTopic": "{{depName}}"
+    },
+    {
+      "description": "dsh is a developer preview whose only releases are 0.1.0-rc.N prereleases. With the default ignoreUnstable, Renovate allows a prerelease upgrade only when major.minor.patch match the current one — rc.7 -> rc.8 would be offered, but a move to a new minor's rc line (0.1.0-rc.7 -> 0.2.0-rc.1) would be dropped with no PR and no dashboard entry. Upstream already made that exact jump once (0.0.1-rc.5 -> 0.1.0-rc.2), so opt into unstable explicitly. Breaking changes are expected: read the release notes before merging.",
+      "matchDatasources": ["npm"],
+      "matchPackageNames": ["@deepseek-ai/dsh"],
+      "ignoreUnstable": false
     },
     {
       "description": "Mastodon ships its web/sidekiq image and the streaming image in lockstep at the same version, so group their updates into one PR.",

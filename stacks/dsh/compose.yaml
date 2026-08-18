@@ -1,4 +1,4 @@
-# DeepSeek Harness (dsh) Web UI — built from upstream source (see Dockerfile).
+# DeepSeek Harness (dsh) Web UI — installed from upstream's npm package (see Dockerfile).
 # Runs on the arm host (Oracle-Arm, aarch64) behind the host Caddy at dsh.lkwplus.com.
 # Host networking is required: dsh web listens on 127.0.0.1 only (upstream rejects
 # --host 0.0.0.0), so a bridge publish would not reach the process.
@@ -17,9 +17,22 @@ services:
     # Deliberately no `image:` — same as autobrr-notify and letterboxd-plex-sync. Komodo's
     # auto_pull runs `compose pull` first, which would try to fetch a locally-built tag from a
     # registry and abort the deploy ("pull access denied for dsh"). Without the key, compose
-    # names it dsh-dsh and pull skips the service; the upstream commit is on the image's
-    # org.opencontainers.image.revision label.
-    build: .
+    # names it dsh-dsh and pull skips the service; the running version is on the image's
+    # org.opencontainers.image.version label.
+    build:
+      context: .
+      args:
+        # The version pin lives HERE, not in the Dockerfile, and that placement is what makes
+        # upgrades self-deploying: `file_paths` in komodo/sync.toml is compose-only, so only a
+        # change to THIS file gets picked by BatchDeployStackIfChanged. Renovate rewrites the
+        # line below (via the `customManagers` regex entry in renovate.json), and merging that PR
+        # both syncs and redeploys with `--build`. Upstream is a developer preview shipping
+        # 0.1.0-rc.N, so its releases are semver-unstable — renovate.json disables
+        # ignoreUnstable for this package, otherwise a jump to a new minor's rc line (the
+        # 0.0.1-rc.5 -> 0.1.0-rc.2 kind, which has already happened once) would be dropped in
+        # silence. Read the release notes before merging: breaking changes are expected here.
+        # renovate: datasource=npm depName=@deepseek-ai/dsh
+        DSH_VERSION: "0.1.0-rc.7"
     restart: unless-stopped
     network_mode: host
     user: "1002:1002"

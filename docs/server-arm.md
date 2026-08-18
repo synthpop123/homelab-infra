@@ -84,12 +84,21 @@ Docker **29.5.3**, default address pools.
   for the two Cloudflare R2 buckets (`imagebed` / `public`). Single stateless container, no
   volumes; config is all env vars (credentials via Komodo Variables). Port `127.0.0.1:20002`
   fronted by the host Caddy at `storageui.lkwplus.com`.
-- **dsh** ([stacks/dsh](../stacks/dsh/)) — DeepSeek Harness Web UI, image built from upstream
-  source: no container image is published, and upstream carries no git tags, so the Dockerfile
-  pins an exact commit in `DSH_REF` (currently `47f9438`, upstream version `0.1.0-rc.5`).
-  Renovate cannot see that ref — upgrades are a manual SHA bump, redeployed with `--build`; a
-  Dockerfile-only change is not selected by `BatchDeployStackIfChanged` either (`file_paths` is
-  compose-only), so deploy it by hand. The compose sets no `image:` key on purpose: Komodo's
+- **dsh** ([stacks/dsh](../stacks/dsh/)) — DeepSeek Harness Web UI, image built locally from
+  upstream's **npm package**: no container image is published, but the `@deepseek-ai/dsh-*`
+  family is public on npm (since `0.1.0-rc.5`) and the CLI package ships the Web UI assets,
+  so the Dockerfile just `npm install -g @deepseek-ai/dsh@${DSH_VERSION}` — no monorepo
+  clone, no `pnpm run build`, and an 881MB image instead of the 2.53GB source-built one
+  (measured on this host; the build itself drops from minutes to well under one).
+  **`DSH_VERSION` is pinned in `compose.yaml`'s `build.args`, not in the Dockerfile**, and
+  that is load-bearing: `file_paths` is compose-only, so only a compose change is selected by
+  `BatchDeployStackIfChanged`. Renovate tracks the pin through the `customManagers` regex
+  entry in `renovate.json` and merging its PR redeploys with `--build` unattended. Upstream
+  ships only `0.1.0-rc.N` prereleases, so that package also sets `ignoreUnstable: false` —
+  without it Renovate would silently skip a jump to a new minor's rc line. It is a developer
+  preview that warns of breaking changes, so read the release notes before merging. The
+  base image (Node major) is still a Dockerfile-only change: deploy those by hand.
+  The compose sets no `image:` key on purpose: Komodo's
   `auto_pull` runs `compose pull` before deploying and aborts on a locally-built tag ("pull
   access denied"), exactly as for autobrr-notify. Host-networked on `127.0.0.1:20003` (dsh rejects
   `--host 0.0.0.0`); data under `/srv/dsh/`; process uid **1002** matches host user `agent`.
