@@ -516,7 +516,7 @@ file_paths = ["compose.yaml"]
 
 [[stack]]
 name = "cliproxyapi"
-description = "https://cpa.lkwplus.com / https://cpa-manager.lkwplus.com"
+description = "https://cpa.lkwplus.com"
 deploy = false
 tags = ["app"]
 
@@ -526,10 +526,7 @@ linked_repo = "homelab-infra"
 run_directory = "stacks/cliproxyapi"
 file_paths = ["compose.yaml"]
 # CPA's own secrets (Management Key + client api-keys) live in the off-git /srv/cliproxyapi/config.yaml.
-# Only cpa-manager-plus's admin login key is a Komodo Variable; the compose references ${CPA_MANAGER_ADMIN_KEY}.
-environment = """
-CPA_MANAGER_ADMIN_KEY=[[CPA_MANAGER_ADMIN_KEY]]
-"""
+# No Komodo Variables needed — all config is in the off-git config.yaml.
 
 [[stack]]
 name = "plex"

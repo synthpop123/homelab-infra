@@ -48,7 +48,6 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20027 | umami                 | 3000           | Umami web analytics         |
 | 20028 | bark                  | 8080           | Bark push notification server |
 | 20029 | cli-proxy-api         | 8317           | CLIProxyAPI AI proxy → cpa.lkwplus.com |
-| 20030 | cpa-manager-plus      | 18317          | CPA-Manager-Plus panel → cpa-manager.lkwplus.com |
 | 20031 | plex                  | 32400          | Plex media server (Akko-only; clients via medialinker) |
 | 20032 | medialinker           | 8091           | strm 302 reverse proxy → plex.lkwplus.com |
 | 20033 | tautulli              | 8181           | Tautulli Plex monitor → tautulli.lkwplus.com |
@@ -60,8 +59,9 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 > mdc's `flaresolverr`, the plex stack's `kometa` / `letterboxd-plex-sync`) are internal-only (no host port).
 >
 > **Vacated:** `20025` previously published mdc's `flaresolverr`; it is now internal-only (mdc reaches
-> it in-network at `flaresolverr:8191`), so `20025` is unused. New services still take the next
-> sequential number (**Next free** above), not this gap.
+> it in-network at `flaresolverr:8191`), so `20025` is unused. `20030` previously published
+> `cpa-manager-plus`; CPA's built-in `/management.html` panel replaced it, so `20030` is unused.
+> New services still take the next sequential number (**Next free** above), not these gaps.
 >
 > **Outside the scheme** (host-networked; ports fixed by the app, not the registry):
 > - `beszel-agent` reserves host port **45876** (only bound as a fallback when its WebSocket
