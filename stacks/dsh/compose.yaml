@@ -32,7 +32,7 @@ services:
         # 0.0.1-rc.5 -> 0.1.0-rc.2 kind, which has already happened once) would be dropped in
         # silence. Read the release notes before merging: breaking changes are expected here.
         # renovate: datasource=npm depName=@deepseek-ai/dsh
-        DSH_VERSION: "0.1.0-rc.7"
+        DSH_VERSION: "0.1.0-rc.8"
     restart: unless-stopped
     network_mode: host
     user: "1002:1002"
