@@ -24,10 +24,10 @@ Two hosts, both reachable from this machine via ssh aliases in `~/.ssh/config` (
   read Komodo's clone under `/etc/komodo/repos/`. This is the only way to verify a change
   actually took effect, since nothing deploys from the local repo.
 - **`ssh arm`** — `Oracle-Arm`, an Oracle Cloud **aarch64** machine managed by the same
-  Komodo Core through an outbound Periphery agent, currently running **multica** and
-  **beszel-agent** (images targeted there must be arm64). Inventory: `docs/server-arm.md`;
-  how servers join/rejoin Komodo (incl. the headless re-adopt via Mongo):
-  `docs/komodo-servers.md`.
+  Komodo Core through an outbound Periphery agent, currently running **multica**,
+  **storageui**, **dsh**, and **beszel-agent** (images targeted there must be arm64).
+  Inventory: `docs/server-arm.md`; how servers join/rejoin Komodo (incl. the headless
+  re-adopt via Mongo): `docs/komodo-servers.md`.
 
 What runs on fame besides stacks (Caddy, komari, fail2ban, firewall, daemon config) is
 inventoried in `docs/server.md`; health-check and troubleshooting commands are in

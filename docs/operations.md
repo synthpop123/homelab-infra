@@ -3,8 +3,9 @@
 Routine checks and the short paths for poking the live deploy. Host inventories:
 [server.md](./server.md) (fame), [server-arm.md](./server-arm.md) (arm). Deploy flow:
 [workflow.md](./workflow.md). All commands run from this machine via `ssh fame` unless
-noted; use `ssh arm` for multica, beszel-agent, the host Caddy, and Periphery on arm (see
-[server-arm.md](./server-arm.md) and [komodo-servers.md](./komodo-servers.md)).
+noted; use `ssh arm` for multica, storageui, dsh, beszel-agent, the host Caddy, and
+Periphery on arm (see [server-arm.md](./server-arm.md) and
+[komodo-servers.md](./komodo-servers.md)).
 
 ## Health check
 

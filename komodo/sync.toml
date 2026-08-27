@@ -41,7 +41,7 @@ enabled = true
 
 [[server]]
 name = "Oracle-Arm"
-description = "Oracle Cloud Chuncheon (arm) — aarch64, multica + beszel-agent"
+description = "Oracle Cloud Chuncheon (arm) — aarch64, multica + storageui + dsh + beszel-agent"
 
 [server.config]
 region = "Chuncheon, KR"

@@ -114,9 +114,10 @@ Topology, fixed IPs, and failure modes: [media.md](./docs/media.md).
 
 Most stacks run on one Debian 12 VPS (**fame**, 6 vCPU / 24 GiB), which also hosts
 the Komodo Core. A second host — **arm** (Oracle Cloud Chuncheon, 2 vCPU aarch64 / 12 GiB)
-— is connected to the same control plane via an outbound Periphery agent and runs its
-first stack (multica); declaring a stack with `server = "Oracle-Arm"` in `sync.toml` is
-all it takes to target it (arm64 images only). How servers join Komodo: [komodo-servers.md](./docs/komodo-servers.md).
+— is connected to the same control plane via an outbound Periphery agent and currently
+runs multica, storageui, dsh, and beszel-agent; declaring a stack with
+`server = "Oracle-Arm"` in `sync.toml` is all it takes to target it (arm64 images only).
+How servers join Komodo: [komodo-servers.md](./docs/komodo-servers.md).
 Three things are managed by hand outside Komodo, versioned under
 [`bootstrap/`](./bootstrap/): Komodo itself, the host firewalls, and fail2ban (the latter
 two on both hosts). Host inventories
