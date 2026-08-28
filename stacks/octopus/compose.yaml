@@ -1,0 +1,24 @@
+# Octopus — personal LLM API aggregation gateway (OpenAI / Anthropic / Responses).
+# Fronted by https://llm.lkwplus.com via Akko. SQLite config and DB live in /srv/octopus/data.
+services:
+  octopus:
+    container_name: octopus
+    image: bestrui/octopus:v0.12.1
+    ports:
+      # host:container — host port from the registry (see docs/ports.md). llm.lkwplus.com
+      - "20034:8080/tcp"
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - /srv/octopus/data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8080/ >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+networks:
+  default:
+    name: octopus

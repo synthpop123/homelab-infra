@@ -51,8 +51,9 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20031 | plex                  | 32400          | Plex media server (Akko-only; clients via medialinker) |
 | 20032 | medialinker           | 8091           | strm 302 reverse proxy → plex.lkwplus.com |
 | 20033 | tautulli              | 8181           | Tautulli Plex monitor → tautulli.lkwplus.com |
+| 20034 | octopus               | 8080           | Octopus LLM API gateway → llm.lkwplus.com |
 
-**Next free: `20034`**
+**Next free: `20035`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,

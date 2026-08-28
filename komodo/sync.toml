@@ -529,6 +529,19 @@ file_paths = ["compose.yaml"]
 # No Komodo Variables needed — all config is in the off-git config.yaml.
 
 [[stack]]
+name = "octopus"
+description = "https://llm.lkwplus.com"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/octopus"
+file_paths = ["compose.yaml"]
+# No secrets in compose: SQLite config and the admin account live in /srv/octopus/data.
+
+[[stack]]
 name = "plex"
 description = "https://plex.lkwplus.com (backend, reached via medialinker) / https://tautulli.lkwplus.com"
 deploy = false
