@@ -66,7 +66,7 @@ services:
 
   tautulli:
     container_name: tautulli
-    image: ghcr.io/tautulli/tautulli:v2.18.0
+    image: ghcr.io/tautulli/tautulli:v2.18.1
     restart: unless-stopped
     environment:
       - PUID=1000
