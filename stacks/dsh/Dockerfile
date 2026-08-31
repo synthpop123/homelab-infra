@@ -42,6 +42,28 @@ RUN test -n "${DSH_VERSION}" \
   && npm install -g --omit=dev "@deepseek-ai/dsh@${DSH_VERSION}" \
   && npm cache clean --force
 
+# Unhide the Settings surfaces for a non-loopback browser. The gate is client-side and reads
+# the *page* authority, so no proxy header reaches it: dsh-client-connection computes
+# `isLoopback = transport?.ownsHost === true || isLoopbackHostname(location.hostname)`, and
+# dsh-client-ui-settings turns a false there into `persistence: "memory"` — the symptom is
+# `加载提供方目录失败: settings are unavailable in this browser` on 设置 → 模型.
+#
+# Only the UI was hidden: since 0.1.2-alpha.1 the Host half has no privileged loopback tier,
+# every RPC passes the same Host/Origin fence and then the session cookie. `__DSH_TRANSPORT__`
+# is upstream's own page global and its other members are optional, so this is a switch rather
+# than a logic patch — but it still edits a shipped artifact, hence the guards: fail the build
+# if the anchor moves or upstream starts shipping the global, never serve an unpatched page.
+RUN set -eu; \
+    index="$(find /usr/local/lib/node_modules -type f -path '*/dsh-web-frontend/dist/index.html')"; \
+    test -n "${index}" && test "$(printf '%s\n' "${index}" | wc -l)" = "1" \
+      || { echo "expected exactly one dsh-web-frontend dist index.html, found: ${index:-none}" >&2; exit 1; }; \
+    ! grep -q '__DSH_TRANSPORT__' "${index}" \
+      || { echo "${index} already sets __DSH_TRANSPORT__; drop this layer and re-read upstream" >&2; exit 1; }; \
+    grep -q '<title>DeepSeek Harness</title>' "${index}" \
+      || { echo "${index} lost the <title> anchor this injection hangs on" >&2; exit 1; }; \
+    sed -i 's#<title>DeepSeek Harness</title>#&\n    <script>window.__DSH_TRANSPORT__ = { ownsHost: true }</script>#' "${index}"; \
+    grep -q '__DSH_TRANSPORT__' "${index}"
+
 # Match the arm host's `agent` user (uid/gid 1002) so bind mounts under /srv/dsh stay
 # consistent. npm installed as root into /usr/local (world-readable); agent only reads it.
 RUN groupadd -g 1002 agent 2>/dev/null || true \
@@ -52,11 +74,15 @@ USER agent
 WORKDIR /workspaces
 # Documentation only under host networking; the bind below is what actually decides.
 EXPOSE 20003
-# --host is the upstream default but stated explicitly: this is the one line keeping the
-# harness off every non-loopback interface of the host it shares. --trusted-host is the /api
-# browser-trust fence (Host-header authority behind the reverse proxy) and is NOT
-# authentication — dsh ships none, so the host Caddy owns the credential gate.
+# `dsh web` is still the alias for `dsh --profile web` in 0.1.2-alpha.x.
+#
+# --host is the upstream default but stated explicitly: it is the one line keeping the harness
+# off every non-loopback interface of the host it shares. --trusted-host is the /api
+# Host/Origin fence, not authentication — the credential gate is Caddy `basic_auth` plus dsh's
+# own session cookie (compose.yaml documents how that cookie is first obtained). --no-open
+# suppresses the default-browser handoff, which in a container only logs a failure.
 CMD ["dsh", "web", \
      "--host", "127.0.0.1", \
      "--port", "20003", \
-     "--trusted-host", "dsh.lkwplus.com"]
+     "--trusted-host", "dsh.lkwplus.com", \
+     "--no-open"]

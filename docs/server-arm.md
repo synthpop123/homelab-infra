@@ -93,9 +93,11 @@ Docker **29.5.3**, default address pools.
   **`DSH_VERSION` is pinned in `compose.yaml`'s `build.args`, not in the Dockerfile**, and
   that is load-bearing: `file_paths` is compose-only, so only a compose change is selected by
   `BatchDeployStackIfChanged`. Renovate tracks the pin through the `customManagers` regex
-  entry in `renovate.json` and merging its PR redeploys with `--build` unattended. Upstream
-  ships only `0.1.0-rc.N` prereleases, so that package also sets `ignoreUnstable: false` —
-  without it Renovate would silently skip a jump to a new minor's rc line. It is a developer
+  entry in `renovate.json` and merging its PR redeploys with `--build` unattended. Upstream has
+  only ever shipped prereleases, so that package also sets `ignoreUnstable: false` — without it
+  Renovate would silently skip a jump to a new prerelease line (it has happened twice:
+  `0.0.1-rc.5` → `0.1.0-rc.2`, `0.1.1-rc.2` → `0.1.2-alpha.1`), and note that npm's `latest`
+  dist-tag lags on the rc line while `alpha` carries the newer one. It is a developer
   preview that warns of breaking changes, so read the release notes before merging. The
   base image (Node major) is still a Dockerfile-only change: deploy those by hand.
   The compose sets no `image:` key on purpose: Komodo's
@@ -104,33 +106,54 @@ Docker **29.5.3**, default address pools.
   `--host 0.0.0.0`); data under `/srv/dsh/`; process uid **1002** matches host user `agent`.
   DeepSeek API keys can be set in the Web UI or via optional `DEEPSEEK_API_KEY` (Komodo
   Variable).
-  **Auth is not optional here.** dsh ships no authentication of its own and its default agent
-  preset carries `tool-bash`/`tool-fs`, so an open origin is remote code execution on this
-  host — upstream refuses to bind `0.0.0.0` for exactly that reason, and a reverse proxy
-  bypasses the guard. The `dsh.lkwplus.com` vhost therefore gates on Caddy `basic_auth`
-  (bcrypt hash in `/etc/caddy/Caddyfile`, off git). The container's `--trusted-host` flag is
-  only the `/api` browser-trust fence (Host-header authority), never a credential check.
-  **The Settings pages would 403 behind a plain reverse proxy, by upstream design.**
-  `PRIVILEGED_METHODS` in `packages/client/connection` (`settings.*`, `credentials.*`,
-  `llm.discoverModels`) re-runs the fence with an *empty* trust list, pinning those calls to a
-  loopback `Host` — no `--trusted-host` value or patch layer can grant them; the symptom is
-  `transport failure for /api/settings.describe: HTTP 403`. The vhost therefore rewrites the
-  request to look like loopback:
+  **Auth is not optional here.** The default agent preset carries `tool-bash`/`tool-fs`, so an
+  open origin is remote code execution on this host — upstream refuses to bind `0.0.0.0` for
+  exactly that reason, and a reverse proxy bypasses the guard. The `dsh.lkwplus.com` vhost
+  therefore gates on Caddy `basic_auth` (bcrypt hash in `/etc/caddy/Caddyfile`, off git). The
+  container's `--trusted-host` flag is only the `/api` Host/Origin fence, never a credential
+  check.
 
-  ```
-  header_up Host 127.0.0.1:20003
-  header_up Origin http://127.0.0.1:20003
+  **Logging in takes a one-time token (since `0.1.2-alpha.1`).** Each process mints a launch
+  token; `GET /?token=…` is the only way to spend it, and spending it mints an authority-bound
+  signed cookie (30 days) that authorizes everything afterwards, `/api` WebSocket included. The
+  token is printed once at startup, against the container's own URL:
+
+  ```bash
+  ssh arm 'docker logs dsh 2>&1 | grep -o "token=[A-Za-z0-9_-]*"'
   ```
 
-  That rewrite also neuters dsh's own Origin fence (it would compare our rewritten Origin
-  against our rewritten Host, always equal), so the CSRF defense moves into Caddy: a
-  `@foreign_origin` matcher refuses any request whose `Origin` is not
-  `https://dsh.lkwplus.com`, which is the shape every cross-origin fetch/XHR/form-POST takes.
-  Plain navigations carry no `Origin` and pass — including ones Fetch Metadata labels
-  `cross-site` (bookmark, external link, search result), which only load the page; the app's
-  own API calls afterwards are same-origin. Do **not** add a blanket
-  `Sec-Fetch-Site: cross-site` block here: it rejects those ordinary visits while adding
-  nothing the Origin gate does not already cover.
+  Move it onto `https://dsh.lkwplus.com/?token=…` and open that once. The signing secret lives
+  in `/srv/dsh/data/.credentials.yaml`, so restarts and redeploys do **not** log you out; a
+  `401 dsh web authentication required` on a healthy container means the cookie expired.
+
+  **The Settings pages need `ownsHost`, injected into `index.html` at build time.** The gate is
+  client-side and reads the *page* authority, so no proxy header reaches it:
+  `isLoopback = transport?.ownsHost === true || isLoopbackHostname(location.hostname)`, and
+  `dsh-client-ui-settings` turns a false there into `persistence: "memory"` — the symptom is
+  `加载提供方目录失败: settings are unavailable in this browser` on 设置 → 模型. Only the UI was
+  hidden: since `0.1.2-alpha.1` the Host half has no privileged loopback tier, so the flag
+  grants a remote browser nothing the server was not already answering.
+
+  **The vhost no longer rewrites `Host`/`Origin`.** Up to `0.1.1-rc.2`, `PRIVILEGED_METHODS`
+  (`settings.*`, `credentials.*`, `llm.discoverModels`) re-ran the fence with an *empty* trust
+  list, pinning those calls to a loopback `Host`, and the vhost faked one with `header_up Host
+  127.0.0.1:20003` + `header_up Origin http://127.0.0.1:20003`. That tier is gone, and the
+  rewrite made dsh's own Origin fence vacuous, so it and the `@foreign_origin` matcher that
+  compensated for it were removed on 2026-09-01. The vhost now forwards the real
+  `dsh.lkwplus.com` authority, matching `--trusted-host`, and dsh enforces `Origin == Host`
+  plus a `sec-fetch-site: cross-site` refusal itself. Verified on `0.1.2-alpha.3`: token
+  exchange 303s and sets the cookie, `/` and `/api` answer with it, an untrusted `Host` or a
+  cross-site marker both 403.
+
+  **After a version bump, clear `/srv/dsh/data/profiles/node_modules`.** dsh boots a profile out
+  of `$DSH_HOME` whose `node_modules` is a tree of absolute symlinks into the image's global
+  install; a bump adds the new links but never removes the old ones (103 dangling by
+  `0.1.1-rc.2`). Nothing breaks today, but the package set churns every release. The tree is
+  fully derived — the profile declares no dependencies of its own — so dsh rebuilds it on boot:
+
+  ```bash
+  ssh arm 'docker stop dsh && rm -rf /srv/dsh/data/profiles/node_modules && docker start dsh'
+  ```
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;

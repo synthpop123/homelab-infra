@@ -27,7 +27,7 @@
       "commitMessageTopic": "{{depName}}"
     },
     {
-      "description": "dsh is a developer preview whose only releases are 0.1.0-rc.N prereleases. With the default ignoreUnstable, Renovate allows a prerelease upgrade only when major.minor.patch match the current one — rc.7 -> rc.8 would be offered, but a move to a new minor's rc line (0.1.0-rc.7 -> 0.2.0-rc.1) would be dropped with no PR and no dashboard entry. Upstream already made that exact jump once (0.0.1-rc.5 -> 0.1.0-rc.2), so opt into unstable explicitly. Breaking changes are expected: read the release notes before merging.",
+      "description": "dsh is a developer preview that has only ever published prereleases (0.0.1-rc.N, then 0.1.x-rc.N, now 0.1.2-alpha.N). With the default ignoreUnstable, Renovate allows a prerelease upgrade only when major.minor.patch match the current one — rc.7 -> rc.8 would be offered, but a move to a new prerelease line would be dropped with no PR and no dashboard entry. Upstream has already made that jump twice (0.0.1-rc.5 -> 0.1.0-rc.2 and 0.1.1-rc.2 -> 0.1.2-alpha.1), so opt into unstable explicitly. Note that npm's `latest` dist-tag still points at the older rc line while `alpha` carries the newer one; Renovate ranks by version, not dist-tag, so the alpha is still offered. Breaking changes are expected: read the release notes before merging.",
       "matchDatasources": ["npm"],
       "matchPackageNames": ["@deepseek-ai/dsh"],
       "ignoreUnstable": false

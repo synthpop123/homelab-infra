@@ -3,9 +3,19 @@
 # Host networking is required: dsh web listens on 127.0.0.1 only (upstream rejects
 # --host 0.0.0.0), so a bridge publish would not reach the process.
 #
-# dsh has NO authentication and its default agent preset carries tool-bash/tool-fs, so the
-# Caddy vhost on arm gates dsh.lkwplus.com with basic_auth. Never expose this origin without
-# that gate — the credentials live in /etc/caddy/Caddyfile, off git (this repo is public).
+# The default agent preset carries tool-bash/tool-fs, so this origin is remote code execution
+# on the arm host: the Caddy vhost gates dsh.lkwplus.com with basic_auth and that gate is not
+# optional. Credentials live in /etc/caddy/Caddyfile, off git (this repo is public).
+#
+# Since 0.1.2-alpha.1 dsh also authenticates browsers itself. Each process mints a launch token
+# and prints it once, against the container's own URL:
+#
+#   ssh arm 'docker logs dsh 2>&1 | grep -o "token=[A-Za-z0-9_-]*"'
+#
+# Move it onto the real vhost — https://dsh.lkwplus.com/?token=… — and open that once. dsh
+# spends the token only on `GET /`, mints a signed cookie (30 days) and redirects to a clean
+# `/`; everything after that is cookie-authorized. The signing secret persists in
+# /srv/dsh/data/.credentials.yaml, so restarts and redeploys do NOT log you out.
 #
 # Process uid/gid 1002 matches host user `agent` (same pattern as multica's tooling user).
 # DSH_HOME holds profiles, credentials, and session state; /workspaces is the default
@@ -26,13 +36,12 @@ services:
         # upgrades self-deploying: `file_paths` in komodo/sync.toml is compose-only, so only a
         # change to THIS file gets picked by BatchDeployStackIfChanged. Renovate rewrites the
         # line below (via the `customManagers` regex entry in renovate.json), and merging that PR
-        # both syncs and redeploys with `--build`. Upstream is a developer preview shipping
-        # 0.1.0-rc.N, so its releases are semver-unstable — renovate.json disables
-        # ignoreUnstable for this package, otherwise a jump to a new minor's rc line (the
-        # 0.0.1-rc.5 -> 0.1.0-rc.2 kind, which has already happened once) would be dropped in
-        # silence. Read the release notes before merging: breaking changes are expected here.
+        # both syncs and redeploys with `--build`. Upstream has only ever shipped prereleases, so
+        # renovate.json disables ignoreUnstable here — otherwise a jump to a new prerelease line
+        # (0.0.1-rc.5 -> 0.1.0-rc.2, then 0.1.1-rc.2 -> 0.1.2-alpha.1) is dropped in silence.
+        # Read the release notes before merging: breaking changes are expected.
         # renovate: datasource=npm depName=@deepseek-ai/dsh
-        DSH_VERSION: "0.1.1-rc.2"
+        DSH_VERSION: "0.1.2-alpha.3"
     restart: unless-stopped
     network_mode: host
     user: "1002:1002"
