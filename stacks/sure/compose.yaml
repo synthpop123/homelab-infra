@@ -19,6 +19,8 @@ services:
       # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
       - "127.0.0.1:20004:3000/tcp"
     volumes:
+      # Rails runs as uid 1000 in the image — chown the host dir before first deploy:
+      #   chown 1000:1000 /srv/sure/storage
       - /srv/sure/storage:/rails/storage
     environment:
       POSTGRES_USER: sure_user
@@ -52,6 +54,8 @@ services:
       sure-redis:
         condition: service_healthy
     volumes:
+      # Rails runs as uid 1000 in the image — chown the host dir before first deploy:
+      #   chown 1000:1000 /srv/sure/storage
       - /srv/sure/storage:/rails/storage
     environment:
       POSTGRES_USER: sure_user
