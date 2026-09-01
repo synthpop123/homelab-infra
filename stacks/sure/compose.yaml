@@ -4,7 +4,8 @@
 # a host port (127.0.0.1:20004); Postgres and Redis are internal-only.
 #
 # Upstream: compose.example.yml + docs/hosting/docker.md. TLS terminates at the host Caddy, so
-# RAILS_ASSUME_SSL is true. SECRET_KEY_BASE and the bundled Postgres password are Komodo Variables.
+# RAILS_ASSUME_SSL is true. SECRET_KEY_BASE, bundled Postgres password, and Active Record
+# encryption keys are Komodo Variables (generate keys with `bin/rails db:encryption:init`).
 services:
   sure:
     container_name: sure
@@ -27,6 +28,9 @@ services:
       POSTGRES_PASSWORD: ${SURE_POSTGRES_PASSWORD}
       POSTGRES_DB: sure_production
       SECRET_KEY_BASE: ${SURE_SECRET_KEY_BASE}
+      ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY: ${SURE_AR_ENC_PRIMARY_KEY}
+      ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY: ${SURE_AR_ENC_DETERMINISTIC_KEY}
+      ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT: ${SURE_AR_ENC_KEY_DERIVATION_SALT}
       SELF_HOSTED: "true"
       RAILS_FORCE_SSL: "false"
       RAILS_ASSUME_SSL: "true"
@@ -62,6 +66,9 @@ services:
       POSTGRES_PASSWORD: ${SURE_POSTGRES_PASSWORD}
       POSTGRES_DB: sure_production
       SECRET_KEY_BASE: ${SURE_SECRET_KEY_BASE}
+      ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY: ${SURE_AR_ENC_PRIMARY_KEY}
+      ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY: ${SURE_AR_ENC_DETERMINISTIC_KEY}
+      ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT: ${SURE_AR_ENC_KEY_DERIVATION_SALT}
       SELF_HOSTED: "true"
       RAILS_FORCE_SSL: "false"
       RAILS_ASSUME_SSL: "true"
@@ -90,7 +97,7 @@ services:
       - /srv/sure/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sure_user -d sure_production"]
-      interval: 5s
+      interval: 30s
       timeout: 5s
       retries: 5
 

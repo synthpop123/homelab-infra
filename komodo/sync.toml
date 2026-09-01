@@ -670,9 +670,13 @@ run_directory = "stacks/sure"
 file_paths = ["compose.yaml"]
 # Self-hosted personal finance on the arm host (image is multi-arch incl. linux/arm64).
 # Bundled Postgres + Redis; only the web service publishes a loopback port for host Caddy.
+# Active Record encryption keys: `docker exec sure bin/rails db:encryption:init` on first setup.
 environment = """
 SURE_SECRET_KEY_BASE=[[SURE_SECRET_KEY_BASE]]
 SURE_POSTGRES_PASSWORD=[[SURE_POSTGRES_PASSWORD]]
+SURE_AR_ENC_PRIMARY_KEY=[[SURE_AR_ENC_PRIMARY_KEY]]
+SURE_AR_ENC_DETERMINISTIC_KEY=[[SURE_AR_ENC_DETERMINISTIC_KEY]]
+SURE_AR_ENC_KEY_DERIVATION_SALT=[[SURE_AR_ENC_KEY_DERIVATION_SALT]]
 """
 
 [[stack]]
