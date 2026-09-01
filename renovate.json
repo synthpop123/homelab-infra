@@ -39,6 +39,12 @@
       "groupName": "mastodon"
     },
     {
+      "description": "Sure ships web and Sidekiq worker from the same image, so group their updates into one PR.",
+      "matchManagers": ["docker-compose"],
+      "matchPackageNames": ["ghcr.io/we-promise/sure"],
+      "groupName": "sure"
+    },
+    {
       "description": "LinuxServer.io tags embed a build hash and -lsNN rebuild counter (1.43.2.10687-563d026ea-ls311); default docker versioning treats that suffix as a compatibility variant that must match exactly, so updates are never offered. Parse the tag explicitly instead.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["linuxserver/plex"],
