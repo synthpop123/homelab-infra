@@ -41,7 +41,7 @@ enabled = true
 
 [[server]]
 name = "Oracle-Arm"
-description = "Oracle Cloud Chuncheon (arm) — aarch64, multica + storageui + dsh + beszel-agent"
+description = "Oracle Cloud Chuncheon (arm) — aarch64, multica + storageui + dsh + sure + beszel-agent"
 
 [server.config]
 region = "Chuncheon, KR"
@@ -655,6 +655,24 @@ extra_args = "--build"
 # store provider keys in $DSH_HOME/.credentials.yaml.
 environment = """
 DEEPSEEK_API_KEY=[[DEEPSEEK_API_KEY]]
+"""
+
+[[stack]]
+name = "sure"
+description = "https://sure.lkwplus.com"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Oracle-Arm"
+linked_repo = "homelab-infra"
+run_directory = "stacks/sure"
+file_paths = ["compose.yaml"]
+# Self-hosted personal finance on the arm host (image is multi-arch incl. linux/arm64).
+# Bundled Postgres + Redis; only the web service publishes a loopback port for host Caddy.
+environment = """
+SURE_SECRET_KEY_BASE=[[SURE_SECRET_KEY_BASE]]
+SURE_POSTGRES_PASSWORD=[[SURE_POSTGRES_PASSWORD]]
 """
 
 [[stack]]

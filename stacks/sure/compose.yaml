@@ -1,0 +1,107 @@
+# sure — self-hosted personal finance (https://github.com/we-promise/sure).
+# Runs on the arm host (Oracle-Arm, aarch64 — ghcr.io/we-promise/sure is multi-arch incl.
+# linux/arm64), served by arm's host Caddy at sure.lkwplus.com. Only the web service publishes
+# a host port (127.0.0.1:20004); Postgres and Redis are internal-only.
+#
+# Upstream: compose.example.yml + docs/hosting/docker.md. TLS terminates at the host Caddy, so
+# RAILS_ASSUME_SSL is true. SECRET_KEY_BASE and the bundled Postgres password are Komodo Variables.
+services:
+  sure:
+    container_name: sure
+    image: ghcr.io/we-promise/sure:v0.7.4
+    restart: unless-stopped
+    depends_on:
+      sure-postgres:
+        condition: service_healthy
+      sure-redis:
+        condition: service_healthy
+    ports:
+      # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
+      - "127.0.0.1:20004:3000/tcp"
+    volumes:
+      - /srv/sure/storage:/rails/storage
+    environment:
+      POSTGRES_USER: sure_user
+      POSTGRES_PASSWORD: ${SURE_POSTGRES_PASSWORD}
+      POSTGRES_DB: sure_production
+      SECRET_KEY_BASE: ${SURE_SECRET_KEY_BASE}
+      SELF_HOSTED: "true"
+      RAILS_FORCE_SSL: "false"
+      RAILS_ASSUME_SSL: "true"
+      DB_HOST: sure-postgres
+      DB_PORT: "5432"
+      REDIS_URL: redis://sure-redis:6379/1
+      APP_DOMAIN: sure.lkwplus.com
+      WEBAUTHN_RP_ID: lkwplus.com
+      WEBAUTHN_ALLOWED_ORIGINS: https://sure.lkwplus.com
+      ONBOARDING_STATE: open
+      EXCHANGE_RATE_PROVIDER: yahoo_finance
+      SECURITIES_PROVIDER: yahoo_finance
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+
+  sure-worker:
+    container_name: sure-worker
+    image: ghcr.io/we-promise/sure:v0.7.4
+    command: bundle exec sidekiq
+    restart: unless-stopped
+    depends_on:
+      sure-postgres:
+        condition: service_healthy
+      sure-redis:
+        condition: service_healthy
+    volumes:
+      - /srv/sure/storage:/rails/storage
+    environment:
+      POSTGRES_USER: sure_user
+      POSTGRES_PASSWORD: ${SURE_POSTGRES_PASSWORD}
+      POSTGRES_DB: sure_production
+      SECRET_KEY_BASE: ${SURE_SECRET_KEY_BASE}
+      SELF_HOSTED: "true"
+      RAILS_FORCE_SSL: "false"
+      RAILS_ASSUME_SSL: "true"
+      DB_HOST: sure-postgres
+      DB_PORT: "5432"
+      REDIS_URL: redis://sure-redis:6379/1
+      APP_DOMAIN: sure.lkwplus.com
+      WEBAUTHN_RP_ID: lkwplus.com
+      WEBAUTHN_ALLOWED_ORIGINS: https://sure.lkwplus.com
+      ONBOARDING_STATE: open
+      EXCHANGE_RATE_PROVIDER: yahoo_finance
+      SECURITIES_PROVIDER: yahoo_finance
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+
+  sure-postgres:
+    container_name: sure-postgres
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sure_user
+      POSTGRES_PASSWORD: ${SURE_POSTGRES_PASSWORD}
+      POSTGRES_DB: sure_production
+    volumes:
+      - /srv/sure/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sure_user -d sure_production"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  sure-redis:
+    container_name: sure-redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - /srv/sure/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: sure

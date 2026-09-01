@@ -2,7 +2,7 @@
 
 One-page inventory of the second VPS — an Oracle Cloud ARM machine in Chuncheon, South
 Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md)).
-Runs the **multica**, **storageui**, **dsh** and **beszel-agent** stacks (see below). The primary
+Runs the **multica**, **storageui**, **dsh**, **sure** and **beszel-agent** stacks (see below). The primary
 host's page: [server.md](./server.md).
 
 ## System
@@ -44,7 +44,7 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 | Process | Port | Purpose |
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
-| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh) |
+| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure) |
 | multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) |
 | komari-agent | outbound | reports to the komari probe on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
@@ -154,6 +154,11 @@ Docker **29.5.3**, default address pools.
   ```bash
   ssh arm 'docker stop dsh && rm -rf /srv/dsh/data/profiles/node_modules && docker start dsh'
   ```
+- **sure** ([stacks/sure](../stacks/sure/)) — self-hosted personal finance (Rails + Sidekiq +
+  bundled Postgres + Redis). Port `127.0.0.1:20004` fronted by the host Caddy at
+  `sure.lkwplus.com`. Yahoo Finance is the default market-data provider (no API key). After the
+  first account is created, switch **Settings → Self-Hosting → Onboarding** to **Closed** if you
+  do not want open registration.
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;
