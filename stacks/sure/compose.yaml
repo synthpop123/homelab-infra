@@ -6,6 +6,12 @@
 # Upstream: compose.example.yml + docs/hosting/docker.md. TLS terminates at the host Caddy, so
 # RAILS_ASSUME_SSL is true. SECRET_KEY_BASE, bundled Postgres password, and Active Record
 # encryption keys are Komodo Variables (generate keys with `bin/rails db:encryption:init`).
+#
+# Market-data config (providers + their API keys) is deliberately NOT set here: whenever the
+# matching env var is present, Sure disables the corresponding control in Settings > Self
+# hosting and the app can only be reconfigured by editing this file. The values live in the
+# app's own `settings` table instead (API keys encrypted at rest with the AR encryption keys
+# above), so providers can be switched from the UI.
 services:
   sure:
     container_name: sure
@@ -33,7 +39,6 @@ services:
       ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT: ${SURE_AR_ENC_KEY_DERIVATION_SALT}
       SNAPTRADE_OAUTH_CLIENT_ID: ${SNAPTRADE_OAUTH_CLIENT_ID}
       SNAPTRADE_OAUTH_CLIENT_SECRET: ${SNAPTRADE_OAUTH_CLIENT_SECRET}
-      TWELVE_DATA_API_KEY: ${TWELVE_DATA_API_KEY}
       SELF_HOSTED: "true"
       RAILS_FORCE_SSL: "false"
       RAILS_ASSUME_SSL: "true"
@@ -44,8 +49,6 @@ services:
       WEBAUTHN_RP_ID: lkwplus.com
       WEBAUTHN_ALLOWED_ORIGINS: https://sure.lkwplus.com
       ONBOARDING_STATE: open
-      EXCHANGE_RATE_PROVIDER: twelve_data
-      SECURITIES_PROVIDER: twelve_data
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -74,7 +77,6 @@ services:
       ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT: ${SURE_AR_ENC_KEY_DERIVATION_SALT}
       SNAPTRADE_OAUTH_CLIENT_ID: ${SNAPTRADE_OAUTH_CLIENT_ID}
       SNAPTRADE_OAUTH_CLIENT_SECRET: ${SNAPTRADE_OAUTH_CLIENT_SECRET}
-      TWELVE_DATA_API_KEY: ${TWELVE_DATA_API_KEY}
       SELF_HOSTED: "true"
       RAILS_FORCE_SSL: "false"
       RAILS_ASSUME_SSL: "true"
@@ -85,8 +87,6 @@ services:
       WEBAUTHN_RP_ID: lkwplus.com
       WEBAUTHN_ALLOWED_ORIGINS: https://sure.lkwplus.com
       ONBOARDING_STATE: open
-      EXCHANGE_RATE_PROVIDER: twelve_data
-      SECURITIES_PROVIDER: twelve_data
     dns:
       - 8.8.8.8
       - 1.1.1.1
