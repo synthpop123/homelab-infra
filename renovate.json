@@ -45,6 +45,12 @@
       "groupName": "sure"
     },
     {
+      "description": "Multica ships its backend and web images in lockstep at the same version, so group their updates into one PR. The stack's pgvector image is not under this namespace and keeps its own PRs.",
+      "matchManagers": ["docker-compose"],
+      "matchPackageNames": ["ghcr.io/multica-ai/**"],
+      "groupName": "multica"
+    },
+    {
       "description": "LinuxServer.io tags embed a build hash and -lsNN rebuild counter (1.43.2.10687-563d026ea-ls311); default docker versioning treats that suffix as a compatibility variant that must match exactly, so updates are never offered. Parse the tag explicitly instead.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["linuxserver/plex"],
