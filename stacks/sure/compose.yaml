@@ -15,7 +15,7 @@
 services:
   sure:
     container_name: sure
-    image: ghcr.io/we-promise/sure:0.7.4
+    image: ghcr.io/we-promise/sure:0.7.5-alpha.2
     restart: unless-stopped
     depends_on:
       sure-postgres:
@@ -55,7 +55,7 @@ services:
 
   sure-worker:
     container_name: sure-worker
-    image: ghcr.io/we-promise/sure:0.7.4
+    image: ghcr.io/we-promise/sure:0.7.5-alpha.2
     command: bundle exec sidekiq
     restart: unless-stopped
     depends_on:
