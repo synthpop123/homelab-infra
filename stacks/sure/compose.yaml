@@ -33,6 +33,7 @@ services:
       ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT: ${SURE_AR_ENC_KEY_DERIVATION_SALT}
       SNAPTRADE_OAUTH_CLIENT_ID: ${SNAPTRADE_OAUTH_CLIENT_ID}
       SNAPTRADE_OAUTH_CLIENT_SECRET: ${SNAPTRADE_OAUTH_CLIENT_SECRET}
+      TWELVE_DATA_API_KEY: ${TWELVE_DATA_API_KEY}
       SELF_HOSTED: "true"
       RAILS_FORCE_SSL: "false"
       RAILS_ASSUME_SSL: "true"
@@ -43,8 +44,8 @@ services:
       WEBAUTHN_RP_ID: lkwplus.com
       WEBAUTHN_ALLOWED_ORIGINS: https://sure.lkwplus.com
       ONBOARDING_STATE: open
-      EXCHANGE_RATE_PROVIDER: yahoo_finance
-      SECURITIES_PROVIDER: yahoo_finance
+      EXCHANGE_RATE_PROVIDER: twelve_data
+      SECURITIES_PROVIDER: twelve_data
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -73,6 +74,7 @@ services:
       ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT: ${SURE_AR_ENC_KEY_DERIVATION_SALT}
       SNAPTRADE_OAUTH_CLIENT_ID: ${SNAPTRADE_OAUTH_CLIENT_ID}
       SNAPTRADE_OAUTH_CLIENT_SECRET: ${SNAPTRADE_OAUTH_CLIENT_SECRET}
+      TWELVE_DATA_API_KEY: ${TWELVE_DATA_API_KEY}
       SELF_HOSTED: "true"
       RAILS_FORCE_SSL: "false"
       RAILS_ASSUME_SSL: "true"
@@ -83,8 +85,8 @@ services:
       WEBAUTHN_RP_ID: lkwplus.com
       WEBAUTHN_ALLOWED_ORIGINS: https://sure.lkwplus.com
       ONBOARDING_STATE: open
-      EXCHANGE_RATE_PROVIDER: yahoo_finance
-      SECURITIES_PROVIDER: yahoo_finance
+      EXCHANGE_RATE_PROVIDER: twelve_data
+      SECURITIES_PROVIDER: twelve_data
     dns:
       - 8.8.8.8
       - 1.1.1.1
