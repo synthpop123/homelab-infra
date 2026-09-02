@@ -3,7 +3,7 @@
 services:
   octopus:
     container_name: octopus
-    image: bestrui/octopus:v0.13.0
+    image: bestrui/octopus:v0.13.1
     ports:
       # host:container — host port from the registry (see docs/ports.md). llm.lkwplus.com
       - "20034:8080/tcp"
