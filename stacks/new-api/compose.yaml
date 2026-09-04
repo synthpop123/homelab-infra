@@ -32,7 +32,7 @@ services:
   new-api-postgres:
     container_name: new-api-postgres
     # Pinned to the major line (15); a major upgrade needs a manual data migration.
-    image: postgres:15
+    image: postgres:18
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: ${NEW_API_POSTGRES_PASSWORD}
