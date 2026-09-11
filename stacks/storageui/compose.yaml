@@ -11,7 +11,7 @@
 services:
   storageui:
     container_name: storageui
-    image: hahahumble/storageui:0.2.1
+    image: hahahumble/storageui:0.2.2
     restart: unless-stopped
     ports:
       # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
