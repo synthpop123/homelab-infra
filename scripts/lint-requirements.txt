@@ -1,0 +1,2 @@
+# Offline JSON Schema validation of Komodo resource TOML.
+jsonschema==4.25.1

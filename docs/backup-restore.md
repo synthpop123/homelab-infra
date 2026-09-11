@@ -199,28 +199,62 @@ copies, on **2** media, **1** off-site.
 
 ### A. Roll back / restore Komodo metadata
 
-`km database restore` re-imports the gzip dump. It uses **separate** `*_TARGET_*` env vars
-from backup *on purpose*, so a stray `restore` can't clobber the live DB. Inside Core,
-point it back at `mongo:27017` with the real credentials (read from `compose.env`):
+**Komodo v2.3.3 restore caveat:** `km database restore` only restores documents whose
+`_id` is a BSON ObjectId. Legacy/headless-created Variables with string IDs are
+silently skipped, even though the command reports success. The gzip backup still
+contains them. Always compare restored collection counts and Variable names/values
+before using the restored database. Never print secret values during verification.
+Source: [v2.3.3 restore implementation](https://github.com/moghtech/komodo/blob/v2.3.3/lib/database/src/utils/restore.rs).
+
+Use one explicit backup timestamp and an **empty temporary database** for both
+steps below. Set `restore_stamp` to the chosen folder name; do not use a moving
+"latest" backup while validating a recovery.
 
 ```bash
-set -a; . /opt/komodo/compose.env; set +a      # loads KOMODO_DATABASE_USERNAME/PASSWORD
+# On fame. The commands below do not change Core's live database.
+set -euo pipefail
+restore_stamp=2026-09-12_00-43-57  # replace with your chosen backup folder
+export KOMODO_RESTORE_DB=komodo-restore
+backup_dir="/etc/komodo/backups/$restore_stamp"
+set -a; . /opt/komodo/compose.env; set +a
 
 docker exec \
   -e KOMODO_CLI_DATABASE_TARGET_ADDRESS=mongo:27017 \
   -e KOMODO_CLI_DATABASE_TARGET_USERNAME="$KOMODO_DATABASE_USERNAME" \
   -e KOMODO_CLI_DATABASE_TARGET_PASSWORD="$KOMODO_DATABASE_PASSWORD" \
-  -e KOMODO_CLI_DATABASE_TARGET_DB_NAME=komodo \
-  komodo-core km database restore -y            # add -r 2026-06-15_01-00-01 for a specific folder
+  -e KOMODO_CLI_DATABASE_TARGET_DB_NAME="$KOMODO_RESTORE_DB" \
+  komodo-core km database restore -y -r "$restore_stamp"
+
+# Recover all Variables, including the string IDs skipped by km.
+gzip -dc "$backup_dir/Variable.gz" | docker exec -i -e KOMODO_RESTORE_DB komodo-mongo sh -c '
+  mongoimport --host localhost --username "$MONGO_INITDB_ROOT_USERNAME" \
+    --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin \
+    --db "$KOMODO_RESTORE_DB" --collection Variable --mode upsert --upsertFields _id --quiet
+'
 ```
 
-> **Restore does not clear the target first.** Into an *empty* DB (disaster recovery)
-> that's fine. To **roll back** a populated DB, the old documents would linger and mix
-> with the restored ones — drop the DB first, or restore into a throwaway
-> `KOMODO_CLI_DATABASE_TARGET_DB_NAME=komodo-restore` and inspect before cutting over.
+The importer preserves both string and ObjectId IDs. Check for non-ObjectId IDs
+in other collections too. Do not change production IDs just to accommodate the
+CLI. `mongoimport` reads decompressed input; it does not accept `--gzip`.
 
-After restoring, Komodo has your Variables/accounts back; a git push (or a manual
-ResourceSync run) reconciles stack *definitions* to the latest commit.
+**Verify before cutover:** compare the restored resource counts and Variable names
+and values against the selected backup (against the source DB during a rehearsal).
+Print only counts and mismatch totals. Restore does not clear an existing target:
+use a fresh temporary DB for a different snapshot to avoid mixing old documents.
+For a rehearsal, delete only the temporary DB when verification is complete.
+
+For an actual recovery, after verification and with executions stopped, set
+`KOMODO_DATABASE_DB_NAME` in the live `compose.env` to the verified target name and
+recreate **only Core** with `docker compose ... up -d --no-deps core`. Check users,
+Variables, both Servers and Resource Sync before resuming deployments. Keep the
+previous database for rollback. Ensure subsequent backup operations target the new
+DB; Core passes this setting to its bundled `km` CLI. A later Resource Sync reconciles
+resource definitions to git; it does not recover missing secrets.
+
+For a pre-upgrade snapshot, additionally use native `mongodump --archive --gzip`
+and test `mongorestore --archive --gzip --nsFrom='komodo.*' --nsTo='komodo-restore.*'`.
+A BSON archive preserves document types and collection metadata. Keep archives
+root-only beside the env/key backups, and copy them off-host with the backup bundle.
 
 ### B. Restore one service's data
 

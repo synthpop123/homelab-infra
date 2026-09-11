@@ -97,3 +97,11 @@ by hand), read it from Mongo the same way — and keep it out of anything that l
   app secrets / signing keys.
 - In the **same change**, add the matching `VAR = [[VAR]]` line to the stack's `environment` in
   [`sync.toml`](../komodo/sync.toml) (see [conventions.md](./conventions.md#environment-variables)).
+
+## Restore compatibility
+
+Keep Mongo-generated ObjectId IDs for new Variables; do not assign string `_id`s
+in headless scripts. Komodo v2.3.3's restore CLI skips string IDs. Existing legacy
+records remain valid at runtime and should not be rewritten during an upgrade.
+See the [restore workaround](./backup-restore.md#a-roll-back--restore-komodo-metadata)
+for recovering them from existing daily backups without exposing secret values.

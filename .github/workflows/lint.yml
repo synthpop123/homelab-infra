@@ -13,10 +13,11 @@ on:
     paths:
       - "stacks/**"
       - "bootstrap/**"
-      - "komodo/sync.toml"
+      - "komodo/**"
       - "renovate.json"
       - ".yamllint.yml"
       - "scripts/validate.sh"
+      - "scripts/lint-requirements.txt"
       - ".github/workflows/lint.yml"
   push:
     branches: [main]
@@ -32,6 +33,12 @@ jobs:
 
       - name: Install yamllint
         run: pipx install yamllint
+
+      - name: Install resource schema validator
+        run: |
+          python3 -m venv /tmp/homelab-lint
+          /tmp/homelab-lint/bin/pip install -r scripts/lint-requirements.txt
+          echo "/tmp/homelab-lint/bin" >> "$GITHUB_PATH"
 
       # STRICT=1 makes a missing tool a hard failure, so CI never silently skips a check.
       # ubuntu-latest ships docker compose v2 and python 3.11+, so every check runs.

@@ -1,3 +1,4 @@
+#:schema ./schemas/resources-v2.3.3.json
 # Komodo Resource Sync — declarative definition of all Stacks (Infrastructure as Code).
 #
 # A single "Resource Sync" resource in the Komodo UI points at this file. From then on,
@@ -51,7 +52,7 @@ enabled = true
 name = "wallos"
 description = "https://wallos.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -63,7 +64,7 @@ file_paths = ["compose.yaml"]
 name = "calibre-web-automated"
 description = "https://calibre.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame", "media"]
 
 [stack.config]
 server = "Famesystems"
@@ -75,7 +76,7 @@ file_paths = ["compose.yaml"]
 name = "deeix-chat"
 description = "https://ai.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -93,7 +94,7 @@ DEEIX_REDIS_PASSWORD=[[DEEIX_REDIS_PASSWORD]]
 name = "drizzle-gateway"
 description = "https://db.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -109,7 +110,7 @@ DRIZZLE_GATEWAY_MASTERPASS=[[DRIZZLE_GATEWAY_MASTERPASS]]
 name = "cloudreve"
 description = "https://cloud.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -122,7 +123,7 @@ file_paths = ["compose.yaml"]
 name = "koito"
 description = "https://music.lkwplus.com / https://scrobble.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -144,7 +145,7 @@ MS_BASE_URL=[[MS_BASE_URL]]
 name = "new-api"
 description = "https://api.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -162,7 +163,7 @@ NEW_API_REDIS_PASSWORD=[[NEW_API_REDIS_PASSWORD]]
 name = "opengist"
 description = "https://gist.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -175,7 +176,7 @@ file_paths = ["compose.yaml"]
 name = "beszel"
 description = "https://beszel.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -192,7 +193,7 @@ BESZEL_TOKEN=[[BESZEL_TOKEN]]
 name = "immich"
 description = "https://immich.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -212,7 +213,7 @@ TZ=Asia/Shanghai
 name = "clouddrive2"
 description = "https://cd.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame", "media"]
 
 [stack.config]
 server = "Famesystems"
@@ -226,7 +227,7 @@ file_paths = ["compose.yaml"]
 name = "karakeep"
 description = "https://karakeep.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -246,7 +247,7 @@ KARAKEEP_OPENAI_BASE_URL=[[KARAKEEP_OPENAI_BASE_URL]]
 name = "gitea"
 description = "https://git.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -263,7 +264,7 @@ GITEA_DB_PASSWORD=[[GITEA_DB_PASSWORD]]
 name = "openwebui"
 description = "https://chat.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -283,7 +284,7 @@ OPENWEBUI_OPENAI_API_BASE_URL=[[OPENWEBUI_OPENAI_API_BASE_URL]]
 name = "seerr"
 description = "https://seerr.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame", "media"]
 
 [stack.config]
 server = "Famesystems"
@@ -300,7 +301,7 @@ SEERR_DB_PASSWORD=[[SEERR_DB_PASSWORD]]
 name = "memos"
 description = "https://memos.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -316,7 +317,7 @@ MEMOS_DB_PASSWORD=[[MEMOS_DB_PASSWORD]]
 name = "n8n"
 description = "https://n8n.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -334,7 +335,7 @@ N8N_URL_BASE_API=[[N8N_URL_BASE_API]]
 name = "mastodon"
 description = "https://mastodon.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -394,7 +395,7 @@ UPDATE_CHECK_URL=
 name = "torrent"
 description = "https://qb.lkwplus.com / https://qui.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame", "media"]
 
 [stack.config]
 server = "Famesystems"
@@ -409,7 +410,7 @@ file_paths = ["compose.yaml"]
 name = "emby"
 description = "https://emby.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame", "media"]
 
 [stack.config]
 server = "Famesystems"
@@ -423,7 +424,7 @@ file_paths = ["compose.yaml"]
 name = "cms"
 description = "https://cms.lkwplus.com / https://emby-302.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame", "media"]
 
 [stack.config]
 server = "Famesystems"
@@ -446,7 +447,7 @@ CMS_DONATE_CODE=[[CMS_DONATE_CODE]]
 name = "mdc"
 description = "https://mdc.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame", "media"]
 
 [stack.config]
 server = "Famesystems"
@@ -466,7 +467,7 @@ MDC_PASSWORD=[[MDC_PASSWORD]]
 name = "autobrr"
 description = "https://autobrr.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame", "media", "source-build"]
 
 [stack.config]
 server = "Famesystems"
@@ -474,7 +475,7 @@ linked_repo = "homelab-infra"
 run_directory = "stacks/autobrr"
 file_paths = ["compose.yaml"]
 # `autobrr-notify` is built locally from ./notify, so the deploy runs `docker compose up --build`.
-extra_args = "--build"
+extra_args = ["--build"]
 # TMDB key + Telegram bot token/channel id for the notify sidecar are Komodo Variables; the compose
 # references ${...}. autobrr's own secrets live in /srv/autobrr/config (autobrr.db), kept off git.
 environment = """
@@ -487,7 +488,7 @@ TELEGRAM_CHANNEL_ID=[[AUTOBRR_TELEGRAM_CHANNEL_ID]]
 name = "umami"
 description = "https://umami.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -505,7 +506,7 @@ UMAMI_APP_SECRET=[[UMAMI_APP_SECRET]]
 name = "bark"
 description = "https://bark.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -518,7 +519,7 @@ file_paths = ["compose.yaml"]
 name = "cliproxyapi"
 description = "https://cpa.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -532,7 +533,7 @@ file_paths = ["compose.yaml"]
 name = "gpt-load"
 description = "https://gptload.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -545,7 +546,7 @@ file_paths = ["compose.yaml"]
 name = "miyabi"
 description = "https://miyabi.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame"]
 
 [stack.config]
 server = "Famesystems"
@@ -561,7 +562,7 @@ MIYABI_ACCESS_PASSWORD=[[MIYABI_ACCESS_PASSWORD]]
 name = "plex"
 description = "https://plex.lkwplus.com (backend, reached via medialinker) / https://tautulli.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame", "media", "source-build"]
 
 [stack.config]
 server = "Famesystems"
@@ -570,7 +571,7 @@ run_directory = "stacks/plex"
 file_paths = ["compose.yaml"]
 # `letterboxd-plex-sync` is built locally from ./letterboxd-sync (upstream image + Cloudflare
 # TLS-fingerprint patch), so the deploy runs `docker compose up --build`.
-extra_args = "--build"
+extra_args = ["--build"]
 # Plex + Tautulli + Kometa + letterboxd-plex-sync on the external mediacenter-net. Plex at fixed IP
 # 172.22.0.7 so medialinker reaches it at 172.22.0.7:32400; Tautulli at 172.22.0.9 (monitor Plex
 # there). Kometa and letterboxd-plex-sync are outbound-only (no fixed IP / host port). Kometa's whole
@@ -590,7 +591,7 @@ LETTERBOXD_TMDB_API_KEY=[[LETTERBOXD_TMDB_API_KEY]]
 name = "multica"
 description = "https://multica.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-arm"]
 
 [stack.config]
 server = "Oracle-Arm"
@@ -613,7 +614,7 @@ MULTICA_GITHUB_APP_PRIVATE_KEY="[[MULTICA_GITHUB_APP_PRIVATE_KEY]]"
 name = "medialinker"
 description = "https://plex.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-fame", "media"]
 
 [stack.config]
 server = "Famesystems"
@@ -628,7 +629,7 @@ file_paths = ["compose.yaml"]
 name = "storageui"
 description = "https://storageui.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-arm"]
 
 [stack.config]
 server = "Oracle-Arm"
@@ -651,7 +652,7 @@ STORAGEUI_R2_SECRET_ACCESS_KEY=[[STORAGEUI_R2_SECRET_ACCESS_KEY]]
 name = "dsh"
 description = "https://dsh.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-arm", "source-build"]
 
 [stack.config]
 server = "Oracle-Arm"
@@ -666,7 +667,7 @@ run_directory = "stacks/dsh"
 file_paths = ["compose.yaml"]
 # Installed from upstream's npm package @deepseek-ai/dsh, pinned by the DSH_VERSION build
 # arg in compose.yaml; `--build` is what applies a bump.
-extra_args = "--build"
+extra_args = ["--build"]
 # Optional: inject DEEPSEEK_API_KEY for the native DeepSeek adapter; the Web UI can also
 # store provider keys in $DSH_HOME/.credentials.yaml.
 environment = """
@@ -677,7 +678,7 @@ DEEPSEEK_API_KEY=[[DEEPSEEK_API_KEY]]
 name = "sure"
 description = "https://sure.lkwplus.com"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-arm"]
 
 [stack.config]
 server = "Oracle-Arm"
@@ -701,7 +702,7 @@ SNAPTRADE_OAUTH_CLIENT_SECRET=[[SNAPTRADE_OAUTH_CLIENT_SECRET]]
 name = "beszel-agent"
 description = "arm metrics agent -> beszel hub on fame"
 deploy = false
-tags = ["app"]
+tags = ["app", "host-arm"]
 
 [stack.config]
 server = "Oracle-Arm"
@@ -748,4 +749,83 @@ executions = [
 name = "Redeploy changed stacks"
 executions = [
   { execution.type = "BatchDeployStackIfChanged", execution.params.pattern = "*" },
+]
+
+# Manual maintenance scopes. Each syncs definitions first, then deploys only changed
+# stacks matching its tag. No webhook: Redeploy On Push remains the sole push entry.
+
+[[procedure]]
+name = "Redeploy Changed - host-fame"
+description = "Manual sync then deploy changed stacks tagged host-fame."
+
+[procedure.config]
+webhook_enabled = false
+
+[[procedure.config.stage]]
+name = "Sync resource definitions"
+executions = [
+  { execution.type = "RunSync", execution.params.sync = "homelab" },
+]
+
+[[procedure.config.stage]]
+name = "Redeploy changed stacks tagged host-fame"
+executions = [
+  { execution.type = "BatchDeployStackIfChanged", execution.params.pattern = "*", execution.params.tags = ["host-fame"] },
+]
+
+[[procedure]]
+name = "Redeploy Changed - host-arm"
+description = "Manual sync then deploy changed stacks tagged host-arm."
+
+[procedure.config]
+webhook_enabled = false
+
+[[procedure.config.stage]]
+name = "Sync resource definitions"
+executions = [
+  { execution.type = "RunSync", execution.params.sync = "homelab" },
+]
+
+[[procedure.config.stage]]
+name = "Redeploy changed stacks tagged host-arm"
+executions = [
+  { execution.type = "BatchDeployStackIfChanged", execution.params.pattern = "*", execution.params.tags = ["host-arm"] },
+]
+
+[[procedure]]
+name = "Redeploy Changed - media"
+description = "Manual sync then deploy changed stacks tagged media."
+
+[procedure.config]
+webhook_enabled = false
+
+[[procedure.config.stage]]
+name = "Sync resource definitions"
+executions = [
+  { execution.type = "RunSync", execution.params.sync = "homelab" },
+]
+
+[[procedure.config.stage]]
+name = "Redeploy changed stacks tagged media"
+executions = [
+  { execution.type = "BatchDeployStackIfChanged", execution.params.pattern = "*", execution.params.tags = ["media"] },
+]
+
+[[procedure]]
+name = "Redeploy Changed - source-build"
+description = "Manual sync then deploy changed stacks tagged source-build."
+
+[procedure.config]
+webhook_enabled = false
+
+[[procedure.config.stage]]
+name = "Sync resource definitions"
+executions = [
+  { execution.type = "RunSync", execution.params.sync = "homelab" },
+]
+
+[[procedure.config.stage]]
+name = "Redeploy changed stacks tagged source-build"
+executions = [
+  { execution.type = "BatchDeployStackIfChanged", execution.params.pattern = "*", execution.params.tags = ["source-build"] },
 ]

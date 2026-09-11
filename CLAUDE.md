@@ -8,7 +8,7 @@ GitOps for self-hosted services — declarative infrastructure, so there is **no
 test step**. The one local check is a **lint gate**: `./scripts/validate.sh` (also run in CI
 on relevant infrastructure PRs via `.github/workflows/lint.yml`) validates stack and bootstrap
 Compose files with `yamllint` + `docker compose config`, bootstrap shell syntax, and
-`sync.toml`/`renovate.json` syntax. Run it before pushing. The unit of work is editing YAML/TOML
+`sync.toml` against a vendored Komodo schema and `renovate.json` syntax. Run it before pushing. The unit of work is editing YAML/TOML
 and pushing; deployment happens on the VPS via Komodo, not from this machine — you cannot run
 or verify a *deploy* locally.
 

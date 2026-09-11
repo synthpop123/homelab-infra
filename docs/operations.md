@@ -32,6 +32,13 @@ ssh fame 'docker exec -e KOMODO_CLI_KEY=... -e KOMODO_CLI_SECRET=... \
   komodo-core km execute deploy-stack <name> -y'
 ```
 
+Komodo's Stats page now provides multi-server charts and separates memory use from
+cache. Use it alongside Beszel/Komari; those monitors remain independent of Core.
+Custom resource/container list API callers must paginate or set `limit: 0` on
+Komodo 2.3 (default page size: 50). The built-in batch deploy Procedure is not capped
+by this API default. Manual tag-scoped Procedures are documented in
+[workflow.md](./workflow.md#manual-maintenance-groups).
+
 ## Deploying
 
 Normal path: **push to `main`** — the `Redeploy On Push` procedure syncs definitions, then

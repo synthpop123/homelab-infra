@@ -18,6 +18,20 @@
         "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)(?: versioning=(?<versioning>[^\\s]+?))?\\s+[A-Za-z0-9_]+_VERSION:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
       ],
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the shared Komodo Core / Periphery pin; bootstrap and the arm systemd agent are upgraded manually together.",
+      "managerFilePatterns": [
+        "/^bootstrap/komodo/compose\\.env\\.example$/"
+      ],
+      "matchStrings": [
+        "COMPOSE_KOMODO_IMAGE_TAG=\"(?<currentValue>[^\"\\s]+)\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "moghtech/komodo",
+      "versioningTemplate": "semver",
+      "extractVersionTemplate": "^v(?<version>.*)$"
     }
   ],
   "packageRules": [

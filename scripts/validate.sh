@@ -11,7 +11,7 @@
 #   1. yamllint        — stack and bootstrap compose files (duplicate keys, tabs, structure)
 #   2. compose config  — the SAME parser Komodo uses; catches schema errors
 #   3. shell syntax    — bootstrap scripts parse before they are installed on a host
-#   4. sync.toml / renovate.json — TOML / JSON syntax of the files that drive automation
+#   4. sync.toml schema / renovate.json — resource types and JSON syntax of the files that drive automation
 #
 # STRICT=1 (set in CI) turns "tool not installed -> skip" into a hard failure, so CI
 # always runs every check. Locally, missing tools are skipped with a warning.
@@ -101,13 +101,32 @@ ok = True
 try:
     import tomllib
 except ModuleNotFoundError:
-    print("note: python <3.11, skipping sync.toml TOML check")
+    print("skip: Python 3.11+ required for sync.toml", file=sys.stderr)
+    if os.environ.get("STRICT") == "1":
+        ok = False
     tomllib = None
 if tomllib is not None:
     try:
         with open(os.path.join(root, "komodo/sync.toml"), "rb") as f:
-            tomllib.load(f)
-        print("ok: komodo/sync.toml")
+            resources = tomllib.load(f)
+        try:
+            import jsonschema
+        except ModuleNotFoundError:
+            print("skip: install scripts/lint-requirements.txt for sync.toml schema validation", file=sys.stderr)
+            if os.environ.get("STRICT") == "1":
+                ok = False
+        else:
+            with open(os.path.join(root, "komodo/schemas/resources-v2.3.3.json")) as f:
+                schema = json.load(f)
+            jsonschema.Draft7Validator.check_schema(schema)
+            errors = list(jsonschema.Draft7Validator(schema).iter_errors(resources))
+            for error in errors:
+                location = ".".join(map(str, error.absolute_path)) or "root"
+                print(f"FAIL: sync.toml {location}: {error.message}", file=sys.stderr)
+            if errors:
+                ok = False
+            else:
+                print("ok: komodo/sync.toml (v2.3.3 resource schema)")
     except Exception as e:
         print(f"FAIL: komodo/sync.toml: {e}", file=sys.stderr); ok = False
 try:

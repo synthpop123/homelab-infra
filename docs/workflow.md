@@ -51,11 +51,21 @@ closes that gap: on every relevant infrastructure PR (including the ones Renovat
   Komodo uses**, so
   schema errors are caught here instead of on the box, and
 - syntax-checks the bootstrap firewall shell scripts with `bash -n`, and
-- syntax-checks `komodo/sync.toml` (TOML) and `renovate.json` (JSON).
+- validates `komodo/sync.toml` against the vendored Komodo resource schema, and parses `renovate.json` (JSON).
 
 It runs entirely on GitHub's runners — it **does not touch the VPS and deploys nothing**.
 Run it locally before pushing with `./scripts/validate.sh` (it skips any tool you don't
-have installed; CI sets `STRICT=1` so all checks are mandatory there).
+have installed; CI sets `STRICT=1` so all checks are mandatory there). Install the
+Python schema dependency with `pip install -r scripts/lint-requirements.txt` in a
+virtual environment, or run:
+
+```bash
+uv run --with-requirements scripts/lint-requirements.txt env STRICT=1 ./scripts/validate.sh
+```
+
+Python 3.11+ is required. The schema is local;
+CI does not contact Core. Taplo-compatible editors follow the `#:schema` directive
+in `sync.toml` for completion. See [schema provenance and limits](../komodo/schemas/README.md).
 
 ## End-to-end
 
@@ -75,3 +85,23 @@ GitHub push webhook ──► Procedure `Redeploy On Push`
 > definition always exists before the deploy stage runs — no manual UI deploy or empty commit needed.
 > (Earlier this repo used two parallel webhooks — sync + procedure — which raced, so a new stack
 > sometimes missed its first deploy; folding the sync into the procedure as stage 1 fixed that.)
+
+## Manual maintenance groups
+
+Stacks retain their existing tags and also carry `host-fame` or `host-arm`.
+The `media` tag groups the media pipeline and supporting services; `source-build`
+marks Stacks using `extra_args = ["--build"]`.
+
+The four `Redeploy Changed - <tag>` Procedures run Resource Sync first, then
+`BatchDeployStackIfChanged` with `pattern = "*"` and the chosen tag. They have
+**no enabled webhook** and do not alter the sole `Redeploy On Push` entry point.
+Use them to reconcile and deploy changes within a maintenance group. They do not
+force-restart unchanged services, and build-context-only changes still need a
+manual Stack deploy.
+
+In Komodo 2.3, cancelling a Procedure waits for the current parallel stage to finish;
+it prevents later stages and does not roll back completed work. Do not use it as
+an emergency stop for a batch already deploying.
+
+Komodo bootstrap version PRs are a separate manual rollout:
+[Core and both agents](../bootstrap/komodo/README.md#version-upgrades).

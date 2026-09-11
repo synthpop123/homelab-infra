@@ -120,3 +120,10 @@ conventions exist there too: `/srv/<service>/` data dirs, Docker log rotation
 (`daemon.json`), fail2ban, and a firewall stance — arm has all but the `/srv` layout in
 place ([server-arm.md](./server-arm.md)); its firewall is deny-by-default, so a published
 port also needs an exception in `arm-firewall.sh` (or a proxy decision) to be reachable.
+
+## Agent upgrades
+
+Keep the fame container agent and the arm systemd agent on the version pinned in
+`bootstrap/komodo/compose.env.example`. A Core image update does not upgrade arm.
+Follow the [coordinated upgrade runbook](../bootstrap/komodo/README.md#version-upgrades);
+retain the existing keys and config, without creating a new Server or onboarding key.
