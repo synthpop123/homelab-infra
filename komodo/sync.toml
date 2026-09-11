@@ -542,6 +542,19 @@ file_paths = ["compose.yaml"]
 # No secrets in compose: SQLite config and the admin account live in /srv/octopus/data.
 
 [[stack]]
+name = "gpt-load"
+description = "https://gptload.lkwplus.com"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/gpt-load"
+file_paths = ["compose.yaml"]
+# No compose secrets: SQLite, auth.key and encryption.key live in /srv/gpt-load/data.
+
+[[stack]]
 name = "plex"
 description = "https://plex.lkwplus.com (backend, reached via medialinker) / https://tautulli.lkwplus.com"
 deploy = false

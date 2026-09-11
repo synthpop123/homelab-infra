@@ -52,8 +52,9 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20032 | medialinker           | 8091           | strm 302 reverse proxy → plex.lkwplus.com |
 | 20033 | tautulli              | 8181           | Tautulli Plex monitor → tautulli.lkwplus.com |
 | 20034 | octopus               | 8080           | Octopus LLM API gateway → llm.lkwplus.com |
+| 20035 | gpt-load              | 3001           | GPT-Load AI API proxy (SQLite) → gptload.lkwplus.com |
 
-**Next free: `20035`**
+**Next free: `20036`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,

@@ -1,0 +1,31 @@
+# GPT-Load — AI API proxy, fronted by https://gptload.lkwplus.com via Akko.
+# SQLite + auto-generated auth.key / encryption.key live together in /srv/gpt-load/data.
+# Before first deploy: install -d -m 700 -o 10001 -g 10001 /srv/gpt-load/data
+# Back up the entire data directory: encryption.key is required to decrypt stored credentials.
+services:
+  gpt-load:
+    container_name: gpt-load
+    image: ghcr.io/tbphp/gpt-load:2.0.0-rc.12
+    ports:
+      - "20035:3001/tcp"
+    environment:
+      TZ: Asia/Shanghai
+      HOST: 0.0.0.0
+      PORT: "3001"
+      DATA_DIR: /app/data
+      # Empty DSN selects built-in SQLite; no external database or Redis.
+      DATABASE_DSN: ""
+    volumes:
+      - /srv/gpt-load/data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "-T", "10", "-O", "/dev/null", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    stop_grace_period: 15s
+    restart: unless-stopped
+
+networks:
+  default:
+    name: gpt-load
