@@ -1,0 +1,27 @@
+# Miyabi — JavDB media library with 115 cloud playback, fronted by
+# https://miyabi.lkwplus.com via Akko.
+# SQLite + image cache live together in /srv/miyabi/data; the image runs as uid/gid 10001.
+# Before first deploy: install -d -m 700 -o 10001 -g 10001 /srv/miyabi/data
+# MIYABI_ACCESS_PASSWORD is the web entry gate — empty would disable it, so it stays set.
+services:
+  miyabi:
+    container_name: miyabi
+    image: ghcr.io/ppxb/miyabi:v0.0.2
+    ports:
+      - "20036:8080/tcp"
+    environment:
+      TZ: Asia/Shanghai
+      MIYABI_LISTEN: ":8080"
+      MIYABI_DATA_DIR: /app/data
+      MIYABI_LOG_LEVEL: info
+      MIYABI_ACCESS_PASSWORD: ${MIYABI_ACCESS_PASSWORD}
+    volumes:
+      - /srv/miyabi/data:/app/data
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 15s
+    restart: unless-stopped
+
+networks:
+  default:
+    name: miyabi

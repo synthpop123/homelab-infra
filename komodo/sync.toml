@@ -542,6 +542,22 @@ file_paths = ["compose.yaml"]
 # No compose secrets: SQLite, auth.key and encryption.key live in /srv/gpt-load/data.
 
 [[stack]]
+name = "miyabi"
+description = "https://miyabi.lkwplus.com"
+deploy = false
+tags = ["app"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/miyabi"
+file_paths = ["compose.yaml"]
+# Web entry password; SQLite and the image cache live in /srv/miyabi/data.
+environment = """
+MIYABI_ACCESS_PASSWORD=[[MIYABI_ACCESS_PASSWORD]]
+"""
+
+[[stack]]
 name = "plex"
 description = "https://plex.lkwplus.com (backend, reached via medialinker) / https://tautulli.lkwplus.com"
 deploy = false
