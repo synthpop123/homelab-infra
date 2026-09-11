@@ -51,7 +51,6 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20031 | plex                  | 32400          | Plex media server (Akko-only; clients via medialinker) |
 | 20032 | medialinker           | 8091           | strm 302 reverse proxy → plex.lkwplus.com |
 | 20033 | tautulli              | 8181           | Tautulli Plex monitor → tautulli.lkwplus.com |
-| 20034 | octopus               | 8080           | Octopus LLM API gateway → llm.lkwplus.com |
 | 20035 | gpt-load              | 3001           | GPT-Load AI API proxy (SQLite) → gptload.lkwplus.com |
 
 **Next free: `20036`**
@@ -63,7 +62,8 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 > **Vacated:** `20025` previously published mdc's `flaresolverr`; it is now internal-only (mdc reaches
 > it in-network at `flaresolverr:8191`), so `20025` is unused. `20030` previously published
 > `cpa-manager-plus`; CPA's built-in `/management.html` panel replaced it, so `20030` is unused.
-> New services still take the next sequential number (**Next free** above), not these gaps.
+> `20034` is also vacated. New services still take the next sequential number (**Next free** above),
+> not these gaps.
 >
 > **Outside the scheme** (host-networked; ports fixed by the app, not the registry):
 > - `beszel-agent` reserves host port **45876** (only bound as a fallback when its WebSocket
