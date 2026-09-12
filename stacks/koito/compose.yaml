@@ -10,6 +10,12 @@ services:
       KOITO_CORS_ALLOWED_ORIGINS: https://lkwplus.com,http://localhost:4321
       # Secret injected from a Komodo Variable at deploy time.
       KOITO_LASTFM_API_KEY: ${KOITO_LASTFM_API_KEY}
+      # The startup backfill (image cache + MusicBrainz lookups) spikes the Go heap past 1 GiB
+      # and the runtime never gives it back — RSS sat at 1.2 GiB for 29 idle days, 1.07 GiB of
+      # it pinned in transparent huge pages. A soft limit makes the GC return memory; disabling
+      # THP stops 2 MiB pages from holding whole spans hostage for one live object.
+      GOMEMLIMIT: 512MiB
+      GODEBUG: disablethp=1
     volumes:
       # koito keeps its SQLite DB + image cache here (runs as root).
       - /srv/koito/koito:/etc/koito
