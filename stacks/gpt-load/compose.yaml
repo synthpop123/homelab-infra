@@ -5,7 +5,7 @@
 services:
   gpt-load:
     container_name: gpt-load
-    image: ghcr.io/tbphp/gpt-load:2.0.0-rc.12
+    image: ghcr.io/tbphp/gpt-load:2.0.0-rc.13
     ports:
       - "20035:3001/tcp"
     environment:
