@@ -2,7 +2,7 @@
 
 One-page inventory of the second VPS — an Oracle Cloud ARM machine in Chuncheon, South
 Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md)).
-Runs the **multica**, **storageui**, **dsh**, **sure**, **ghostfolio** and **beszel-agent** stacks (see below). The primary
+Runs the **multica**, **storageui**, **dsh**, **sure**, **ghostfolio**, **trek** and **beszel-agent** stacks (see below). The primary
 host's page: [server.md](./server.md).
 
 ## System
@@ -44,7 +44,7 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 | Process | Port | Purpose |
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
-| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure / ghostfolio) |
+| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure / ghostfolio / trek) |
 | multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) |
 | komari-agent | outbound | reports to the komari probe on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
@@ -168,6 +168,17 @@ Docker **29.5.3**, default address pools.
   first boot takes a minute or two before `/api/v1/health` answers (hence the 120s health-check
   `start_period`). Ghostfolio ships no user-facing data directory: everything lives in Postgres
   under `/srv/ghostfolio/postgres`.
+- **trek** ([stacks/trek](../stacks/trek/)) — self-hosted travel/trip planner. Single container
+  with an embedded SQLite database; data under `/srv/trek/{data,uploads}`. Port `127.0.0.1:20006`
+  fronted by the host Caddy at `trek.lkwplus.com`. Behind that one proxy hop it runs with
+  `FORCE_HTTPS=true` + `TRUST_PROXY=1` (secure cookies, HSTS, real client IP). The container keeps
+  upstream's hardening — read-only rootfs, all caps dropped except CHOWN/SETUID/SETGID, tmpfs
+  `/tmp` — because the entrypoint chowns the two mounts and then `gosu node`s down; the mounts can
+  stay root-owned on the host. **`TREK_ENCRYPTION_KEY` is load-bearing**: it encrypts stored
+  integration credentials, so it must never be regenerated for an existing install (rotation goes
+  through `node --import tsx server/scripts/migrate-encryption.ts` in the container). The first
+  admin is created from the registration form on first boot; `ADMIN_EMAIL`/`ADMIN_PASSWORD` are
+  deliberately unset.
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;

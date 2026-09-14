@@ -1,0 +1,57 @@
+# trek — self-hosted travel/trip planner (https://github.com/liketrek/TREK).
+# Runs on the arm host (Oracle-Arm, aarch64 — mauriceboe/trek is multi-arch incl. linux/arm64),
+# served by arm's host Caddy at trek.lkwplus.com on 127.0.0.1:20006. Single container with an
+# embedded SQLite database — no bundled Postgres/Redis.
+#
+# Upstream: docker-compose.yml. Deltas: relative ./data + ./uploads become absolute binds under
+# /srv/trek/ (repo convention), and the TLS-proxy trio is switched on — FORCE_HTTPS + TRUST_PROXY=1
+# so secure cookies and the HTTPS redirect work behind the host Caddy, APP_URL/ALLOWED_ORIGINS
+# pinned to the public origin (CORS + links in notification emails).
+#
+# The image's hardening (read_only rootfs, dropped caps, tmpfs /tmp) is kept as upstream ships it;
+# CHOWN/SETUID/SETGID are what the entrypoint needs to chown the mounts and drop to `node`.
+# ENCRYPTION_KEY is a Komodo Variable — it encrypts stored integration credentials, so losing it
+# means losing access to them. Keep the very same value across redeploys.
+services:
+  trek:
+    container_name: trek
+    image: mauriceboe/trek:4.2.1
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+    tmpfs:
+      - /tmp:noexec,nosuid,size=128m
+    ports:
+      # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
+      - "127.0.0.1:20006:3000/tcp"
+    volumes:
+      # Only data + uploads — a mount over /app would hide the app code (the entrypoint checks).
+      - /srv/trek/data:/app/data
+      - /srv/trek/uploads:/app/uploads
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      TZ: Asia/Shanghai
+      LOG_LEVEL: info
+      ENCRYPTION_KEY: ${TREK_ENCRYPTION_KEY}
+      APP_URL: https://trek.lkwplus.com
+      ALLOWED_ORIGINS: https://trek.lkwplus.com
+      FORCE_HTTPS: "true"
+      TRUST_PROXY: "1"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  default:
+    name: trek

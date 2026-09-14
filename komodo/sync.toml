@@ -720,6 +720,24 @@ GHOSTFOLIO_JWT_SECRET_KEY=[[GHOSTFOLIO_JWT_SECRET_KEY]]
 """
 
 [[stack]]
+name = "trek"
+description = "https://trek.lkwplus.com"
+deploy = false
+tags = ["app", "host-arm"]
+
+[stack.config]
+server = "Oracle-Arm"
+linked_repo = "homelab-infra"
+run_directory = "stacks/trek"
+file_paths = ["compose.yaml"]
+# Travel/trip planner on the arm host (image is multi-arch incl. linux/arm64). Single container,
+# embedded SQLite under /srv/trek/data. TREK_ENCRYPTION_KEY encrypts stored integration
+# credentials — it must stay stable, so never regenerate it for an existing install.
+environment = """
+TREK_ENCRYPTION_KEY=[[TREK_ENCRYPTION_KEY]]
+"""
+
+[[stack]]
 name = "beszel-agent"
 description = "arm metrics agent -> beszel hub on fame"
 deploy = false

@@ -77,6 +77,7 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [dsh](./stacks/dsh) | [dsh.lkwplus.com](https://dsh.lkwplus.com) | arm 20003 | DeepSeek Harness — agent harness Web UI (built from the upstream npm package, uid 1002 / `agent`) |
 | [sure](./stacks/sure) | [sure.lkwplus.com](https://sure.lkwplus.com) | arm 20004 | Sure — self-hosted personal finance (web + Sidekiq worker + Postgres + Redis; **runs on arm**, served by arm's host Caddy) |
 | [ghostfolio](./stacks/ghostfolio) | [ghostfolio.lkwplus.com](https://ghostfolio.lkwplus.com) | arm 20005 | Ghostfolio — open source wealth management (app + Postgres + Redis; **runs on arm**, served by arm's host Caddy) |
+| [trek](./stacks/trek) | [trek.lkwplus.com](https://trek.lkwplus.com) | arm 20006 | TREK — self-hosted travel/trip planner (single container, embedded SQLite; **runs on arm**, served by arm's host Caddy) |
 | [beszel-agent](./stacks/beszel-agent) | — | arm, host net | Beszel metrics agent (**runs on arm**, reports straight to the beszel hub on fame) |
 
 ## Conventions
