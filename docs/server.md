@@ -35,6 +35,10 @@ reads — see [media.md](./media.md).
 
 ## systemd units that matter
 
+- **`fame-thp.service`** — sets THP background-collapse limits `max_ptes_none=0`
+  and `max_ptes_swap=0` before Docker starts. THP remains `always`; this limits
+  sparse-page expansion and swap-in during collapse, not fault-time allocations.
+  Installation and rollback: [`bootstrap/thp/`](../bootstrap/thp/).
 - **`fame-firewall.service`** — applies the `DOCKER-USER` rules; `PartOf=docker.service`, so
   it re-runs whenever Docker restarts. Source: [`bootstrap/firewall/`](../bootstrap/firewall/).
 - **`fail2ban.service`** — sshd jail on the systemd journal backend (bookworm has no

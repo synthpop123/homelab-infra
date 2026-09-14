@@ -1,0 +1,11 @@
+[Unit]
+Description=Fame THP collapse limits
+Before=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -ec 'echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none; echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_swap'
+
+[Install]
+WantedBy=multi-user.target
