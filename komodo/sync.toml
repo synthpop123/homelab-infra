@@ -738,6 +738,24 @@ TREK_ENCRYPTION_KEY=[[TREK_ENCRYPTION_KEY]]
 """
 
 [[stack]]
+name = "airtrail"
+description = "https://flight.lkwplus.com"
+deploy = false
+tags = ["app", "host-arm"]
+
+[stack.config]
+server = "Oracle-Arm"
+linked_repo = "homelab-infra"
+run_directory = "stacks/airtrail"
+file_paths = ["compose.yaml"]
+# Flight tracker on the arm host (image is multi-arch incl. linux/arm64). Bundled Postgres;
+# only the app publishes a loopback port for host Caddy. The first account registered becomes
+# the owner/admin, after which registration closes by default.
+environment = """
+AIRTRAIL_DB_PASSWORD=[[AIRTRAIL_DB_PASSWORD]]
+"""
+
+[[stack]]
 name = "beszel-agent"
 description = "arm metrics agent -> beszel hub on fame"
 deploy = false

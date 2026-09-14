@@ -2,7 +2,8 @@
 
 One-page inventory of the second VPS — an Oracle Cloud ARM machine in Chuncheon, South
 Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md)).
-Runs the **multica**, **storageui**, **dsh**, **sure**, **ghostfolio**, **trek** and **beszel-agent** stacks (see below). The primary
+Runs the **multica**, **storageui**, **dsh**, **sure**, **ghostfolio**, **trek**, **airtrail** and
+**beszel-agent** stacks (see below). The primary
 host's page: [server.md](./server.md).
 
 ## System
@@ -44,7 +45,7 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 | Process | Port | Purpose |
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
-| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure / ghostfolio / trek) |
+| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure / ghostfolio / trek / airtrail) |
 | multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) |
 | komari-agent | outbound | reports to the komari probe on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
@@ -179,6 +180,15 @@ Docker **29.5.3**, default address pools.
   through `node --import tsx server/scripts/migrate-encryption.ts` in the container). The first
   admin is created from the registration form on first boot; `ADMIN_EMAIL`/`ADMIN_PASSWORD` are
   deliberately unset.
+- **airtrail** ([stacks/airtrail](../stacks/airtrail/)) — self-hosted flight tracker / travel log
+  (app + bundled Postgres). Port `127.0.0.1:20007` fronted by the host Caddy at
+  `flight.lkwplus.com` (note the hostname differs from the stack name). **`ORIGIN` is
+  load-bearing**: AirTrail accepts exactly one origin and rejects any form post whose `Origin`
+  header does not match it, so a stale value leaves the site readable but every write failing.
+  The Docker Hub tags carry a `v` prefix (`johly/airtrail:v3.12.0`), unlike most images here.
+  Uploads (airline icons) go to `/srv/airtrail/uploads`, which must be owned by uid **1000** —
+  the app does not chown it itself; the database lives in `/srv/airtrail/postgres`. The first
+  account registered becomes the owner/admin.
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;

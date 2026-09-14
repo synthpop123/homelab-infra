@@ -1,0 +1,53 @@
+# airtrail — self-hosted flight tracker / travel log (https://github.com/JohanOhly/AirTrail).
+# Runs on the arm host (Oracle-Arm, aarch64 — johly/airtrail is multi-arch incl. linux/arm64),
+# served by arm's host Caddy at flight.lkwplus.com. Only the app publishes a host port
+# (127.0.0.1:20007); Postgres is internal-only.
+#
+# Upstream: docker/production/compose.yml + .env.example. Deltas: named volumes become absolute
+# binds under /srv/airtrail/ (repo convention), and ORIGIN is the public https URL — AirTrail
+# accepts exactly one origin and rejects form posts whose Origin header does not match it, so a
+# wrong value here breaks every write while GETs still look fine.
+#
+# AIRTRAIL_DB_PASSWORD is a Komodo Variable. Upstream requires it to stay within [A-Za-z0-9]
+# (it is substituted straight into DB_URL), so it is generated as plain hex.
+services:
+  airtrail:
+    container_name: airtrail
+    image: johly/airtrail:v3.12.0
+    restart: unless-stopped
+    depends_on:
+      airtrail-postgres:
+        condition: service_healthy
+    ports:
+      # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
+      - "127.0.0.1:20007:3000/tcp"
+    volumes:
+      # Airline icons and other uploads; the app writes as uid 1000 — chown before first deploy:
+      #   chown 1000:1000 /srv/airtrail/uploads
+      - /srv/airtrail/uploads:/app/uploads
+    environment:
+      ORIGIN: https://flight.lkwplus.com
+      DB_URL: postgres://airtrail:${AIRTRAIL_DB_PASSWORD}@airtrail-postgres:5432/airtrail
+      UPLOAD_LOCATION: /app/uploads
+      BODY_SIZE_LIMIT: 20M
+      TZ: Asia/Shanghai
+
+  airtrail-postgres:
+    container_name: airtrail-postgres
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: airtrail
+      POSTGRES_USER: airtrail
+      POSTGRES_PASSWORD: ${AIRTRAIL_DB_PASSWORD}
+    volumes:
+      - /srv/airtrail/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airtrail -d airtrail"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: airtrail
