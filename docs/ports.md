@@ -93,8 +93,9 @@ to them, so nothing rides the `DOCKER-USER` exposure path at all (see
 | 20002 | storageui          | 3000           | Storage UI (S3/R2 file manager), loopback-only |
 | 20003 | dsh                | 20003          | DeepSeek Harness Web UI, loopback-only         |
 | 20004 | sure               | 3000           | Sure personal finance, loopback-only           |
+| 20005 | ghostfolio         | 3333           | Ghostfolio wealth management, loopback-only    |
 
-**Next free (arm): `20005`**
+**Next free (arm): `20006`**
 
 > **Outside the scheme (arm)**: `beszel-agent` is host-networked and reserves host port
 > **45876** (only bound as a fallback when its outbound WebSocket to the hub on fame is

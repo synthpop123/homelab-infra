@@ -699,6 +699,27 @@ SNAPTRADE_OAUTH_CLIENT_SECRET=[[SNAPTRADE_OAUTH_CLIENT_SECRET]]
 """
 
 [[stack]]
+name = "ghostfolio"
+description = "https://ghostfolio.lkwplus.com"
+deploy = false
+tags = ["app", "host-arm"]
+
+[stack.config]
+server = "Oracle-Arm"
+linked_repo = "homelab-infra"
+run_directory = "stacks/ghostfolio"
+file_paths = ["compose.yaml"]
+# Wealth management app on the arm host (image is multi-arch incl. linux/arm64). Bundled
+# Postgres + Redis; only the app publishes a loopback port for host Caddy. The first account
+# is created from the UI ("Get Started") and is the admin — create it right after deploy.
+environment = """
+GHOSTFOLIO_POSTGRES_PASSWORD=[[GHOSTFOLIO_POSTGRES_PASSWORD]]
+GHOSTFOLIO_REDIS_PASSWORD=[[GHOSTFOLIO_REDIS_PASSWORD]]
+GHOSTFOLIO_ACCESS_TOKEN_SALT=[[GHOSTFOLIO_ACCESS_TOKEN_SALT]]
+GHOSTFOLIO_JWT_SECRET_KEY=[[GHOSTFOLIO_JWT_SECRET_KEY]]
+"""
+
+[[stack]]
 name = "beszel-agent"
 description = "arm metrics agent -> beszel hub on fame"
 deploy = false

@@ -2,7 +2,7 @@
 
 One-page inventory of the second VPS — an Oracle Cloud ARM machine in Chuncheon, South
 Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md)).
-Runs the **multica**, **storageui**, **dsh**, **sure** and **beszel-agent** stacks (see below). The primary
+Runs the **multica**, **storageui**, **dsh**, **sure**, **ghostfolio** and **beszel-agent** stacks (see below). The primary
 host's page: [server.md](./server.md).
 
 ## System
@@ -44,7 +44,7 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 | Process | Port | Purpose |
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
-| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure) |
+| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure / ghostfolio) |
 | multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) |
 | komari-agent | outbound | reports to the komari probe on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
@@ -159,6 +159,15 @@ Docker **29.5.3**, default address pools.
   `sure.lkwplus.com`. Yahoo Finance is the default market-data provider (no API key). After the
   first account is created, switch **Settings → Self-Hosting → Onboarding** to **Closed** if you
   do not want open registration.
+- **ghostfolio** ([stacks/ghostfolio](../stacks/ghostfolio/)) — open source wealth management
+  (app + bundled Postgres + Redis). Port `127.0.0.1:20005` fronted by the host Caddy at
+  `ghostfolio.lkwplus.com`. `ROOT_URL` must be the public https URL (it generates callback and
+  external links) and `TRUST_PROXY=1` makes Express read the real client IP behind that one hop.
+  The **first account registered becomes the admin**, and there is no registration toggle — create
+  it immediately after the first deploy. Prisma runs its migrations at container start, so the
+  first boot takes a minute or two before `/api/v1/health` answers (hence the 120s health-check
+  `start_period`). Ghostfolio ships no user-facing data directory: everything lives in Postgres
+  under `/srv/ghostfolio/postgres`.
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;
