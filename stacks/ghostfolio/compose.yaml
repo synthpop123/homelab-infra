@@ -58,7 +58,7 @@ services:
 
   ghostfolio-redis:
     container_name: ghostfolio-redis
-    image: redis:7-alpine
+    image: redis:8-alpine
     restart: unless-stopped
     # Ghostfolio always authenticates to Redis, so the server must require a password.
     command: ["redis-server", "--requirepass", "${GHOSTFOLIO_REDIS_PASSWORD}"]
