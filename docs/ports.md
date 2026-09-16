@@ -96,8 +96,9 @@ to them, so nothing rides the `DOCKER-USER` exposure path at all (see
 | 20005 | ghostfolio         | 3333           | Ghostfolio wealth management, loopback-only    |
 | 20006 | trek               | 3000           | TREK travel planner, loopback-only             |
 | 20007 | airtrail           | 3000           | AirTrail flight tracker, loopback-only         |
+| 20008 | wealthfolio        | 8088           | Wealthfolio finance tracker, loopback-only     |
 
-**Next free (arm): `20008`**
+**Next free (arm): `20009`**
 
 > **Outside the scheme (arm)**: `beszel-agent` is host-networked and reserves host port
 > **45876** (only bound as a fallback when its outbound WebSocket to the hub on fame is

@@ -79,6 +79,7 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [ghostfolio](./stacks/ghostfolio) | [ghostfolio.lkwplus.com](https://ghostfolio.lkwplus.com) | arm 20005 | Ghostfolio — open source wealth management (app + Postgres + Redis; **runs on arm**, served by arm's host Caddy) |
 | [trek](./stacks/trek) | [trek.lkwplus.com](https://trek.lkwplus.com) | arm 20006 | TREK — self-hosted travel/trip planner (single container, embedded SQLite; **runs on arm**, served by arm's host Caddy) |
 | [airtrail](./stacks/airtrail) | [flight.lkwplus.com](https://flight.lkwplus.com) | arm 20007 | AirTrail — self-hosted flight tracker / travel log (app + Postgres; **runs on arm**, served by arm's host Caddy) |
+| [wealthfolio](./stacks/wealthfolio) | [wealthfolio.lkwplus.com](https://wealthfolio.lkwplus.com) | arm 20008 | Wealthfolio — private personal finance / investment tracker (single container, embedded SQLite; **runs on arm**, served by arm's host Caddy) |
 | [beszel-agent](./stacks/beszel-agent) | — | arm, host net | Beszel metrics agent (**runs on arm**, reports straight to the beszel hub on fame) |
 
 ## Conventions

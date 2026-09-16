@@ -2,8 +2,8 @@
 
 One-page inventory of the second VPS — an Oracle Cloud ARM machine in Chuncheon, South
 Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md)).
-Runs the **multica**, **storageui**, **dsh**, **sure**, **ghostfolio**, **trek**, **airtrail** and
-**beszel-agent** stacks (see below). The primary
+Runs the **multica**, **storageui**, **dsh**, **sure**, **ghostfolio**, **trek**, **airtrail**,
+**wealthfolio** and **beszel-agent** stacks (see below). The primary
 host's page: [server.md](./server.md).
 
 ## System
@@ -45,7 +45,7 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 | Process | Port | Purpose |
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
-| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure / ghostfolio / trek / airtrail) |
+| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure / ghostfolio / trek / airtrail / wealthfolio) |
 | multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) |
 | komari-agent | outbound | reports to the komari probe on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
@@ -189,6 +189,25 @@ Docker **29.5.3**, default address pools.
   Uploads (airline icons) go to `/srv/airtrail/uploads`, which must be owned by uid **1000** —
   the app does not chown it itself; the database lives in `/srv/airtrail/postgres`. The first
   account registered becomes the owner/admin.
+- **wealthfolio** ([stacks/wealthfolio](../stacks/wealthfolio/)) — private personal finance /
+  investment tracker (the web edition of the desktop app). Single container with an embedded
+  SQLite database under `/srv/wealthfolio/data` (must be owned by uid **1000** — the image runs
+  as `1000:1000` and does not chown the mount). Port `127.0.0.1:20008` fronted by the host Caddy
+  at `wealthfolio.lkwplus.com`. Upstream's hardening is kept: read-only rootfs, tmpfs `/tmp`,
+  `no-new-privileges`, 512M cap.
+  **Two Komodo Variables are load-bearing, in different ways.** `WEALTHFOLIO_SECRET_KEY` is the
+  master key: it encrypts the credential vault (`/data/secrets.json`, where market-data API keys
+  live) and signs the session JWTs, so regenerating it orphans everything stored under the old
+  key — back it up separately from the database. `WEALTHFOLIO_AUTH_PASSWORD_HASH` is the Argon2id
+  PHC string for the login password, and it is stored **with every `$` doubled**
+  (`$$argon2id$$v=19$$…`): Komodo writes the variable into the stack's git-ignored `.env`, and
+  docker compose interpolates `$` inside `.env` values, so a raw hash reaches the container
+  mangled and every login fails with no other symptom. Regenerate with
+  `printf '<password>' | argon2 <16+ char salt> -id -m 16 -t 3 -p 2 -e`, then double the `$`.
+  `WF_CORS_ALLOW_ORIGINS` must stay the public https origin — it is required once auth is on.
+  There is no registration flow: the password hash *is* the account, and the app is single-user.
+  Database encryption (`WF_DB_REQUIRE_ENCRYPTION`) is deliberately off; enabling it later is an
+  offline `wealthfolio-server db encrypt`, not a flag flip, and it uses the same master key.
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;

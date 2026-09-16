@@ -756,6 +756,27 @@ AIRTRAIL_DB_PASSWORD=[[AIRTRAIL_DB_PASSWORD]]
 """
 
 [[stack]]
+name = "wealthfolio"
+description = "https://wealthfolio.lkwplus.com"
+deploy = false
+tags = ["app", "host-arm"]
+
+[stack.config]
+server = "Oracle-Arm"
+linked_repo = "homelab-infra"
+run_directory = "stacks/wealthfolio"
+file_paths = ["compose.yaml"]
+# Personal finance / investment tracker on the arm host (official image is multi-arch incl.
+# linux/arm64). Single container, embedded SQLite under /srv/wealthfolio/data (uid 1000).
+# WEALTHFOLIO_SECRET_KEY is the master key for the encrypted credential vault and JWT signing —
+# rotating it orphans stored credentials. WEALTHFOLIO_AUTH_PASSWORD_HASH stores the Argon2id PHC
+# string with every `$` DOUBLED, because compose interpolates `$` in the .env Komodo writes here.
+environment = """
+WEALTHFOLIO_SECRET_KEY=[[WEALTHFOLIO_SECRET_KEY]]
+WEALTHFOLIO_AUTH_PASSWORD_HASH=[[WEALTHFOLIO_AUTH_PASSWORD_HASH]]
+"""
+
+[[stack]]
 name = "beszel-agent"
 description = "arm metrics agent -> beszel hub on fame"
 deploy = false

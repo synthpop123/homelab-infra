@@ -1,0 +1,67 @@
+# wealthfolio — private personal finance / investment tracker (https://github.com/wealthfolio/wealthfolio).
+# Runs on the arm host (Oracle-Arm, aarch64 — the official image is multi-arch incl. linux/arm64),
+# served by arm's host Caddy at wealthfolio.lkwplus.com on 127.0.0.1:20008.
+#
+# Upstream: compose.yml + compose.proxy.yml. Deltas: the named volume becomes an absolute bind
+# under /srv/wealthfolio/ (repo convention), the port binds loopback-only, and the long tail of
+# optional OIDC/MCP knobs is dropped — only what this deployment actually sets is listed.
+# Upstream's hardening (read-only rootfs, no-new-privileges, tmpfs /tmp, memory cap) is kept.
+#
+# Everything lives in one SQLite database at /data/wealthfolio.db plus the encrypted credential
+# vault /data/secrets.json. The image runs as uid/gid 1000 and does not chown the mount, so:
+#   ssh arm 'mkdir -p /srv/wealthfolio/data && chown -R 1000:1000 /srv/wealthfolio/data'
+#
+# WEALTHFOLIO_SECRET_KEY is load-bearing and must never be regenerated for an existing install:
+# it is the master key that encrypts the credential vault (market-data API keys) and signs the
+# session JWTs. A lost key cannot be recovered from the vault.
+#
+# WEALTHFOLIO_AUTH_PASSWORD_HASH is an Argon2id PHC string, and its Komodo Variable stores every
+# `$` DOUBLED (`$$argon2id$$v=19$$...`). That is not cosmetic: Komodo writes the variable into a
+# git-ignored `.env`, and docker compose interpolates `$` inside .env values, so a raw hash would
+# arrive at the container mangled and every login would fail. Regenerate with:
+#   printf '<password>' | argon2 <16+ char salt> -id -m 16 -t 3 -p 2 -e
+# then double the `$` before storing it. Database encryption (WF_DB_REQUIRE_ENCRYPTION) is left
+# off: turning it on later requires an offline `wealthfolio-server db encrypt`, never a flag flip.
+services:
+  wealthfolio:
+    container_name: wealthfolio
+    image: wealthfolio/wealthfolio:3.8.0
+    restart: unless-stopped
+    ports:
+      # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
+      - "127.0.0.1:20008:8088/tcp"
+    volumes:
+      # SQLite database, encrypted secrets vault and addons; must be owned by uid 1000
+      - /srv/wealthfolio/data:/data
+    environment:
+      TZ: Asia/Shanghai
+      WF_LISTEN_ADDR: "0.0.0.0:8088"
+      WF_DB_PATH: /data/wealthfolio.db
+      # Master key (base64 32B) — see the header; never rotate in place.
+      WF_SECRET_KEY: ${WEALTHFOLIO_SECRET_KEY}
+      # Argon2id hash of the login password; `$` is doubled in the Komodo Variable.
+      WF_AUTH_PASSWORD_HASH: ${WEALTHFOLIO_AUTH_PASSWORD_HASH}
+      WF_AUTH_TOKEN_TTL_MINUTES: "1440"
+      # Required once auth is on: the browser origin the app is served from.
+      WF_CORS_ALLOW_ORIGINS: https://wealthfolio.lkwplus.com
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8088/api/v1/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64M
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+
+networks:
+  default:
+    name: wealthfolio
