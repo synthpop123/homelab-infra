@@ -5,7 +5,7 @@
 services:
   memos:
     container_name: memos
-    image: neosmemo/memos:0.30.0
+    image: neosmemo/memos:0.31.0
     restart: unless-stopped
     depends_on:
       memos-postgres:
