@@ -59,15 +59,6 @@
       "groupName": "sure"
     },
     {
-      "description": "gpt-load (2.0.0-rc.N) and sure (0.7.5-alpha.N) are pinned to prerelease tags. With the default ignoreUnstable, Renovate offers a prerelease upgrade only while major.minor.patch stay the same — rc.22 -> rc.23 gets a PR, but a jump to a new prerelease line (2.0.1-rc.1, 0.7.6-alpha.1) is dropped silently, with no PR and no dashboard entry. Opt into unstable so those jumps are still offered; the stable release, when it lands, always wins on version order. Same reasoning as the dsh rule above.",
-      "matchManagers": ["docker-compose"],
-      "matchPackageNames": [
-        "ghcr.io/tbphp/gpt-load",
-        "ghcr.io/we-promise/sure"
-      ],
-      "ignoreUnstable": false
-    },
-    {
       "description": "Multica ships its backend and web images in lockstep at the same version, so group their updates into one PR. The stack's pgvector image is not under this namespace and keeps its own PRs.",
       "matchManagers": ["docker-compose"],
       "matchPackageNames": ["ghcr.io/multica-ai/**"],
