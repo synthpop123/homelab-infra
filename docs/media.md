@@ -71,6 +71,21 @@ Consequence: **emby, cms, mdc, plex and medialinker only work while clouddrive2'
 healthy** — after a reboot or clouddrive2 restart, check the mount first
 ([operations.md → Reboot](./operations.md#reboot)).
 
+### Surviving a clouddrive2 remount
+
+A clouddrive2 redeploy (e.g. a Renovate bump) destroys and recreates the FUSE mount. Binding the
+mountpoint itself into a consumer is a snapshot, so the consumer is left holding a dead mount —
+empty dir or `ENOTCONN` — and no clouddrive2 restart fixes it. Two pieces keep mdc attached:
+
+1. mdc binds the **parent** `/mnt/CloudNAS` as `/media` with `:rslave`, so clouddrive2's
+   umount/mount propagates into its namespace (hence the `/media/115/...` paths in its
+   `config.json`). The host `/` is `shared`, which is what makes propagation work.
+2. clouddrive2's `post_deploy` in `komodo/sync.toml` waits for `115` to be back, then
+   `docker restart mdc` — needed because mdc's fsnotify watches do not re-register after an
+   umount, even once the path is live again.
+
+Any future consumer of the mount wants the same pair.
+
 ## Why two 302 paths
 
 The `.strm` files hold `https://…/d/…` direct-link URLs served by cms's emby-302 proxy.

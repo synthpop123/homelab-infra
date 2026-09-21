@@ -223,6 +223,14 @@ file_paths = ["compose.yaml"]
 # No secrets: cloud account credentials live in the off-git /srv config dir. Runs host-networked
 # + privileged + FUSE for the /mnt cloud mounts (see compose.yaml).
 
+# Redeploying clouddrive2 tears down and rebuilds the /mnt/CloudNAS/115 FUSE mount. mdc mounts it
+# rslave so the new mount propagates in, but its fsnotify watches do not re-register on their own —
+# so wait for the mount to come back (probed inside clouddrive2, no /mnt needed in periphery), then
+# restart mdc. Bounded at 5 min because it holds the deploy lock.
+[stack.config.post_deploy]
+shell_mode = true
+command = "i=0; while [ $i -lt 60 ]; do docker exec clouddrive2 test -d /CloudNAS/115/JAV && break; i=$((i+1)); sleep 5; done; docker restart mdc"
+
 [[stack]]
 name = "karakeep"
 description = "https://karakeep.lkwplus.com"

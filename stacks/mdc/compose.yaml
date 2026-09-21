@@ -1,7 +1,7 @@
 # mdc (Movie Data Capture): scraper that reads source files from the 115 mount
-# (/mnt/CloudNAS/115, provided by the host-networked clouddrive2) and writes nfo/poster/fanart into
-# the shared Emby library (/srv/emby/data, mounted as /emby_data) for Emby to read directly. Its own
-# config/state lives in /srv/mdc/data.
+# (/mnt/CloudNAS/115, provided by the host-networked clouddrive2, seen here as /media/115) and writes
+# nfo/poster/fanart into the shared Emby library (/srv/emby/data, mounted as /emby_data) for Emby to
+# read directly. Its own config/state lives in /srv/mdc/data.
 #
 # flaresolverr solves Cloudflare challenges for the scrapers; mdc reaches it in-network at
 # http://flaresolverr:8191/v1 (config.json) over this stack's `mdc` network. It is internal-only
@@ -19,7 +19,11 @@ services:
       - MDC_PASSWORD=${MDC_PASSWORD}
     volumes:
       - /srv/mdc/data:/config
-      - /mnt/CloudNAS/115:/media
+      # Mount the plain parent dir, not the /mnt/CloudNAS/115 FUSE mountpoint itself: a bind of the
+      # mountpoint is a snapshot, so a clouddrive2 remount leaves a dead mount here (empty dir /
+      # ENOTCONN). rslave propagates clouddrive2's umount/mount into this namespace instead.
+      # Paths in config.json are therefore /media/115/... — the host / is already `shared`.
+      - /mnt/CloudNAS:/media:rslave
       - /srv/emby/data:/emby_data
     ports:
       # host:container — host port from the registry (see docs/ports.md)
