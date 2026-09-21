@@ -6,7 +6,7 @@
 services:
   miyabi:
     container_name: miyabi
-    image: ghcr.io/ppxb/miyabi:v0.0.4
+    image: ghcr.io/ppxb/miyabi:v0.0.5
     ports:
       - "20036:8080/tcp"
     environment:
