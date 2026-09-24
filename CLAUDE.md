@@ -8,7 +8,8 @@ GitOps for self-hosted services — declarative infrastructure, so there is **no
 test step**. The one local check is a **lint gate**: `./scripts/validate.sh` (also run in CI
 on relevant infrastructure PRs via `.github/workflows/lint.yml`) validates stack and bootstrap
 Compose files with `yamllint` + `docker compose config`, bootstrap shell syntax, and
-`sync.toml` against a vendored Komodo schema and `renovate.json` syntax. Run it before pushing. The unit of work is editing YAML/TOML
+`sync.toml` against a vendored Komodo schema and `renovate.json` syntax, and rejects untagged
+or `:latest` images. Run it before pushing. The unit of work is editing YAML/TOML
 and pushing; deployment happens on the VPS via Komodo, not from this machine — you cannot run
 or verify a *deploy* locally.
 
@@ -24,10 +25,10 @@ Two hosts, both reachable from this machine via ssh aliases in `~/.ssh/config` (
   read Komodo's clone under `/etc/komodo/repos/`. This is the only way to verify a change
   actually took effect, since nothing deploys from the local repo.
 - **`ssh arm`** — `Oracle-Arm`, an Oracle Cloud **aarch64** machine managed by the same
-  Komodo Core through an outbound Periphery agent, currently running **multica**,
-  **storageui**, **dsh**, and **beszel-agent** (images targeted there must be arm64).
-  Inventory: `docs/server-arm.md`; how servers join/rejoin Komodo (incl. the headless
-  re-adopt via Mongo): `docs/komodo-servers.md`.
+  Komodo Core through an outbound Periphery agent (images targeted there must be arm64).
+  Its stacks are the `server = "Oracle-Arm"` blocks in `komodo/sync.toml`; host inventory:
+  `docs/server-arm.md`; how servers join/rejoin Komodo (incl. the headless re-adopt via
+  Mongo): `docs/komodo-servers.md`.
 
 What runs on fame besides stacks (Caddy, komari, fail2ban, firewall, daemon config) is
 inventoried in `docs/server.md`; health-check and troubleshooting commands are in
@@ -89,8 +90,7 @@ config (`/etc/fame-firewall.conf`, `/srv/...`) and secrets in Komodo Variables.
   **databases/caches to their major line** (`pgvector/pgvector:pg16`, `redis:7`) since a major
   bump needs a manual data migration. Renovate relies on these tags to detect updates.
 - **Host ports are sequential from `20000`** (range `20000–20999` reserved). `docs/ports.md`
-  is the single source of truth; only *published* services consume a number. (The legacy
-  `/opt` services and their ad-hoc `13xxx` ports are fully migrated away.)
+  is the single source of truth; only *published* services consume a number.
 - **Persistent data goes under `/srv/<service>/…` as absolute bind mounts**, never named
   volumes (unless an image needs them) and never relative paths — Komodo clones this repo
   under `/etc/komodo/repos/`, so data must live outside the clone to survive re-clones.
