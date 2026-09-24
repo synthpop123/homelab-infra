@@ -51,7 +51,8 @@ closes that gap: on every relevant infrastructure PR (including the ones Renovat
   Komodo uses**, so
   schema errors are caught here instead of on the box, and
 - syntax-checks the bootstrap firewall shell scripts with `bash -n`, and
-- validates `komodo/sync.toml` against the vendored Komodo resource schema, and parses `renovate.json` (JSON).
+- validates `komodo/sync.toml` against the vendored Komodo resource schema, and parses `renovate.json` (JSON), and
+- rejects any `image:` that is untagged or `:latest` (Renovate can only bump explicit tags).
 
 It runs entirely on GitHub's runners — it **does not touch the VPS and deploys nothing**.
 Run it locally before pushing with `./scripts/validate.sh` (it skips any tool you don't

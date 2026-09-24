@@ -7,11 +7,12 @@
 # cheap gate that runs in CI (.github/workflows/lint.yml) on relevant infrastructure
 # PRs, and can be run by hand before pushing:  ./scripts/validate.sh
 #
-# It validates four things:
+# It validates five things:
 #   1. yamllint        — stack and bootstrap compose files (duplicate keys, tabs, structure)
 #   2. compose config  — the SAME parser Komodo uses; catches schema errors
 #   3. shell syntax    — bootstrap scripts parse before they are installed on a host
 #   4. sync.toml schema / renovate.json — resource types and JSON syntax of the files that drive automation
+#   5. image pins      — every `image:` carries an explicit tag, never `:latest` (docs/conventions.md)
 #
 # STRICT=1 (set in CI) turns "tool not installed -> skip" into a hard failure, so CI
 # always runs every check. Locally, missing tools are skipped with a warning.
@@ -140,6 +141,22 @@ PY
 else
   skip_or_fail "python3 not available"
 fi
+
+# --- 5) image pins ---------------------------------------------------------------
+# Renovate's docker-compose manager reads the literal `image:` text, so check that text
+# (not the resolved config): an untagged or `:latest` image is invisible to Renovate.
+echo "== image pins =="
+pins_ok=1
+while IFS= read -r line; do
+  file="${line%%:*}"; rest="${line#*:}"; lineno="${rest%%:*}"
+  image="$(printf '%s' "${rest#*:}" | sed -E 's/^[[:space:]]*image:[[:space:]]*//; s/[[:space:]]+#.*$//; s/^["'\'']//; s/["'\'']$//')"
+  name="${image##*/}"
+  if [[ "$image" != *@sha256:* && ( "$name" != *:* || "$name" == *:latest ) ]]; then
+    echo "FAIL: $file:$lineno image not pinned to an explicit tag: $image" >&2
+    pins_ok=0
+  fi
+done < <(grep -nE '^[[:space:]]*image:' stacks/*/compose.yaml bootstrap/komodo/*.compose.yaml /dev/null)
+if [ "$pins_ok" -eq 1 ]; then echo "ok: all images pinned"; else fail=1; fi
 
 # --------------------------------------------------------------------------------
 if [ "$fail" -ne 0 ]; then
