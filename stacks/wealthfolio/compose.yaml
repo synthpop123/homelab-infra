@@ -25,7 +25,7 @@
 services:
   wealthfolio:
     container_name: wealthfolio
-    image: wealthfolio/wealthfolio:3.8.0
+    image: wealthfolio/wealthfolio:3.9.0
     restart: unless-stopped
     ports:
       # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
