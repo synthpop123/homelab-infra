@@ -86,6 +86,24 @@ empty dir or `ENOTCONN` — and no clouddrive2 restart fixes it. Two pieces keep
 
 Any future consumer of the mount wants the same pair.
 
+### mdc leaks flaresolverr sessions
+
+Every mdc start (including the `docker restart mdc` above, so every clouddrive2 bump) creates a
+fresh FlareSolverr session `mdc_ng_<id>` — a whole Chromium — and never destroys the previous one;
+FlareSolverr does not expire sessions on its own. mdc's hourly keepalive also leaves the live tab
+parked on the target site, whose JS keeps a renderer busy. The flaresolverr container is capped
+(`deploy.resources` in `stacks/mdc/compose.yaml`) so this cannot run away, but if it sits at its
+limit, destroy every session except the one in recent logs (`request.get` recreates a missing
+session on demand, so restarting the container is also safe):
+
+```sh
+ssh fame 'docker logs --since 2h mdc-flaresolverr 2>&1 | grep -o "mdc_ng_[0-9a-f]*" | sort -u'
+ssh fame "docker exec mdc-flaresolverr curl -s localhost:8191/v1 -H 'Content-Type: application/json' \
+  -d '{\"cmd\":\"sessions.list\"}'"
+ssh fame "docker exec mdc-flaresolverr curl -s localhost:8191/v1 -H 'Content-Type: application/json' \
+  -d '{\"cmd\":\"sessions.destroy\",\"session\":\"mdc_ng_<old>\"}'"
+```
+
 ## Why two 302 paths
 
 The `.strm` files hold `https://…/d/…` direct-link URLs served by cms's emby-302 proxy.

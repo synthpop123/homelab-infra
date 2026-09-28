@@ -41,6 +41,15 @@ services:
       - TZ=Asia/Shanghai
     volumes:
       - /srv/mdc/flaresolver:/config
+    # mdc opens a new FlareSolverr session (a whole Chromium) on every start and never destroys the
+    # old one, and its keepalive leaves each tab parked on a live site whose JS keeps spinning — so
+    # idle usage creeps up across mdc restarts. Cap it; one healthy session sits around 1 GiB.
+    # Clear leaked sessions with `sessions.list` / `sessions.destroy` (see docs/media.md).
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1536M
 
 networks:
   default:
