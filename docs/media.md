@@ -75,22 +75,18 @@ healthy** — after a reboot or clouddrive2 restart, check the mount first
 
 A clouddrive2 redeploy (e.g. a Renovate bump) destroys and recreates the FUSE mount. Binding the
 mountpoint itself into a consumer is a snapshot, so the consumer is left holding a dead mount —
-empty dir or `ENOTCONN` — and no clouddrive2 restart fixes it. Two pieces keep mdc attached:
+empty dir or `ENOTCONN` — and no clouddrive2 restart fixes it. So mdc binds the **parent**
+`/mnt/CloudNAS` as `/media` with `:rslave`, and clouddrive2's umount/mount propagates into its
+namespace (hence the `/media/115/...` paths in its `config.json`). The host `/` is `shared`,
+which is what makes propagation work. Any future consumer of the mount wants the same bind.
 
-1. mdc binds the **parent** `/mnt/CloudNAS` as `/media` with `:rslave`, so clouddrive2's
-   umount/mount propagates into its namespace (hence the `/media/115/...` paths in its
-   `config.json`). The host `/` is `shared`, which is what makes propagation work.
-2. clouddrive2's `post_deploy` in `komodo/sync.toml` waits for `115` to be back, then
-   `docker restart mdc` — needed because mdc's fsnotify watches do not re-register after an
-   umount, even once the path is live again.
-
-Any future consumer of the mount wants the same pair.
+mdc's fsnotify watches do not re-register after an umount, even once the path is live again; if
+its folder monitoring goes quiet after a clouddrive2 redeploy, `docker restart mdc` by hand.
 
 ### mdc leaks flaresolverr sessions
 
-Every mdc start (including the `docker restart mdc` above, so every clouddrive2 bump) creates a
-fresh FlareSolverr session `mdc_ng_<id>` — a whole Chromium — and never destroys the previous one;
-FlareSolverr does not expire sessions on its own. mdc's hourly keepalive also leaves the live tab
+Every mdc start creates a fresh FlareSolverr session `mdc_ng_<id>` — a whole Chromium — and never
+destroys the previous one; FlareSolverr does not expire sessions on its own. mdc's hourly keepalive also leaves the live tab
 parked on the target site, whose JS keeps a renderer busy. The flaresolverr container is capped
 (`deploy.resources` in `stacks/mdc/compose.yaml`) so this cannot run away, but if it sits at its
 limit, destroy every session except the one in recent logs (`request.get` recreates a missing
