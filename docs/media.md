@@ -86,8 +86,8 @@ its folder monitoring goes quiet after a clouddrive2 redeploy, `docker restart m
 ### mdc leaks flaresolverr sessions
 
 Every mdc start creates a fresh FlareSolverr session `mdc_ng_<id>` — a whole Chromium — and never
-destroys the previous one; FlareSolverr does not expire sessions on its own. mdc's hourly keepalive also leaves the live tab
-parked on the target site, whose JS keeps a renderer busy. The flaresolverr container is capped
+destroys the previous one; FlareSolverr does not expire sessions on its own. mdc's hourly keepalive
+also leaves the live tab parked on the target site, whose JS keeps a renderer busy. The flaresolverr container is capped
 (`deploy.resources` in `stacks/mdc/compose.yaml`) so this cannot run away, but if it sits at its
 limit, destroy every session except the one in recent logs (`request.get` recreates a missing
 session on demand, so restarting the container is also safe):
