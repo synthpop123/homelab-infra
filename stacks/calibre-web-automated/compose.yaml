@@ -1,7 +1,7 @@
 services:
   calibre-web-automated:
     container_name: calibre-web-automated
-    image: crocodilestick/calibre-web-automated:v4.0.7
+    image: crocodilestick/calibre-web-automated:v4.0.8
     ports:
       - "20001:8083/tcp"
     environment:
