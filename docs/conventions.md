@@ -13,9 +13,14 @@
 - **App images:** pin to an explicit version (`org/name:1.2.3`, never `:latest`) so Renovate can
   propose upgrades as PRs — see [workflow.md](./workflow.md).
 - **Databases & caches** (Postgres, Redis, …): pin to the **major line** instead
-  (`pgvector/pgvector:pg16`, `redis:7`). Patches ride along automatically, while a *major* bump
+  (`pgvector/pgvector:pg16`, `redis:7`). Patches arrive on the next pull and container
+  recreation, while a *major* bump
   (pg17, redis 8) — which needs a deliberate data migration — surfaces as an occasional
   major-version PR rather than constant patch noise.
+- **Digest-tracked major tags:** cloudreve, n8n, and umami additionally pin bundled Postgres
+  and Redis as `name:major@sha256:...`. Renovate tracks digest changes within the same tag,
+  so merging the update changes `compose.yaml` and triggers Komodo's deploy-if-changed flow.
+  A pull alone never switches an existing container to the new image.
 
 ## Ports
 - Host ports are allocated sequentially from `20000`, one per published service.

@@ -28,6 +28,9 @@ it back would run two `homelab` syncs in parallel on every push and fight over t
 - Mend's own infrastructure then runs Renovate on a schedule (~hourly): it temporarily clones the
   repo, the **docker-compose manager** parses every `image: name:tag`, queries the upstream registry
   (Docker Hub / GHCR) for newer tags, and opens a PR bumping the tag. It does not retain your code.
+- The bundled Postgres and Redis images in cloudreve, n8n, and umami also carry a digest.
+  Renovate opens digest-update PRs when a major tag's contents change; merging those PRs
+  changes the watched compose file and deploys the new image without changing the major line.
 - Renovate can also bump dependencies inside a stack's local build context (for example a
   `Dockerfile` or `requirements.txt`). Komodo stack `file_paths` are compose files, so a PR that
   only changes build-context files will sync the repo but will not be selected by

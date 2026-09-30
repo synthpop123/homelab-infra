@@ -49,7 +49,11 @@ needed only when:
   unchanged means `BatchDeployStackIfChanged` skips it; redeploy the stack so
   `--build` picks it up;
 - you changed a **Komodo Variable** and want it applied now (redeploy the consuming stack);
-- recovering from a failed deploy after fixing the cause.
+- recovering from a failed deploy after fixing the cause;
+- refreshing a floating database/cache tag after a pull when the compose file did not change.
+  Existing containers keep their original image ID until recreated. cloudreve, n8n, and umami
+  track their bundled Postgres/Redis digests through Renovate to put these refreshes on the
+  normal merge-and-deploy path.
 
 ## When a push didn't deploy
 
@@ -86,8 +90,12 @@ empty/IO-error mount). cms/mdc depend on that mount — restart them if it came 
 ## Housekeeping
 
 - **Disk:** `ssh fame 'docker system df; du -sh /srv/* | sort -rh | head'`. Old images from
-  Renovate bumps accumulate — `docker image prune -a` is safe (running tags are kept; any
-  pinned tag can be re-pulled), but skip it while a deploy is running.
+  Renovate bumps accumulate. `docker image prune` removes untagged images with no container
+  references; `docker image prune -a` also removes unused tagged images, including pre-pulled
+  updates and local builds. Skip cleanup during deploys. Untagged images still referenced by
+  containers become removable only after those containers are replaced and removed; shared
+  layers remain while another image needs them. For a targeted refresh, verify health first,
+  then use `docker image rm <old-image-id>` without `--force` to remove only the old image.
 - **fail2ban:** `ssh fame 'fail2ban-client status sshd'` — see
   [bootstrap/fail2ban](../bootstrap/fail2ban/).
 - **Firewall audit:** verification one-liners in

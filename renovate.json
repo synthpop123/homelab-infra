@@ -36,6 +36,17 @@
   ],
   "packageRules": [
     {
+      "description": "Pin bundled Postgres and Redis digests in cloudreve, n8n, and umami so updates within a major tag change compose.yaml and trigger Komodo's deploy-if-changed flow.",
+      "matchManagers": ["docker-compose"],
+      "matchFileNames": [
+        "stacks/cloudreve/compose.yaml",
+        "stacks/n8n/compose.yaml",
+        "stacks/umami/compose.yaml"
+      ],
+      "matchPackageNames": ["postgres", "redis"],
+      "pinDigests": true
+    },
+    {
       "description": "Topic Docker image PRs by the bare image name (Renovate's default prepends a 'dependency ' noun).",
       "matchManagers": ["docker-compose"],
       "commitMessageTopic": "{{depName}}"
