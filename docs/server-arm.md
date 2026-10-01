@@ -3,7 +3,7 @@
 One-page inventory of the second VPS — an Oracle Cloud ARM machine in Chuncheon, South
 Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md)).
 Runs the **multica**, **storageui**, **dsh**, **sure**, **ghostfolio**, **trek**, **airtrail**,
-**wealthfolio** and **beszel-agent** stacks (see below). The primary
+**wealthfolio**, **silo** and **beszel-agent** stacks (see below). The primary
 host's page: [server.md](./server.md).
 
 ## System
@@ -45,7 +45,7 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 | Process | Port | Purpose |
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
-| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure / ghostfolio / trek / airtrail / wealthfolio) |
+| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure / ghostfolio / trek / airtrail / wealthfolio / silo) |
 | multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) |
 | komari-agent | outbound | reports to the komari probe on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
@@ -208,6 +208,18 @@ Docker **29.5.3**, default address pools.
   There is no registration flow: the password hash *is* the account, and the app is single-user.
   Database encryption (`WF_DB_REQUIRE_ENCRYPTION`) is deliberately off; enabling it later is an
   offline `wealthfolio-server db encrypt`, not a flag flip, and it uses the same master key.
+- **silo** ([stacks/silo](../stacks/silo/)) — S3-compatible object storage (PGSTY's maintained
+  MinIO fork; keeps the `MINIO_*` env interface, `/minio/*` routes and `.minio.sys` data format).
+  Single node, single drive under `/srv/silo/data` (root-owned; the image runs as root) — no
+  erasure coding and only arm's one boot volume underneath, so it is **not** a backup on its own.
+  Two loopback ports behind the host Caddy: S3 API `127.0.0.1:20009` at `s3.lkwplus.com`, Console
+  `127.0.0.1:20010` at `silo.lkwplus.com`. The S3 vhost must keep the real `Host` (no
+  `header_up Host`) — SigV4 signs it. `MINIO_SERVER_URL` / `MINIO_BROWSER_REDIRECT_URL` pin the
+  two public origins. Root pair is `SILO_ROOT_USER` / `SILO_ROOT_PASSWORD` (Komodo Variables, the
+  username private too); give each app its own access key from the Console or
+  `docker exec silo mcli` (alias the server as `http://127.0.0.1:9000` inside the container).
+  Tags are `RELEASE.<timestamp>`, which Renovate's default docker versioning cannot order, so
+  `renovate.json` parses them with a regex rule (it also skips the `-distroless`/`-arm64` variants).
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;

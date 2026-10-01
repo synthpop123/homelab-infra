@@ -1,0 +1,42 @@
+# silo — S3-compatible object storage, PGSTY's maintained MinIO fork (https://github.com/pgsty/silo).
+# Runs on the arm host (Oracle-Arm, aarch64 — pgsty/silo is multi-arch incl. linux/arm64), served
+# by arm's host Caddy: S3 API at s3.lkwplus.com (127.0.0.1:20009), web Console at silo.lkwplus.com
+# (127.0.0.1:20010). Single node, single drive — no erasure coding, so this is not a backup by
+# itself: keep an independent copy of anything that matters.
+#
+# Silo keeps the MINIO_* env interface. The default image (not -distroless) is used on purpose:
+# it ships curl for the healthcheck and the `mcli` client (`docker exec silo mcli ...`).
+# Tags are RELEASE.<timestamp>; renovate.json carries a regex versioning rule for them.
+#
+# Root credentials are Komodo Variables. Give apps their own access keys (Console → Access Keys
+# or mcli), never the root pair.
+services:
+  silo:
+    container_name: silo
+    image: pgsty/silo:RELEASE.2026-09-16T00-00-00Z
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    ports:
+      # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
+      - "127.0.0.1:20009:9000/tcp" # S3 API
+      - "127.0.0.1:20010:9001/tcp" # Console
+    volumes:
+      - /srv/silo/data:/data
+    environment:
+      TZ: Asia/Shanghai
+      MINIO_ROOT_USER: ${SILO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${SILO_ROOT_PASSWORD}
+      # Public URLs behind Caddy: presigned URLs and Console's S3 calls use the API origin,
+      # and Console redirects/links use its own origin.
+      MINIO_SERVER_URL: https://s3.lkwplus.com
+      MINIO_BROWSER_REDIRECT_URL: https://silo.lkwplus.com
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  default:
+    name: silo

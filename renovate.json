@@ -88,6 +88,12 @@
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)-ls(?<revision>\\d+)$"
     },
     {
+      "description": "Silo (MinIO fork) tags are RELEASE.2026-09-16T00-00-00Z. Default docker versioning reads only the leading number and treats the rest as a variant suffix that must match exactly, so no update would ever be offered. Parse date as major.minor.patch and the time as build; the anchors also exclude the -distroless / -arm64 / -amd64 variants.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["pgsty/silo"],
+      "versioning": "regex:^RELEASE\\.(?<major>\\d+)-(?<minor>\\d+)-(?<patch>\\d+)T(?<build>\\d+)-\\d+-\\d+Z$"
+    },
+    {
       "description": "Same LinuxServer.io problem for kometa, whose tags look like v2.4.4-ls103.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["linuxserver/kometa"],

@@ -761,6 +761,26 @@ WEALTHFOLIO_AUTH_PASSWORD_HASH=[[WEALTHFOLIO_AUTH_PASSWORD_HASH]]
 """
 
 [[stack]]
+name = "silo"
+description = "https://silo.lkwplus.com"
+deploy = false
+tags = ["app", "host-arm"]
+
+[stack.config]
+server = "Oracle-Arm"
+linked_repo = "homelab-infra"
+run_directory = "stacks/silo"
+file_paths = ["compose.yaml"]
+# S3-compatible object storage (MinIO fork) on the arm host (image is multi-arch incl.
+# linux/arm64). Single node/drive under /srv/silo/data; S3 API at s3.lkwplus.com and Console at
+# silo.lkwplus.com, both via host Caddy. The root pair is a Komodo Variable (username kept
+# private too); apps get their own access keys.
+environment = """
+SILO_ROOT_USER=[[SILO_ROOT_USER]]
+SILO_ROOT_PASSWORD=[[SILO_ROOT_PASSWORD]]
+"""
+
+[[stack]]
 name = "beszel-agent"
 description = "arm metrics agent -> beszel hub on fame"
 deploy = false
