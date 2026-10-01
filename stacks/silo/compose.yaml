@@ -8,8 +8,8 @@
 # it ships curl for the healthcheck and the `mcli` client (`docker exec silo mcli ...`).
 # Tags are RELEASE.<timestamp>; renovate.json carries a regex versioning rule for them.
 #
-# Root credentials are Komodo Variables. Give apps their own access keys (Console → Access Keys
-# or mcli), never the root pair.
+# Root username is fixed here (non-secret); the password is a Komodo Variable. Give apps their
+# own access keys (Console → Access Keys or mcli), never the root pair.
 services:
   silo:
     container_name: silo
@@ -24,7 +24,7 @@ services:
       - /srv/silo/data:/data
     environment:
       TZ: Asia/Shanghai
-      MINIO_ROOT_USER: ${SILO_ROOT_USER}
+      MINIO_ROOT_USER: lkw123
       MINIO_ROOT_PASSWORD: ${SILO_ROOT_PASSWORD}
       # Public URLs behind Caddy: presigned URLs and Console's S3 calls use the API origin,
       # and Console redirects/links use its own origin.

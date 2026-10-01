@@ -215,8 +215,8 @@ Docker **29.5.3**, default address pools.
   Two loopback ports behind the host Caddy: S3 API `127.0.0.1:20009` at `s3.lkwplus.com`, Console
   `127.0.0.1:20010` at `silo.lkwplus.com`. The S3 vhost must keep the real `Host` (no
   `header_up Host`) — SigV4 signs it. `MINIO_SERVER_URL` / `MINIO_BROWSER_REDIRECT_URL` pin the
-  two public origins. Root pair is `SILO_ROOT_USER` / `SILO_ROOT_PASSWORD` (Komodo Variables, the
-  username private too); give each app its own access key from the Console or
+  two public origins. Root username `lkw123` is set in the compose; the password is
+  `SILO_ROOT_PASSWORD` (Komodo Variable). Give each app its own access key from the Console or
   `docker exec silo mcli` (alias the server as `http://127.0.0.1:9000` inside the container).
   Tags are `RELEASE.<timestamp>`, which Renovate's default docker versioning cannot order, so
   `renovate.json` parses them with a regex rule (it also skips the `-distroless`/`-arm64` variants).

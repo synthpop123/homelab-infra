@@ -773,10 +773,9 @@ run_directory = "stacks/silo"
 file_paths = ["compose.yaml"]
 # S3-compatible object storage (MinIO fork) on the arm host (image is multi-arch incl.
 # linux/arm64). Single node/drive under /srv/silo/data; S3 API at s3.lkwplus.com and Console at
-# silo.lkwplus.com, both via host Caddy. The root pair is a Komodo Variable (username kept
-# private too); apps get their own access keys.
+# silo.lkwplus.com, both via host Caddy. Root username lives in the compose; only the password
+# is a Komodo Variable. Apps get their own access keys.
 environment = """
-SILO_ROOT_USER=[[SILO_ROOT_USER]]
 SILO_ROOT_PASSWORD=[[SILO_ROOT_PASSWORD]]
 """
 
