@@ -10,8 +10,8 @@
 #   /emby_data — the shared Emby/Plex library (.strm + nfo/jpg).
 #   /downloads — qBittorrent's download dir (same path qB reports).
 #
-# First login: user `admin`; with no SUPERUSER_PASSWORD set, the initial password is printed in
-# the container log on first start — change it in the UI.
+# First run: V3 has no default password — the web UI shows an initialization page where the first
+# visitor sets the password (and API key) for SUPERUSER `admin`. Complete it right after deploy.
 services:
   moviepilot:
     container_name: moviepilot
