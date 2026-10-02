@@ -610,6 +610,20 @@ file_paths = ["compose.yaml"]
 # is committed). Fixed IP 172.22.0.8 on the external mediacenter-net.
 
 [[stack]]
+name = "moviepilot"
+description = "https://mp.lkwplus.com"
+deploy = false
+tags = ["app", "host-fame", "media"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/moviepilot"
+file_paths = ["compose.yaml"]
+# MoviePilot V3 with built-in SQLite. No compose secrets: user.db / app.env live in
+# /srv/moviepilot/config. Fixed IP 172.22.0.10 on the external mediacenter-net.
+
+[[stack]]
 name = "storageui"
 description = "https://storageui.lkwplus.com"
 deploy = false

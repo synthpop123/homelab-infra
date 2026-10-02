@@ -52,6 +52,7 @@ address in off-git config:
 | 172.22.0.7 | plex | medialinker (`plexHost`), tautulli, kometa |
 | 172.22.0.8 | medialinker | — |
 | 172.22.0.9 | tautulli | — |
+| 172.22.0.10 | moviepilot | — (kept stable by convention) |
 
 **These addresses must not change** — renumbering means editing `/srv/.../` configs on the
 host, not just compose files. kometa and letterboxd-plex-sync join the network without a

@@ -52,8 +52,9 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20032 | medialinker           | 8091           | strm 302 reverse proxy → plex.lkwplus.com |
 | 20033 | tautulli              | 8181           | Tautulli Plex monitor → tautulli.lkwplus.com |
 | 20035 | gpt-load              | 3001           | GPT-Load AI API proxy (SQLite) → gptload.lkwplus.com |
+| 20037 | moviepilot            | 3000           | MoviePilot V3 (SQLite) → mp.lkwplus.com |
 
-**Next free: `20037`**
+**Next free: `20038`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,
@@ -72,8 +73,8 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 > - `gitea` SSH stays on host port **222** (clone URLs), separate from its HTTP port above.
 > - `qbittorrent` BitTorrent listen port stays on host port **65231** (tcp + udp), separate from its WebUI above.
 >
-> **Fixed IPs on the shared external `mediacenter-net`** (`172.22.0.4`–`.9`: emby,
-> cloud-media-sync, seerr, plex, medialinker, tautulli) are docker network addresses, not host
+> **Fixed IPs on the shared external `mediacenter-net`** (`172.22.0.4`–`.10`: emby,
+> cloud-media-sync, seerr, plex, medialinker, tautulli, moviepilot) are docker network addresses, not host
 > ports, and must not change — the full table and rationale live in
 > [media.md](./media.md#the-shared-network).
 

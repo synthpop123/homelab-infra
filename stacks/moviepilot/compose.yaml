@@ -1,0 +1,48 @@
+# MoviePilot V3 — media subscription/organize automation, fronted by https://mp.lkwplus.com via Akko.
+# Built-in SQLite (DB_TYPE=sqlite); user.db, app.env, plugins and the CloakBrowser cache all live
+# under /srv/moviepilot/config. Back up that whole directory.
+#
+# Joins the external mediacenter-net at the FIXED IP 172.22.0.10 so it can reach emby (172.22.0.4),
+# plex (172.22.0.7) and friends directly — see docs/media.md.
+#
+# Media paths (same container paths as their producers, so no path mapping is needed):
+#   /CloudNAS  — clouddrive2's FUSE tree; rslave so a clouddrive2 remount propagates (see mdc).
+#   /emby_data — the shared Emby/Plex library (.strm + nfo/jpg).
+#   /downloads — qBittorrent's download dir (same path qB reports).
+#
+# First login: user `admin`; with no SUPERUSER_PASSWORD set, the initial password is printed in
+# the container log on first start — change it in the UI.
+services:
+  moviepilot:
+    container_name: moviepilot
+    image: jxxghp/moviepilot-v3:3.1.0
+    hostname: moviepilot
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    ports:
+      # host:container — host port from the registry (see docs/ports.md); 3000 = built-in nginx
+      - "20037:3000/tcp"
+    environment:
+      TZ: Asia/Shanghai
+      PUID: "1000"
+      PGID: "1000"
+      UMASK: "022"
+      NGINX_PORT: "3000"
+      PORT: "3001"
+      SUPERUSER: admin
+      DB_TYPE: sqlite
+    volumes:
+      - /srv/moviepilot/config:/config
+      - /mnt/CloudNAS:/CloudNAS:rslave
+      - /srv/emby/data:/emby_data
+      - /srv/torrent/qbittorrent/downloads:/downloads
+    stop_grace_period: 30s
+    networks:
+      mediacenter-net:
+        ipv4_address: 172.22.0.10
+
+networks:
+  mediacenter-net:
+    external: true
+    name: mediacenter-net
