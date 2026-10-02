@@ -11,7 +11,7 @@
 #   /downloads — qBittorrent's download dir (same path qB reports).
 #
 # First run: V3 has no default password — the web UI shows an initialization page where the first
-# visitor sets the password (and API key) for SUPERUSER `admin`. Complete it right after deploy.
+# visitor sets the password (and API key) for SUPERUSER `lkw123`. Complete it right after deploy.
 services:
   moviepilot:
     container_name: moviepilot
@@ -30,7 +30,7 @@ services:
       UMASK: "022"
       NGINX_PORT: "3000"
       PORT: "3001"
-      SUPERUSER: admin
+      SUPERUSER: lkw123
       DB_TYPE: sqlite
     volumes:
       - /srv/moviepilot/config:/config
