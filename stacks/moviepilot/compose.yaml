@@ -20,6 +20,18 @@ services:
     stdin_open: true
     tty: true
     restart: unless-stopped
+    # Workaround for an upstream 3.1.0 bug: the agent capability manifests point at
+    # app.agent.orchestrator:agent_manager, which only exists there as a lazy compat alias, so the
+    # runtime's canonical-symbol check rejects it and the AI agent never activates ("智能助手服务尚未
+    # 就绪"). Re-point them at the real definition before the image's own entrypoint runs; once
+    # upstream fixes the manifests the sed matches nothing and this is a no-op. Drop it then.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >-
+        sed -i 's/app\.agent\.orchestrator:agent_manager/app.agent.manager:agent_manager/'
+        /app/app/agent/capabilities/*/capability.toml
+        && exec /usr/bin/tini -g -- /entrypoint.sh
     ports:
       # host:container — host port from the registry (see docs/ports.md); 3000 = built-in nginx
       - "20037:3000/tcp"
