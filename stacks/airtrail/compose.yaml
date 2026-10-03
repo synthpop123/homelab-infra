@@ -34,7 +34,7 @@ services:
 
   airtrail-postgres:
     container_name: airtrail-postgres
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: airtrail
