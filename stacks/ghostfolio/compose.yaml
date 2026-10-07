@@ -12,7 +12,7 @@
 services:
   ghostfolio:
     container_name: ghostfolio
-    image: ghostfolio/ghostfolio:3.80.2
+    image: ghostfolio/ghostfolio:3.81.0
     restart: unless-stopped
     init: true
     depends_on:
