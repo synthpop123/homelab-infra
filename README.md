@@ -6,17 +6,24 @@ GitOps for self-hosted services managed by [Komodo](https://komo.do). Each servi
 Compose **Stack** with **pinned** image versions, updated automatically via
 [Renovate](https://docs.renovatebot.com) pull requests.
 
-![Architecture](./docs/assets/architecture.png)
+![Architecture: git → Komodo control plane → fame and arm hosts, with the request path below](./docs/assets/architecture.webp)
 
 ## How it works
 
-**Merging is deploying.** A push to `main` fires one webhook into Komodo on the VPS, which
-first reconciles stack *definitions* from [`komodo/sync.toml`](./komodo/sync.toml), then
-`docker compose up`s only the stacks whose compose files changed. There is no CI in the
-deploy path — the only gate is a lint workflow on relevant infrastructure PRs (`yamllint` +
-`docker compose config` + bootstrap shell syntax, runnable locally as `./scripts/validate.sh`). Renovate watches every pinned
+**Merging is deploying.** A push to `main` fires one webhook into the `Redeploy On Push`
+procedure on Komodo Core, which runs two strictly ordered steps: ① `RunSync` reconciles stack
+*definitions* from [`komodo/sync.toml`](./komodo/sync.toml), then ② `BatchDeployStackIfChanged`
+`docker compose up`s only the stacks whose compose files changed — on **fame** directly, or on
+**arm** through its outbound Periphery agent. Secrets come from Komodo **Variables**, written
+into each stack's `.env` at deploy time. There is no CI in the deploy path — the only gate is a
+lint workflow on relevant infrastructure PRs (`yamllint` + `docker compose config` + bootstrap
+shell syntax, runnable locally as `./scripts/validate.sh`). Renovate watches every pinned
 `image:` tag and opens bump PRs, so routine updates are review-and-merge.
 Details: [workflow.md](./docs/workflow.md).
+
+On the request path, fame's services sit behind the **Akko** reverse proxy (the host firewall
+admits only Akko), while arm's are reached directly through arm's own host **Caddy** — see
+[Networking & security](#networking--security).
 
 ## Layout
 
@@ -122,8 +129,8 @@ Topology, fixed IPs, and failure modes: [media.md](./docs/media.md).
 
 Most stacks run on one Debian 12 VPS (**fame**, 6 vCPU / 24 GiB), which also hosts
 the Komodo Core. A second host — **arm** (Oracle Cloud Chuncheon, 2 vCPU aarch64 / 12 GiB)
-— is connected to the same control plane via an outbound Periphery agent and currently
-runs multica, storageui, dsh, and beszel-agent; declaring a stack with
+— is connected to the same control plane via an outbound Periphery agent and runs the
+stacks marked *arm* in the [Services](#services) table; declaring a stack with
 `server = "Oracle-Arm"` in `sync.toml` is all it takes to target it (arm64 images only).
 How servers join Komodo: [komodo-servers.md](./docs/komodo-servers.md).
 Three things are managed by hand outside Komodo, versioned under
