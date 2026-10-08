@@ -15,7 +15,7 @@
 services:
   moviepilot:
     container_name: moviepilot
-    image: jxxghp/moviepilot-v3:3.1.1
+    image: jxxghp/moviepilot-v3:3.1.2
     hostname: moviepilot
     stdin_open: true
     tty: true
