@@ -24,7 +24,7 @@
 # '127.0.0.1' | '0.0.0.0', and the CLI rejects 0.0.0.0 outright ("it would expose remote code
 # execution to the network"). A bridge publish therefore cannot reach the process, so
 # compose.yaml uses host networking on the arm loopback port 20003 for the host Caddy.
-FROM node:22-bookworm-slim
+FROM node:24-bookworm-slim
 
 ARG DSH_VERSION
 LABEL org.opencontainers.image.source="https://github.com/deepseek-ai/deepseek-harness"
