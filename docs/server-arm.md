@@ -3,7 +3,7 @@
 One-page inventory of the second VPS — an Oracle Cloud ARM machine in Chuncheon, South
 Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md)).
 Runs the **multica**, **storageui**, **dsh**, **sure**, **ghostfolio**, **trek**, **airtrail**,
-**wealthfolio**, **silo** and **beszel-agent** stacks (see below). The primary
+**wealthfolio**, **silo**, **magpie** and **beszel-agent** stacks (see below). The primary
 host's page: [server.md](./server.md).
 
 ## System
@@ -45,7 +45,7 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 | Process | Port | Purpose |
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
-| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure / ghostfolio / trek / airtrail / wealthfolio / silo) |
+| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure / ghostfolio / trek / airtrail / wealthfolio / silo / magpie) |
 | multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) |
 | komari-agent | outbound | reports to the komari probe on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
@@ -220,6 +220,22 @@ Docker **29.5.3**, default address pools.
   `docker exec silo mcli` (alias the server as `http://127.0.0.1:9000` inside the container).
   Tags are `RELEASE.<timestamp>`, which Renovate's default docker versioning cannot order, so
   `renovate.json` parses them with a regex rule (it also skips the `-distroless`/`-arm64` variants).
+- **magpie** ([stacks/magpie](../stacks/magpie/)) — model gateway for coding agents, run as
+  `magpie web` in gateway mode (providers, subscription logins, routing groups, per-client gateway
+  keys; no Agents/Sessions/Library since none run in the container). Process uid/gid **1002** =
+  host user `agent`, so `/srv/magpie/config` (all state; also the container's HOME) must be owned
+  by `1002:1002`. One hostname, split by path in the Caddy vhost: `/v1/*` and `/v1beta/*` go to
+  the gateway (`127.0.0.1:20011`), everything else to the web UI (`127.0.0.1:20012`) — the web
+  listener does not serve the gateway routes, and the gateway answers on `/` too, so the split
+  must list the API prefixes, not the UI's. Clients: OpenAI base `https://magpie.lkwplus.com/v1`,
+  Anthropic/Gemini base `https://magpie.lkwplus.com`, API key = a gateway key
+  (`docker exec magpie /magpie gateway-key add "<client>"` or Gateway → Gateway keys); without
+  one every request is a 401. Web login: open `https://magpie.lkwplus.com/?k=<MAGPIE_WEB_KEY>`
+  once (Komodo Variable) — it becomes a 400-day cookie; whoever holds that key can read every
+  provider key, so treat it as a root credential. Subscription logins redirect the browser to
+  `localhost`; paste that final URL into the login's *callback URL* field. Claude subscriptions
+  need `docker exec -it magpie /magpie claude-code install` first (downloads into
+  `/config/cache`).
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;

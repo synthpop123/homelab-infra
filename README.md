@@ -55,7 +55,6 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [drizzle-gateway](./stacks/drizzle-gateway) | [db.lkwplus.com](https://db.lkwplus.com) | 20003 | Drizzle Gateway (DB studio) |
 | [cloudreve](./stacks/cloudreve) | [cloud.lkwplus.com](https://cloud.lkwplus.com) | 20004 | Cloudreve cloud storage (+ Postgres + Redis) |
 | [koito](./stacks/koito) | [music.lkwplus.com](https://music.lkwplus.com) / [scrobble.lkwplus.com](https://scrobble.lkwplus.com) | 20005 / 20006 | Koito scrobble server + multi-scrobbler |
-| [new-api](./stacks/new-api) | [api.lkwplus.com](https://api.lkwplus.com) | 20007 | LLM API gateway (app + Postgres + Redis) |
 | [opengist](./stacks/opengist) | [gist.lkwplus.com](https://gist.lkwplus.com) | 20008 | Git-powered pastebin |
 | [mastodon](./stacks/mastodon) | [mastodon.lkwplus.com](https://mastodon.lkwplus.com) | 20009 / 20010 | Fediverse server (web + streaming + sidekiq + Postgres/Redis/ES) |
 | [beszel](./stacks/beszel) | [beszel.lkwplus.com](https://beszel.lkwplus.com) | 20011 | Server monitoring (hub + agent) |
@@ -65,7 +64,6 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [n8n](./stacks/n8n) | [n8n.lkwplus.com](https://n8n.lkwplus.com) | 20014 | Workflow automation (+ dedicated Postgres) |
 | [memos](./stacks/memos) | [memos.lkwplus.com](https://memos.lkwplus.com) | 20015 | Notes (+ dedicated Postgres) |
 | [seerr](./stacks/seerr) | [seerr.lkwplus.com](https://seerr.lkwplus.com) | 20016 | Media requests (+ dedicated Postgres) |
-| [openwebui](./stacks/openwebui) | [chat.lkwplus.com](https://chat.lkwplus.com) | 20017 | LLM chat UI (+ dedicated Postgres) |
 | [gitea](./stacks/gitea) | [git.lkwplus.com](https://git.lkwplus.com) | 20018 | Git hosting (+ dedicated Postgres; SSH on 222) |
 | [torrent](./stacks/torrent) | [qb.lkwplus.com](https://qb.lkwplus.com) / [qui.lkwplus.com](https://qui.lkwplus.com) | 20019 / 20020 | qBittorrent + qui WebUI manager (BT on 65231) |
 | [emby](./stacks/emby) | [emby.lkwplus.com](https://emby.lkwplus.com) | 20021 | Emby media server (fixed IP 172.22.0.4 on mediacenter-net) |
@@ -88,6 +86,7 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [airtrail](./stacks/airtrail) | [flight.lkwplus.com](https://flight.lkwplus.com) | arm 20007 | AirTrail — self-hosted flight tracker / travel log (app + Postgres; **runs on arm**, served by arm's host Caddy) |
 | [wealthfolio](./stacks/wealthfolio) | [wealthfolio.lkwplus.com](https://wealthfolio.lkwplus.com) | arm 20008 | Wealthfolio — private personal finance / investment tracker (single container, embedded SQLite; **runs on arm**, served by arm's host Caddy) |
 | [silo](./stacks/silo) | [silo.lkwplus.com](https://silo.lkwplus.com) / [s3.lkwplus.com](https://s3.lkwplus.com) | arm 20010 / 20009 | Silo — S3-compatible object storage, PGSTY's MinIO fork (Console + S3 API, single node/drive; **runs on arm**, served by arm's host Caddy) |
+| [magpie](./stacks/magpie) | [magpie.lkwplus.com](https://magpie.lkwplus.com) | arm 20012 / 20011 | magpie — model gateway for coding agents (web UI + gateway, uid 1002 / `agent`; **runs on arm**, served by arm's host Caddy) |
 | [beszel-agent](./stacks/beszel-agent) | — | arm, host net | Beszel metrics agent (**runs on arm**, reports straight to the beszel hub on fame) |
 
 ## Conventions

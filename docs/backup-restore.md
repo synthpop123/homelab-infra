@@ -94,7 +94,7 @@ Komodo's own `komodo_mongo-data` / `komodo_keys`). Nothing backs `/srv` up today
 
 ```
 ~103G  /srv total  — dominated by emby ~50G and plex ~45G (.strm + scraped metadata/artwork,
-       mostly rebuildable), cms 3.3G; then immich 1.4G, openwebui 1.1G, new-api ~340M, ...
+       mostly rebuildable), cms 3.3G; then immich 1.4G, ...
 ```
 
 ### Make the backup consistent

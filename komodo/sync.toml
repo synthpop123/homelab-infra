@@ -142,24 +142,6 @@ MS_BASE_URL=[[MS_BASE_URL]]
 """
 
 [[stack]]
-name = "new-api"
-description = "https://api.lkwplus.com"
-deploy = false
-tags = ["app", "host-fame"]
-
-[stack.config]
-server = "Famesystems"
-linked_repo = "homelab-infra"
-run_directory = "stacks/new-api"
-file_paths = ["compose.yaml"]
-# Bundled Postgres/Redis passwords come from Komodo Variables; the compose references
-# ${NEW_API_POSTGRES_PASSWORD} / ${NEW_API_REDIS_PASSWORD}.
-environment = """
-NEW_API_POSTGRES_PASSWORD=[[NEW_API_POSTGRES_PASSWORD]]
-NEW_API_REDIS_PASSWORD=[[NEW_API_REDIS_PASSWORD]]
-"""
-
-[[stack]]
 name = "opengist"
 description = "https://gist.lkwplus.com"
 deploy = false
@@ -258,26 +240,6 @@ file_paths = ["compose.yaml"]
 # Other Gitea secrets live in app.ini inside /srv/gitea/data.
 environment = """
 GITEA_DB_PASSWORD=[[GITEA_DB_PASSWORD]]
-"""
-
-[[stack]]
-name = "openwebui"
-description = "https://chat.lkwplus.com"
-deploy = false
-tags = ["app", "host-fame"]
-
-[stack.config]
-server = "Famesystems"
-linked_repo = "homelab-infra"
-run_directory = "stacks/openwebui"
-file_paths = ["compose.yaml"]
-# Dedicated bundled Postgres (migrated off the shared instance). DB password, OpenAI key and the
-# public/API URLs via Komodo Variables; the WEBUI_SECRET_KEY lives in /srv/openwebui/data.
-environment = """
-OPENWEBUI_DB_PASSWORD=[[OPENWEBUI_DB_PASSWORD]]
-OPENWEBUI_OPENAI_API_KEY=[[OPENWEBUI_OPENAI_API_KEY]]
-OPENWEBUI_WEBUI_URL=[[OPENWEBUI_WEBUI_URL]]
-OPENWEBUI_OPENAI_API_BASE_URL=[[OPENWEBUI_OPENAI_API_BASE_URL]]
 """
 
 [[stack]]
@@ -791,6 +753,25 @@ file_paths = ["compose.yaml"]
 # is a Komodo Variable. Apps get their own access keys.
 environment = """
 SILO_ROOT_PASSWORD=[[SILO_ROOT_PASSWORD]]
+"""
+
+[[stack]]
+name = "magpie"
+description = "https://magpie.lkwplus.com"
+deploy = false
+tags = ["app", "host-arm"]
+
+[stack.config]
+server = "Oracle-Arm"
+linked_repo = "homelab-infra"
+run_directory = "stacks/magpie"
+file_paths = ["compose.yaml"]
+# Model gateway for coding agents on the arm host (image is multi-arch incl. linux/arm64), web UI +
+# gateway behind host Caddy at magpie.lkwplus.com. Runs as uid 1002 (`agent`); everything lives in
+# /srv/magpie/config. MAGPIE_WEB_KEY is the web UI login (?k=<key>); gateway clients use their own
+# gateway keys created in the UI.
+environment = """
+MAGPIE_WEB_KEY=[[MAGPIE_WEB_KEY]]
 """
 
 [[stack]]

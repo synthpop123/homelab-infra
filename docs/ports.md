@@ -26,7 +26,6 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20004 | cloudreve             | 5212           | Cloudreve (cloud storage)   |
 | 20005 | koito                 | 4110           | Koito (music scrobble svr)  |
 | 20006 | multi-scrobbler       | 9078           | multi-scrobbler -> koito    |
-| 20007 | new-api               | 3000           | new-api (LLM gateway)       |
 | 20008 | opengist              | 6157           | Opengist (git pastebin)     |
 | 20009 | mastodon (web)        | 3000           | Mastodon web/API            |
 | 20010 | mastodon (streaming)  | 4000           | Mastodon streaming API      |
@@ -36,7 +35,6 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20014 | n8n                   | 5678           | n8n workflow automation     |
 | 20015 | memos                 | 5230           | Memos notes                 |
 | 20016 | seerr                 | 5055           | Seerr media requests        |
-| 20017 | openwebui             | 8080           | Open WebUI (LLM chat)       |
 | 20018 | gitea                 | 3000           | Gitea (HTTP)                |
 | 20019 | qbittorrent           | 8081           | qBittorrent WebUI (torrent) |
 | 20020 | qui                   | 7476           | qui — qBittorrent manager   |
@@ -63,7 +61,7 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 > **Vacated:** `20025` previously published mdc's `flaresolverr`; it is now internal-only (mdc reaches
 > it in-network at `flaresolverr:8191`), so `20025` is unused. `20030` previously published
 > `cpa-manager-plus`; CPA's built-in `/management.html` panel replaced it, so `20030` is unused.
-> `20034` and `20036` are also vacated. New services still take the next sequential number (**Next free** above),
+> `20007` (new-api), `20017` (openwebui), `20034` and `20036` are also vacated. New services still take the next sequential number (**Next free** above),
 > not these gaps.
 >
 > **Outside the scheme** (host-networked; ports fixed by the app, not the registry):
@@ -99,8 +97,10 @@ to them, so nothing rides the `DOCKER-USER` exposure path at all (see
 | 20008 | wealthfolio        | 8088           | Wealthfolio finance tracker, loopback-only     |
 | 20009 | silo (S3 API)      | 9000           | Silo object storage S3 API, loopback-only      |
 | 20010 | silo (Console)     | 9001           | Silo web Console, loopback-only                |
+| 20011 | magpie (gateway)   | 3425           | magpie model gateway (/v1, /v1beta), loopback-only |
+| 20012 | magpie (web UI)    | 3430           | magpie web UI, loopback-only                   |
 
-**Next free (arm): `20011`**
+**Next free (arm): `20013`**
 
 > **Outside the scheme (arm)**: `beszel-agent` is host-networked and reserves host port
 > **45876** (only bound as a fallback when its outbound WebSocket to the hub on fame is
