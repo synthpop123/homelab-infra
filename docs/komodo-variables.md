@@ -25,6 +25,13 @@ Komodo UI → **Settings → Variables** → add the variable, paste the value, 
 anything sensitive. This is the default the [conventions](./conventions.md#environment-variables)
 assume.
 
+## The API way (agents, default)
+
+With the key in `/etc/komodo/km.env` on fame, `CreateVariable` / `UpdateVariableValue` /
+`DeleteVariable` over the HTTP API are the normal route — see
+[operations.md → Komodo](./operations.md#komodo) for the `api` helper and the caveat that write
+responses echo the secret value. No Core restart needed.
+
 ## The host way (no UI/API — agents, recovery)
 
 Mongo's port isn't published, so go through the container. It already holds the root creds in its

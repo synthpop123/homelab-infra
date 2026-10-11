@@ -52,7 +52,7 @@ changes but never deploys):
 If Renovate changes only files inside a stack's local build context (for example an embedded
 `Dockerfile` or `requirements.txt`), Komodo syncs the repo but `BatchDeployStackIfChanged` will not
 select the stack because `file_paths` are compose files. After merging that kind of PR, manually
-deploy the stack through Komodo — UI, or the `km` CLI with an API key (`docs/operations.md`) —
+deploy the stack through Komodo — UI, or the `km` CLI / HTTP API with the key in `/etc/komodo/km.env` on fame (`docs/operations.md`) —
 so `extra_args = "--build"` rebuilds the local image.
 
 To avoid that manual step for a source-built stack, **keep the upstream version pin in

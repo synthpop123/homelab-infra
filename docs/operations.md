@@ -23,14 +23,35 @@ than a stack, so it has no row there.
 
 - **UI** — the Komodo hostname (see README). Every stack shows its deploy state, logs, and
   a Redeploy button there; that is the default tool for one-off operations.
+- **API key** — lives on fame in **`/etc/komodo/km.env`** (root, `0600`, off git):
+  `KOMODO_CLI_KEY=…` / `KOMODO_CLI_SECRET=…`. Created in the UI (Settings → API Keys); to rotate,
+  make a new key there, overwrite the file, delete the old key. Prefer it over editing Mongo
+  directly (the [komodo-variables.md](./komodo-variables.md) host route is now the fallback).
 - **`km` CLI** — ships inside `komodo-core`. Database commands work as-is
-  (`docker exec komodo-core km database backup -y`); *API* commands (deploy/list/…) need an
-  API key created in the UI (Settings → API Keys), passed as env:
+  (`docker exec komodo-core km database backup -y`); API commands take the key file:
 
 ```bash
-ssh fame 'docker exec -e KOMODO_CLI_KEY=... -e KOMODO_CLI_SECRET=... \
-  komodo-core km execute deploy-stack <name> -y'
+ssh fame 'docker exec --env-file /etc/komodo/km.env komodo-core km ls stacks'
+ssh fame 'docker exec --env-file /etc/komodo/km.env komodo-core km execute deploy-stack <name> -y'
 ```
+
+- **HTTP API** — `km` 2.3 has **no delete** (only list/execute/create/update). For anything else,
+  `POST http://localhost:9120/{read,write,execute}` on fame with `{"type": "<Request>", "params": {…}}`
+  and the `X-Api-Key` / `X-Api-Secret` headers:
+
+```bash
+ssh fame 'set -a; . /etc/komodo/km.env; set +a
+api() { curl -s -X POST "http://localhost:9120/$1" -H "Content-Type: application/json" \
+  -H "X-Api-Key: $KOMODO_CLI_KEY" -H "X-Api-Secret: $KOMODO_CLI_SECRET" -d "$2"; }
+api write "{\"type\":\"DeleteStack\",\"params\":{\"id\":\"<name>\"}}" >/dev/null'
+```
+
+  Verified on 2.3.3: `ListStacks` / `ListVariables`; `CreateStack` / `DeleteStack` (`id` takes the
+  name); `CreateVariable` / `UpdateVariableValue` / `DeleteVariable` (by `name`; `CreateVariable`
+  defaults to `is_secret: false` — pass `true`); `DeleteTag` needs the ObjectId, not the
+  name. Deleting a stack from `sync.toml` does **not** delete its Komodo resource — remove it here.
+  **Write responses echo the full object, secret `value` included** — send them to `/dev/null`
+  when writing a secret, and generate the value on the host (`$(openssl rand -hex 16)`).
 
 Komodo's Stats page now provides multi-server charts and separates memory use from
 cache. Use it alongside Beszel/Komari; those monitors remain independent of Core.
