@@ -86,7 +86,6 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [airtrail](./stacks/airtrail) | [flight.lkwplus.com](https://flight.lkwplus.com) | arm 20007 | AirTrail — self-hosted flight tracker / travel log (app + Postgres; **runs on arm**, served by arm's host Caddy) |
 | [wealthfolio](./stacks/wealthfolio) | [wealthfolio.lkwplus.com](https://wealthfolio.lkwplus.com) | arm 20008 | Wealthfolio — private personal finance / investment tracker (single container, embedded SQLite; **runs on arm**, served by arm's host Caddy) |
 | [silo](./stacks/silo) | [silo.lkwplus.com](https://silo.lkwplus.com) / [s3.lkwplus.com](https://s3.lkwplus.com) | arm 20010 / 20009 | Silo — S3-compatible object storage, PGSTY's MinIO fork (Console + S3 API, single node/drive; **runs on arm**, served by arm's host Caddy) |
-| [magpie](./stacks/magpie) | [magpie.lkwplus.com](https://magpie.lkwplus.com) | arm 20012 / 20011 | magpie — model gateway for coding agents (web UI + gateway, uid 1002 / `agent`; **runs on arm**, served by arm's host Caddy) |
 | [beszel-agent](./stacks/beszel-agent) | — | arm, host net | Beszel metrics agent (**runs on arm**, reports straight to the beszel hub on fame) |
 
 ## Conventions

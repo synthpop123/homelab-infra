@@ -756,25 +756,6 @@ SILO_ROOT_PASSWORD=[[SILO_ROOT_PASSWORD]]
 """
 
 [[stack]]
-name = "magpie"
-description = "https://magpie.lkwplus.com"
-deploy = false
-tags = ["app", "host-arm"]
-
-[stack.config]
-server = "Oracle-Arm"
-linked_repo = "homelab-infra"
-run_directory = "stacks/magpie"
-file_paths = ["compose.yaml"]
-# Model gateway for coding agents on the arm host (image is multi-arch incl. linux/arm64), web UI +
-# gateway behind host Caddy at magpie.lkwplus.com. Runs as uid 1002 (`agent`); everything lives in
-# /srv/magpie/config. MAGPIE_WEB_KEY is the web UI login (?k=<key>); gateway clients use their own
-# gateway keys created in the UI.
-environment = """
-MAGPIE_WEB_KEY=[[MAGPIE_WEB_KEY]]
-"""
-
-[[stack]]
 name = "beszel-agent"
 description = "arm metrics agent -> beszel hub on fame"
 deploy = false
