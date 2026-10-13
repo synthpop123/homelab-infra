@@ -40,7 +40,12 @@ services:
     environment:
       # Auth is intentionally disabled (xpack.security.enabled=false) — ES is internal-only (no host
       # port), reachable only by mastodon on the docker networks — so no ELASTIC_PASSWORD is set.
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m -Des.enforce.bootstrap.checks=true"
+      # Sized for a single-user instance (a handful of docs): 256m heap, C1-only JIT and one
+      # processor's worth of thread pools take the container from ~1.05GiB to ~620MiB idle.
+      # Raise the heap first if the instance grows.
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m -XX:TieredStopAtLevel=1 -Des.enforce.bootstrap.checks=true"
+      - "node.processors=1"
+      - "ingest.geoip.downloader.enabled=false"
       - "xpack.license.self_generated.type=basic"
       - "xpack.security.enabled=false"
       - "xpack.watcher.enabled=false"
