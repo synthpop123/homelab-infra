@@ -1,6 +1,6 @@
 # Media pipeline
 
-Seven stacks cooperate to serve a cloud-storage (115) media library without keeping the
+Six stacks cooperate to serve a cloud-storage (115) media library without keeping the
 files on disk. This doc is the topology — each stack's compose has the per-service detail.
 
 ## Flow
@@ -16,10 +16,10 @@ files on disk. This doc is the topology — each stack's compose has the per-ser
   │                                                                  ▼
   │                                             ┌── emby   reads /srv/emby/data
   │                                             └── plex   reads Movie/TV/JAV/Hentai ro
-  │                                                  ▲
-  └─ playback: client follows a 302 to the real     medialinker (nginx+njs) fronts Plex,
-     115 download link served by cms's emby-302      302-redirects .strm playback the same
-     proxy — no media bytes transit this host        way Emby does natively
+  │                                                  (Cirvel image: plays .strm directly)
+  └─ playback: client follows a 302 to the real
+     115 download link served by cms's emby-302
+     proxy — no media bytes transit this host
 ```
 
 Plex mounts four subtrees of `/srv/emby/data` read-only. Movie and TV are ordinary
@@ -49,8 +49,8 @@ address in off-git config:
 | 172.22.0.4 | emby | cms (`EMBY_HOST_PORT`) |
 | 172.22.0.5 | cloud-media-sync | — (kept stable by convention) |
 | 172.22.0.6 | seerr | — (kept from the pre-migration setup) |
-| 172.22.0.7 | plex | medialinker (`plexHost`), tautulli, kometa |
-| 172.22.0.8 | medialinker | — |
+| 172.22.0.7 | plex | tautulli, kometa, letterboxd-plex-sync |
+| 172.22.0.8 | *(retired — was medialinker)* | — |
 | 172.22.0.9 | tautulli | — |
 | 172.22.0.10 | moviepilot | — (kept stable by convention) |
 
@@ -66,9 +66,9 @@ then redeploy the member stacks.
 | Path | Written by | Read by |
 |------|-----------|---------|
 | `/mnt/CloudNAS/115` (FUSE) | clouddrive2 | cms, mdc |
-| `/srv/emby/data` | cms (.strm), mdc (nfo/jpg) | emby (rw), plex + medialinker (ro) |
+| `/srv/emby/data` | cms (.strm), mdc (nfo/jpg) | emby (rw), plex (ro) |
 
-Consequence: **emby, cms, mdc, plex and medialinker only work while clouddrive2's mount is
+Consequence: **emby, cms, mdc and plex only work while clouddrive2's mount is
 healthy** — after a reboot or clouddrive2 restart, check the mount first
 ([operations.md → Reboot](./operations.md#reboot)).
 
@@ -104,7 +104,8 @@ ssh fame "docker exec mdc-flaresolverr curl -s localhost:8191/v1 -H 'Content-Typ
 ## Why two 302 paths
 
 The `.strm` files hold `https://…/d/…` direct-link URLs served by cms's emby-302 proxy.
-Emby resolves those natively. Plex refuses to play `.strm`, so clients connect to
-**medialinker** instead of Plex directly; it proxies everything to Plex except playback
-requests, whose `.strm` content it reads (same ro mounts) and 302-redirects — giving Plex
-the exact path Emby already uses, with no transcoding load on this host either way.
+Emby resolves those natively. Stock Plex refuses to play `.strm`, so the plex stack runs
+**Cirvel** (a drop-in Plex image with a bundled PMS): it hands the client the link inside
+the `.strm` and the client streams it directly — the exact path Emby already uses, with no
+transcoding load on this host either way. Akko proxies plex.lkwplus.com straight to fame's
+published port `20031`; Cirvel's admin panel lives at `https://plex.lkwplus.com/cirvel/`.

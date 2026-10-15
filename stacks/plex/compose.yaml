@@ -1,12 +1,22 @@
-# Plex stack — Plex media server + Tautulli (Plex monitoring/stats).
+# Plex stack — Plex media server (as Cirvel) + Tautulli (Plex monitoring/stats).
+#
+# The server runs as Cirvel (https://cirvel.tidewren.com), a drop-in Plex image: it bundles a fixed,
+# vetted PMS (built on linuxserver/plex — same /config layout, PUID/PGID, PLEX_CLAIM) and fronts it on
+# :32400 with its own proxy, which makes Plex clients direct-play the netdisk .strm files Plex itself
+# refuses — the client gets the CDN link and streams it, no bytes through this host, no transcode.
+# That replaced the old medialinker (nginx+njs 302) stack in front of Plex. The image tag is
+# Cirvel's own version, NOT Plex's; the bundled PMS is in the `com.tidewren.cirvel.plex.version`
+# label (`docker inspect`), and newer Plex only arrives with a newer Cirvel tag (Renovate bumps it).
+# Cirvel's admin panel is https://plex.lkwplus.com/cirvel/ (server-owner Plex login); its settings
+# persist under /config. Free tier covers STRM playback; Pro features are licence-gated in the panel.
 #
 # Plex shares Emby's .strm libraries: mounts /srv/emby/data/{Movie,TV,JAV,Hentai} (the strm trees
-# cloud-media-sync writes) read-only as /data/{Movie,TV,JAV,Hentai}. Movie/TV are scraped with Plex's
+# cloud-media-sync writes) read-only as /data/{Movie,TV,JAV,Hentai} — Cirvel needs the container
+# paths to stay what they were when the libraries were scanned. Movie/TV are scraped with Plex's
 # own online agent; JAV and Hentai are "Plex NFO Movie" agent libraries (PMS >= 1.43.1) built entirely
-# from the nfo/poster files mdc writes next to each .strm — no online matching. Plex can't
-# natively play .strm, so playback is intercepted by the medialinker stack (nginx+njs reverse proxy)
-# which 302-redirects to the cms.lkwplus.com direct-link service — the same path Emby already uses,
-# which is why no MoviePilot is needed. Plex's own config/database lives in /srv/plex/config.
+# from the nfo/poster files mdc writes next to each .strm — no online matching. The strm files hold
+# cms.lkwplus.com direct links (cloud-media-sync's emby-302 service) — the same path Emby uses, which
+# is why no MoviePilot is needed. Plex's own config/database lives in /srv/plex/config.
 #
 # Tautulli monitors Plex; point it at http://172.22.0.7:32400 (or plex:32400 in-network). Config lives
 # in /srv/plex/tautulli/config. Fronted by https://tautulli.lkwplus.com (reverse proxy off-repo).
@@ -32,23 +42,21 @@
 # wall — the stock cloudscraper session 403s (upstream issue #18). Letterboxd credentials, the
 # Plex token and the TMDB key are LETTERBOXD_* Komodo Variables.
 #
-# On the external mediacenter-net at the FIXED IP 172.22.0.7 so medialinker reaches it at
-# 172.22.0.7:32400 (plexHost in medialinker's constant.js). The network is created/managed outside
+# On the external mediacenter-net at the FIXED IP 172.22.0.7 so tautulli, kometa and
+# letterboxd-plex-sync reach it at 172.22.0.7:32400. The network is created/managed outside
 # this repo (manual `docker network create`), hence external.
 #
 # PLEX_CLAIM is the first-run activation token from https://www.plex.tv/claim (valid ~4 min); it's a
-# Komodo Variable and can be cleared once the server is claimed. VERSION=docker pins Plex to the
-# image tag (no self-update) so version is driven by the tag + Renovate, like the other stacks.
+# Komodo Variable and can be cleared once the server is claimed (Cirvel can also claim from its panel).
 services:
   plex:
     container_name: plex
-    image: linuxserver/plex:1.43.4.10903-e5521bd8c-ls327
+    image: tidewren/cirvel:0.1.27
     restart: unless-stopped
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Asia/Shanghai
-      - VERSION=docker
       - PLEX_CLAIM=${PLEX_CLAIM}
     volumes:
       - /srv/plex/config:/config
@@ -57,8 +65,8 @@ services:
       - /srv/emby/data/JAV:/data/JAV:ro
       - /srv/emby/data/Hentai:/data/Hentai:ro
     ports:
-      # host:container — host port from the registry (see docs/ports.md). Clients play through
-      # medialinker, not this port; it stays for admin and is Akko-only at the firewall.
+      # host:container — host port from the registry (see docs/ports.md). plex.lkwplus.com via
+      # Akko (Akko-only at the firewall); clients connect here, Cirvel handles STRM playback.
       - "20031:32400/tcp"
     networks:
       mediacenter-net:

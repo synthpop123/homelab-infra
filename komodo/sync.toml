@@ -506,7 +506,7 @@ file_paths = ["compose.yaml"]
 
 [[stack]]
 name = "plex"
-description = "https://plex.lkwplus.com (backend, reached via medialinker) / https://tautulli.lkwplus.com"
+description = "https://plex.lkwplus.com (Cirvel) / https://tautulli.lkwplus.com"
 deploy = false
 tags = ["app", "host-fame", "media", "source-build"]
 
@@ -518,9 +518,9 @@ file_paths = ["compose.yaml"]
 # `letterboxd-plex-sync` is built locally from ./letterboxd-sync (upstream image + Cloudflare
 # TLS-fingerprint patch), so the deploy runs `docker compose up --build`.
 extra_args = ["--build"]
-# Plex + Tautulli + Kometa + letterboxd-plex-sync on the external mediacenter-net. Plex at fixed IP
-# 172.22.0.7 so medialinker reaches it at 172.22.0.7:32400; Tautulli at 172.22.0.9 (monitor Plex
-# there). Kometa and letterboxd-plex-sync are outbound-only (no fixed IP / host port). Kometa's whole
+# Plex (as Cirvel, a drop-in Plex image doing .strm direct play) + Tautulli + Kometa +
+# letterboxd-plex-sync on the external mediacenter-net. Plex at fixed IP 172.22.0.7 so the others
+# reach it at 172.22.0.7:32400; Tautulli at 172.22.0.9 (monitor Plex there). Kometa and letterboxd-plex-sync are outbound-only (no fixed IP / host port). Kometa's whole
 # config.yml (Plex token + TMDb key) lives off-git at /srv/plex/kometa/config/config.yml — a sanitized
 # kometa-config.yml.example is committed. letterboxd-plex-sync's Letterboxd credentials, Plex token
 # and TMDB key are the LETTERBOXD_* Variables below. PLEX_CLAIM (first-run activation token from
@@ -555,21 +555,6 @@ MULTICA_RESEND_API_KEY=[[MULTICA_RESEND_API_KEY]]
 MULTICA_GITHUB_WEBHOOK_SECRET=[[MULTICA_GITHUB_WEBHOOK_SECRET]]
 MULTICA_GITHUB_APP_PRIVATE_KEY="[[MULTICA_GITHUB_APP_PRIVATE_KEY]]"
 """
-
-[[stack]]
-name = "medialinker"
-description = "https://plex.lkwplus.com"
-deploy = false
-tags = ["app", "host-fame", "media"]
-
-[stack.config]
-server = "Famesystems"
-linked_repo = "homelab-infra"
-run_directory = "stacks/medialinker"
-file_paths = ["compose.yaml"]
-# Reverse proxy (nginx+njs) in front of Plex for .strm direct play. No compose secrets: constant.js
-# (plexHost + rules) lives off-git at /srv/medialinker/constant.js (a sanitized constant.js.example
-# is committed). Fixed IP 172.22.0.8 on the external mediacenter-net.
 
 [[stack]]
 name = "moviepilot"

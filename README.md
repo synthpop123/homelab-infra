@@ -75,8 +75,7 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [cliproxyapi](./stacks/cliproxyapi) | [cpa.lkwplus.com](https://cpa.lkwplus.com) | 20029 | CLIProxyAPI AI proxy (CPA; built-in management at /management.html) |
 | [gpt-load](./stacks/gpt-load) | [gptload.lkwplus.com](https://gptload.lkwplus.com) | 20035 | GPT-Load AI API proxy (built-in SQLite) |
 | [moviepilot](./stacks/moviepilot) | [mp.lkwplus.com](https://mp.lkwplus.com) | 20037 | MoviePilot V3 subscription/organize automation (built-in SQLite; fixed IP 172.22.0.10) |
-| [plex](./stacks/plex) | [plex.lkwplus.com](https://plex.lkwplus.com) / [tautulli.lkwplus.com](https://tautulli.lkwplus.com) | 20031 / 20033 | Plex media server (fixed IP 172.22.0.7) + Tautulli Plex monitor (172.22.0.9) + Kometa metadata/collections + letterboxd-plex-sync (weekly Letterboxd → Plex) |
-| [medialinker](./stacks/medialinker) | [plex.lkwplus.com](https://plex.lkwplus.com) | 20032 | strm 302 reverse proxy in front of Plex for direct play (fixed IP 172.22.0.8) |
+| [plex](./stacks/plex) | [plex.lkwplus.com](https://plex.lkwplus.com) / [tautulli.lkwplus.com](https://tautulli.lkwplus.com) | 20031 / 20033 | Plex media server via Cirvel (strm direct play; fixed IP 172.22.0.7) + Tautulli Plex monitor (172.22.0.9) + Kometa metadata/collections + letterboxd-plex-sync (weekly Letterboxd → Plex) |
 | [multica](./stacks/multica) | [multica.lkwplus.com](https://multica.lkwplus.com) | arm 20000 / 20001 | Multica self-host — AI-agent issue tracker (backend + web + Postgres; **runs on arm**, served by arm's host Caddy) |
 | [storageui](./stacks/storageui) | [storageui.lkwplus.com](https://storageui.lkwplus.com) | arm 20002 | Storage UI — S3/R2 web file manager, two R2 buckets (**runs on arm**, served by arm's host Caddy) |
 | [dsh](./stacks/dsh) | [dsh.lkwplus.com](https://dsh.lkwplus.com) | arm 20003 | DeepSeek Harness — agent harness Web UI (built from the upstream npm package, uid 1002 / `agent`) |
@@ -119,8 +118,8 @@ both hosts sits behind fail2ban ([bootstrap/fail2ban](./bootstrap/fail2ban/)).
 
 The most intertwined subsystem: clouddrive2 FUSE-mounts a 115 netdisk, cms turns it into a
 `.strm` library that Emby and Plex share, mdc scrapes metadata into it, and playback is a
-302-redirect straight to the cloud — media bytes never transit the VPS. Plex needs a
-helper proxy (medialinker) for that trick; seerr, tautulli and kometa orbit around.
+302-redirect straight to the cloud — media bytes never transit the VPS. Plex gets that trick
+from its Cirvel image; seerr, tautulli and kometa orbit around.
 Topology, fixed IPs, and failure modes: [media.md](./docs/media.md).
 
 ## Hosts & operations

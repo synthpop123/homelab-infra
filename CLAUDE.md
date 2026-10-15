@@ -32,7 +32,7 @@ Two hosts, both reachable from this machine via ssh aliases in `~/.ssh/config` (
 
 What runs on fame besides stacks (Caddy, komari, fail2ban, firewall, daemon config) is
 inventoried in `docs/server.md`; health-check and troubleshooting commands are in
-`docs/operations.md`; the multi-stack media pipeline (clouddrive2/cms/emby/plex/medialinker
+`docs/operations.md`; the multi-stack media pipeline (clouddrive2/cms/emby/plex
 and the `mediacenter-net` fixed IPs) in `docs/media.md`.
 
 ### Flow
