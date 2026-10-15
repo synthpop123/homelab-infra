@@ -18,6 +18,12 @@
 # cms.lkwplus.com direct links (cloud-media-sync's emby-302 service) — the same path Emby uses, which
 # is why no MoviePilot is needed. Plex's own config/database lives in /srv/plex/config.
 #
+# /srv/emby/mediainfo is Emby's Strm Assistant media-info store (<strm-name>-mediainfo.json, mirrored
+# under the media path: /mediainfo/data/JAV/...). Mounted rw at the SAME /mediainfo so Cirvel's
+# "媒体信息文件位置" = /mediainfo/{parentFolderPath}/ finds those files (Plex and Emby both see the
+# media at /data/...) and fills media info without probing the netdisk. rw only so Cirvel can also
+# write files of its own when its opt-in "生成媒体信息文件" is on; it never overwrites Emby's files.
+#
 # Tautulli monitors Plex; point it at http://172.22.0.7:32400 (or plex:32400 in-network). Config lives
 # in /srv/plex/tautulli/config. Fronted by https://tautulli.lkwplus.com (reverse proxy off-repo).
 #
@@ -64,6 +70,7 @@ services:
       - /srv/emby/data/TV:/data/TV:ro
       - /srv/emby/data/JAV:/data/JAV:ro
       - /srv/emby/data/Hentai:/data/Hentai:ro
+      - /srv/emby/mediainfo:/mediainfo
     ports:
       # host:container — host port from the registry (see docs/ports.md). plex.lkwplus.com via
       # Akko (Akko-only at the firewall); clients connect here, Cirvel handles STRM playback.

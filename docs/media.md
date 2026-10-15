@@ -67,6 +67,7 @@ then redeploy the member stacks.
 |------|-----------|---------|
 | `/mnt/CloudNAS/115` (FUSE) | clouddrive2 | cms, mdc |
 | `/srv/emby/data` | cms (.strm), mdc (nfo/jpg) | emby (rw), plex (ro) |
+| `/srv/emby/mediainfo` | emby (Strm Assistant `*-mediainfo.json`), plex/Cirvel (opt-in) | emby, plex/Cirvel |
 
 Consequence: **emby, cms, mdc and plex only work while clouddrive2's mount is
 healthy** — after a reboot or clouddrive2 restart, check the mount first
