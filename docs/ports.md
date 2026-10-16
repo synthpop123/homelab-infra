@@ -49,7 +49,6 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20031 | plex                  | 32400          | Plex media server (Cirvel; strm direct play) → plex.lkwplus.com |
 | 20033 | tautulli              | 8181           | Tautulli Plex monitor → tautulli.lkwplus.com |
 | 20035 | gpt-load              | 3001           | GPT-Load AI API proxy (SQLite) → gptload.lkwplus.com |
-| 20037 | moviepilot            | 3000           | MoviePilot V3 (SQLite) → mp.lkwplus.com |
 
 **Next free: `20038`**
 
@@ -61,7 +60,7 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 > it in-network at `flaresolverr:8191`), so `20025` is unused. `20030` previously published
 > `cpa-manager-plus`; CPA's built-in `/management.html` panel replaced it, so `20030` is unused.
 > `20032` previously published `medialinker`; Cirvel (the plex stack's image) took over its strm
-> direct play, so `20032` is unused. `20007` (new-api), `20017` (openwebui), `20034` and `20036` are also vacated. New services still take the next sequential number (**Next free** above),
+> direct play, so `20032` is unused. `20007` (new-api), `20017` (openwebui), `20034`, `20036` and `20037` (moviepilot) are also vacated. New services still take the next sequential number (**Next free** above),
 > not these gaps.
 >
 > **Outside the scheme** (host-networked; ports fixed by the app, not the registry):
@@ -72,7 +71,7 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 > - `qbittorrent` BitTorrent listen port stays on host port **65231** (tcp + udp), separate from its WebUI above.
 >
 > **Fixed IPs on the shared external `mediacenter-net`** (`172.22.0.4`–`.10`: emby,
-> cloud-media-sync, seerr, plex, tautulli, moviepilot; `.8` is retired) are docker network addresses, not host
+> cloud-media-sync, seerr, plex, tautulli; `.8` and `.10` are retired) are docker network addresses, not host
 > ports, and must not change — the full table and rationale live in
 > [media.md](./media.md#the-shared-network).
 
