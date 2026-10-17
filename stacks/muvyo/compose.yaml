@@ -1,0 +1,104 @@
+# muvyo — media toolkit (115 cloud STRM / Emby proxy / Vyo player), https://muvyo.com/docs#deploy.
+# Upstream's "PostgreSQL + Redis" compose, adapted to repo conventions. Three published ports, all
+# behind Akko: admin panel + API 7811 → muvyo.lkwplus.com, Vyo web/client 7810 → vyo.xx, Emby
+# proxy 8091 → emby-vyo.lkwplus.com.
+#
+# DB/cache connection is injected through the env vars the app reads at startup (MV_DATABASE_*,
+# MV_REDIS_URL — they override vault.ini and show read-only in 存储配置 as 「由容器环境变量提供」),
+# so nothing has to be typed into the UI. Both passwords are Komodo Variables; keep them hex so the
+# Redis URL needs no escaping.
+#
+# MV_OTA=off: the image pin here is the source of truth (Renovate bumps it), so the in-container
+# online upgrade is disabled and no docker.sock is mounted.
+#
+# Joins the external mediacenter-net (fixed IP 172.22.0.11, see docs/media.md) to reach
+# emby/plex by address; Postgres and Redis stay on the stack's private default network.
+services:
+  muvyo:
+    container_name: muvyo
+    image: thsrite/muvyo:v3.12.4-1
+    restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    depends_on:
+      muvyo-postgres:
+        condition: service_healthy
+      muvyo-redis:
+        condition: service_healthy
+    ports:
+      # host:container — host ports from the registry (see docs/ports.md)
+      - "20038:7811/tcp"
+      - "20039:7810/tcp"
+      - "20040:8091/tcp"
+    volumes:
+      - /srv/muvyo/data:/opt          # config / cache / logs (vault.ini, plugins, …)
+      - /srv/muvyo/strm:/strm         # STRM output
+      # Shared library (cms .strm + mdc nfo), at the same path Emby sees it, read-only.
+      - /srv/emby/data:/data:ro
+    environment:
+      TZ: Asia/Shanghai
+      MEDIAVAULT_BASE: /opt
+      UMASK: "022"
+      MV_OTA: "off"
+      MV_DATABASE_TYPE: postgresql
+      MV_DATABASE_HOST: muvyo-postgres
+      MV_DATABASE_PORT: "5432"
+      MV_DATABASE_NAME: muvyo
+      MV_DATABASE_USER: muvyo
+      MV_DATABASE_PASSWORD: ${MUVYO_DB_PASSWORD}
+      MV_REDIS_URL: redis://:${MUVYO_REDIS_PASSWORD}@muvyo-redis:6379/0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7811/api/v1/system/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 5
+    networks:
+      default: {}
+      mediacenter-net:
+        ipv4_address: 172.22.0.11
+
+  muvyo-postgres:
+    container_name: muvyo-postgres
+    image: postgres:17
+    restart: unless-stopped
+    # Upstream: without it /dev/shm is 64MB and heavy library queries fail with HTTP 500.
+    shm_size: 1g
+    environment:
+      TZ: Asia/Shanghai
+      POSTGRES_DB: muvyo
+      POSTGRES_USER: muvyo
+      POSTGRES_PASSWORD: ${MUVYO_DB_PASSWORD}
+    volumes:
+      - /srv/muvyo/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U muvyo -d muvyo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  muvyo-redis:
+    container_name: muvyo-redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "600", "1", "--appendonly", "yes", "--requirepass", "${MUVYO_REDIS_PASSWORD}"]
+    volumes:
+      - /srv/muvyo/redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    environment:
+      REDIS_PASSWORD: ${MUVYO_REDIS_PASSWORD}
+
+networks:
+  default:
+    name: muvyo
+  mediacenter-net:
+    external: true
+    name: mediacenter-net

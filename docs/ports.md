@@ -49,8 +49,11 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20031 | plex                  | 32400          | Plex media server (Cirvel; strm direct play) → plex.lkwplus.com |
 | 20033 | tautulli              | 8181           | Tautulli Plex monitor → tautulli.lkwplus.com |
 | 20035 | gpt-load              | 3001           | GPT-Load AI API proxy (SQLite) → gptload.lkwplus.com |
+| 20038 | muvyo (admin)         | 7811           | Muvyo admin panel + API → muvyo.lkwplus.com |
+| 20039 | muvyo (Vyo)           | 7810           | Muvyo Vyo web/client → vyo.xx |
+| 20040 | muvyo (Emby proxy)    | 8091           | Muvyo Emby proxy → emby-vyo.lkwplus.com |
 
-**Next free: `20038`**
+**Next free: `20041`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,
@@ -70,8 +73,8 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 > - `gitea` SSH stays on host port **222** (clone URLs), separate from its HTTP port above.
 > - `qbittorrent` BitTorrent listen port stays on host port **65231** (tcp + udp), separate from its WebUI above.
 >
-> **Fixed IPs on the shared external `mediacenter-net`** (`172.22.0.4`–`.10`: emby,
-> cloud-media-sync, seerr, plex, tautulli; `.8` and `.10` are retired) are docker network addresses, not host
+> **Fixed IPs on the shared external `mediacenter-net`** (`172.22.0.4`–`.11`: emby,
+> cloud-media-sync, seerr, plex, tautulli, muvyo; `.8` and `.10` are retired) are docker network addresses, not host
 > ports, and must not change — the full table and rationale live in
 > [media.md](./media.md#the-shared-network).
 

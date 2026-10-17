@@ -36,6 +36,9 @@ Around the core: **seerr** takes media requests, **tautulli** monitors Plex sess
 (outbound-only), and the acquisition side is **torrent** (qBittorrent + qui) with
 **autobrr** (IRC/RSS filtering + Telegram notify) — deliberately *not* wired to
 qBittorrent, notify-only.
+**muvyo** (admin `muvyo.lkwplus.com`, Vyo player `vyo.xx`, Emby proxy `emby-vyo.lkwplus.com`)
+sits beside them with its own Postgres + Redis, reading `/srv/emby/data` read-only at `/data`
+(the path Emby uses) and writing its own STRM output to `/srv/muvyo/strm`.
 
 ## The shared network
 
@@ -53,6 +56,7 @@ address in off-git config:
 | 172.22.0.8 | *(retired — was medialinker)* | — |
 | 172.22.0.9 | tautulli | — |
 | 172.22.0.10 | *(retired — was moviepilot)* | — |
+| 172.22.0.11 | muvyo | — (Emby/Plex webhooks, Emby proxy) |
 
 **These addresses must not change** — renumbering means editing `/srv/.../` configs on the
 host, not just compose files. kometa and letterboxd-plex-sync join the network without a
