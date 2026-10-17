@@ -1,6 +1,6 @@
 # muvyo — media toolkit (115 cloud STRM / Emby proxy / Vyo player), https://muvyo.com/docs#deploy.
 # Upstream's "PostgreSQL + Redis" compose, adapted to repo conventions. Three published ports, all
-# behind Akko: admin panel + API 7811 → muvyo.lkwplus.com, Vyo web/client 7810 → vyo.xx, Emby
+# behind Akko: admin panel + API 7811 → muvyo.lkwplus.com, Vyo web/client 7810 → vyo.lkwplus.com, Emby
 # proxy 8091 → emby-vyo.lkwplus.com.
 #
 # DB/cache connection is injected through the env vars the app reads at startup (MV_DATABASE_*,
