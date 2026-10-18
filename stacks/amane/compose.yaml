@@ -15,6 +15,10 @@
 # superuser DSN (CREATEDB/CREATEROLE) and creates the r18dev DB + read-only role itself. The DSN
 # (postgresql://postgres:<AMANE_DB_PASSWORD>@amane-postgres:5432/postgres) is set in 设置 → r18.
 #
+# flaresolverr (container amane-flaresolverr, internal-only — Amane requires the solver to stay off
+# the public internet) solves Cloudflare challenges: 设置 → 网络 → 浏览器后端 = Solver 服务, address
+# http://flaresolverr:8191 on this stack's `amane` network. Same image/limits as stacks/mdc's.
+#
 # Runs as normal (1000:1000), the owner of /srv/emby/data — create /srv/amane/data with that owner
 # before the first deploy, or Docker makes it root-owned and the app cannot write.
 services:
@@ -66,6 +70,23 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  flaresolverr:
+    container_name: amane-flaresolverr
+    image: ghcr.io/flaresolverr/flaresolverr:v3.5.2
+    restart: unless-stopped
+    environment:
+      - LOG_LEVEL=info
+      - LOG_FILE=none
+      - LOG_HTML=false
+      - CAPTCHA_SOLVER=none
+      - TZ=Asia/Shanghai
+    # Each solver session is a whole Chromium; cap it like mdc's (one healthy session ≈ 1 GiB).
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1536M
 
 networks:
   default:
