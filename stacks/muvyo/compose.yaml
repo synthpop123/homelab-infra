@@ -8,8 +8,11 @@
 # so nothing has to be typed into the UI. Both passwords are Komodo Variables; keep them hex so the
 # Redis URL needs no escaping.
 #
-# MV_OTA=off: the image pin here is the source of truth (Renovate bumps it), so the in-container
-# online upgrade is disabled and no docker.sock is mounted.
+# Updates: the 自动更新 plugin's online upgrade (OTA) swaps the program inside the running container
+# in the 04:00–06:00 idle window, signature-checked, with automatic rollback — no docker.sock is
+# mounted, so it can never recreate containers. The image pin below stays the baseline Renovate
+# bumps: a newer pulled image takes over from the OTA copy, and versions that change system
+# components (OTA refuses those) only arrive through it.
 #
 # Joins the external mediacenter-net (fixed IP 172.22.0.11, see docs/media.md) to reach
 # emby/plex by address; Postgres and Redis stay on the stack's private default network.
@@ -50,7 +53,6 @@ services:
       PGID: "1000"
       MEDIAVAULT_BASE: /opt
       UMASK: "022"
-      MV_OTA: "off"
       MV_DATABASE_TYPE: postgresql
       MV_DATABASE_HOST: muvyo-postgres
       MV_DATABASE_PORT: "5432"
