@@ -66,7 +66,7 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [seerr](./stacks/seerr) | [seerr.lkwplus.com](https://seerr.lkwplus.com) | 20016 | Media requests (+ dedicated Postgres) |
 | [gitea](./stacks/gitea) | [git.lkwplus.com](https://git.lkwplus.com) | 20018 | Git hosting (+ dedicated Postgres; SSH on 222) |
 | [torrent](./stacks/torrent) | [qb.lkwplus.com](https://qb.lkwplus.com) / [qui.lkwplus.com](https://qui.lkwplus.com) | 20019 / 20020 | qBittorrent + qui WebUI manager (BT on 65231) |
-| [emby](./stacks/emby) | [emby.lkwplus.com](https://emby.lkwplus.com) | 20021 | Emby media server (fixed IP 172.22.0.4 on mediacenter-net) |
+| [emby](./stacks/emby) | [emby.lkwplus.com](https://emby.lkwplus.com) | 20021 | Emby media server — JAV/Porn; Movie/TV libraries frozen as Vyo's image source (fixed IP 172.22.0.4 on mediacenter-net) |
 | [cms](./stacks/cms) | [cms.lkwplus.com](https://cms.lkwplus.com) / [emby-302.lkwplus.com](https://emby-302.lkwplus.com) | 20022 / 20023 | cloud-media-sync — web UI + strm-302 proxy (fixed IP 172.22.0.5) |
 | [mdc](./stacks/mdc) | [mdc.lkwplus.com](https://mdc.lkwplus.com) | 20024 | Movie Data Capture scraper (+ internal flaresolverr) |
 | [autobrr](./stacks/autobrr) | [autobrr.lkwplus.com](https://autobrr.lkwplus.com) | 20026 | IRC/RSS release automation (+ TMDB→Telegram notify sidecar) |
@@ -75,7 +75,7 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [cliproxyapi](./stacks/cliproxyapi) | [cpa.lkwplus.com](https://cpa.lkwplus.com) | 20029 | CLIProxyAPI AI proxy (CPA; built-in management at /management.html) |
 | [gpt-load](./stacks/gpt-load) | [gptload.lkwplus.com](https://gptload.lkwplus.com) | 20035 | GPT-Load AI API proxy (built-in SQLite) |
 | [plex](./stacks/plex) | [plex.lkwplus.com](https://plex.lkwplus.com) / [tautulli.lkwplus.com](https://tautulli.lkwplus.com) | 20031 / 20033 | Plex media server via Cirvel (strm direct play; fixed IP 172.22.0.7) + Tautulli Plex monitor (172.22.0.9) + Kometa metadata/collections + letterboxd-plex-sync (weekly Letterboxd → Plex) |
-| [muvyo](./stacks/muvyo) | [muvyo.lkwplus.com](https://muvyo.lkwplus.com) / [vyo.lkwplus.com](https://vyo.lkwplus.com) | 20038 / 20039 | Muvyo — admin panel / Vyo player (+ dedicated Postgres + Redis; fixed IP 172.22.0.11) |
+| [muvyo](./stacks/muvyo) | [muvyo.lkwplus.com](https://muvyo.lkwplus.com) / [vyo.lkwplus.com](https://vyo.lkwplus.com) | 20038 / 20039 | Muvyo — owns Movie/TV (qB → 115 upload, organize, STRM, 302) + Vyo player (+ dedicated Postgres + Redis; fixed IP 172.22.0.11) |
 | [multica](./stacks/multica) | [multica.lkwplus.com](https://multica.lkwplus.com) | arm 20000 / 20001 | Multica self-host — AI-agent issue tracker (backend + web + Postgres; **runs on arm**, served by arm's host Caddy) |
 | [storageui](./stacks/storageui) | [storageui.lkwplus.com](https://storageui.lkwplus.com) | arm 20002 | Storage UI — S3/R2 web file manager, two R2 buckets (**runs on arm**, served by arm's host Caddy) |
 | [dsh](./stacks/dsh) | [dsh.lkwplus.com](https://dsh.lkwplus.com) | arm 20003 | DeepSeek Harness — agent harness Web UI (built from the upstream npm package, uid 1002 / `agent`) |
@@ -116,10 +116,11 @@ both hosts sits behind fail2ban ([bootstrap/fail2ban](./bootstrap/fail2ban/)).
 
 ## Media pipeline
 
-The most intertwined subsystem: clouddrive2 FUSE-mounts a 115 netdisk, cms turns it into a
-`.strm` library that Emby and Plex share, mdc scrapes metadata into it, and playback is a
-302-redirect straight to the cloud — media bytes never transit the VPS. Plex gets that trick
-from its Cirvel image; seerr, tautulli and kometa orbit around.
+The most intertwined subsystem: a 115 netdisk exposed as a `.strm` library, where playback
+is a 302-redirect straight to the cloud — media bytes never transit the VPS. Muvyo owns
+Movie/TV (uploads qBittorrent downloads, organizes, writes the STRM) for Plex and its own Vyo
+player; cms + mdc still feed JAV & co. to Emby and Plex. Plex gets the STRM trick from its
+Cirvel image; seerr, tautulli and kometa orbit around.
 Topology, fixed IPs, and failure modes: [media.md](./docs/media.md).
 
 ## Hosts & operations

@@ -10,19 +10,18 @@
 # Cirvel's admin panel is https://plex.lkwplus.com/cirvel/ (server-owner Plex login); its settings
 # persist under /config. Free tier covers STRM playback; Pro features are licence-gated in the panel.
 #
-# Plex shares Emby's .strm libraries: mounts /srv/emby/data/{Movie,TV,JAV,Hentai} (the strm trees
-# cloud-media-sync writes) read-only as /data/{Movie,TV,JAV,Hentai} — Cirvel needs the container
-# paths to stay what they were when the libraries were scanned. Movie/TV are scraped with Plex's
-# own online agent; JAV and Hentai are "Plex NFO Movie" agent libraries (PMS >= 1.43.1) built entirely
-# from the nfo/poster files mdc writes next to each .strm — no online matching. The strm files hold
-# cms.lkwplus.com direct links (cloud-media-sync's emby-302 service) — the same path Emby uses, which
-# is why no MoviePilot is needed. Plex's own config/database lives in /srv/plex/config.
+# Plex shares the .strm libraries under /srv/emby/data: mounts {Movie,TV,JAV,Hentai} read-only as
+# /data/{Movie,TV,JAV,Hentai} — Cirvel needs the container paths to stay what they were when the
+# libraries were scanned. Only two libraries exist: 电影 (/data/Movie) and 电视节目 (/data/TV), Muvyo-
+# written STRM (links to Muvyo's 302) scraped with Plex's own online agent. JAV/Hentai (cloud-media-sync
+# STRM + mdc nfo/posters) are mounted for a future "Plex NFO Movie" agent library (PMS >= 1.43.1) but
+# have none yet. Plex's own config/database lives in /srv/plex/config.
 #
-# /srv/emby/mediainfo is Emby's Strm Assistant media-info store (<strm-name>-mediainfo.json, mirrored
-# under the media path: /mediainfo/data/JAV/...). Mounted rw at the SAME /mediainfo so Cirvel's
-# "媒体信息文件位置" = /mediainfo/{parentFolderPath}/ finds those files (Plex and Emby both see the
-# media at /data/...) and fills media info without probing the netdisk. rw only so Cirvel can also
-# write files of its own when its opt-in "生成媒体信息文件" is on; it never overwrites Emby's files.
+# Media info: Cirvel's "媒体信息文件位置" is /{parentFolderPath}/ — the <strm-name>-mediainfo.json next
+# to each .strm (Muvyo writes them for Movie/TV, Emby's Strm Assistant for JAV) — so Cirvel fills media
+# info without probing the netdisk; its own "生成媒体信息文件" is off (/data is read-only here).
+# /srv/emby/mediainfo (Strm Assistant's mirrored store, /mediainfo/data/JAV/...) stays mounted at the
+# SAME /mediainfo as in Emby for switching the location back.
 #
 # Tautulli monitors Plex; point it at http://172.22.0.7:32400 (or plex:32400 in-network). Config lives
 # in /srv/plex/tautulli/config. Fronted by https://tautulli.lkwplus.com (reverse proxy off-repo).
