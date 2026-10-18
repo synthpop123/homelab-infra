@@ -33,6 +33,10 @@ services:
       - /srv/cms/logs:/logs
       - /srv/cms/cache:/var/cache/nginx/emby
       - /srv/emby/data:/media
+      # Movie/TV are Muvyo's (STRM + -mediainfo.json); read-only here so a "CMS主任务" run can't
+      # write cms-format STRM back over them. cms keeps writing JAV & co. and serving their 302.
+      - /srv/emby/data/Movie:/media/Movie:ro
+      - /srv/emby/data/TV:/media/TV:ro
     ports:
       # host:container — host ports from the registry (see docs/ports.md)
       - "20022:9527/tcp"   # CMS web UI
