@@ -1,7 +1,7 @@
 # muvyo — media toolkit (115 cloud STRM / Emby proxy / Vyo player), https://muvyo.com/docs#deploy.
-# Upstream's "PostgreSQL + Redis" compose, adapted to repo conventions. Three published ports, all
-# behind Akko: admin panel + API 7811 → muvyo.lkwplus.com, Vyo web/client 7810 → vyo.lkwplus.com, Emby
-# proxy 8091 → emby-vyo.lkwplus.com.
+# Upstream's "PostgreSQL + Redis" compose, adapted to repo conventions. Two published ports, both
+# behind Akko: admin panel + API 7811 → muvyo.lkwplus.com, Vyo web/client 7810 → vyo.lkwplus.com.
+# The Emby proxy (8091) is not published: Emby is being retired, Plex/Cirvel and Vyo replace it.
 #
 # DB/cache connection is injected through the env vars the app reads at startup (MV_DATABASE_*,
 # MV_REDIS_URL — they override vault.ini and show read-only in 存储配置 as 「由容器环境变量提供」),
@@ -31,7 +31,6 @@ services:
       # host:container — host ports from the registry (see docs/ports.md)
       - "20038:7811/tcp"
       - "20039:7810/tcp"
-      - "20040:8091/tcp"
     volumes:
       - /srv/muvyo/data:/opt          # config / cache / logs (vault.ini, plugins, …)
       - /srv/muvyo/strm:/strm         # STRM staging (full regenerations land here first)

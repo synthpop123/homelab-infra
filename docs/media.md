@@ -36,7 +36,7 @@ Around the core: **seerr** takes media requests, **tautulli** monitors Plex sess
 (outbound-only), and the acquisition side is **torrent** (qBittorrent + qui) with
 **autobrr** (IRC/RSS filtering + Telegram notify) — deliberately *not* wired to
 qBittorrent, notify-only.
-**muvyo** (admin `muvyo.lkwplus.com`, Vyo player `vyo.lkwplus.com`, Emby proxy `emby-vyo.lkwplus.com`)
+**muvyo** (admin `muvyo.lkwplus.com`, Vyo player `vyo.lkwplus.com`)
 sits beside them with its own Postgres + Redis, reading `/srv/emby/data` read-only at `/data`
 (the path Emby uses) and writing its own STRM output to `/srv/muvyo/strm`.
 

@@ -51,7 +51,6 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20035 | gpt-load              | 3001           | GPT-Load AI API proxy (SQLite) → gptload.lkwplus.com |
 | 20038 | muvyo (admin)         | 7811           | Muvyo admin panel + API → muvyo.lkwplus.com |
 | 20039 | muvyo (Vyo)           | 7810           | Muvyo Vyo web/client → vyo.lkwplus.com |
-| 20040 | muvyo (Emby proxy)    | 8091           | Muvyo Emby proxy → emby-vyo.lkwplus.com |
 
 **Next free: `20041`**
 
