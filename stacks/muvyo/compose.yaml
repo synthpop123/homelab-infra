@@ -34,11 +34,21 @@ services:
       - "20040:8091/tcp"
     volumes:
       - /srv/muvyo/data:/opt          # config / cache / logs (vault.ini, plugins, …)
-      - /srv/muvyo/strm:/strm         # STRM output
-      # Shared library (cms .strm + mdc nfo), at the same path Emby sees it, read-only.
+      - /srv/muvyo/strm:/strm         # STRM staging (full regenerations land here first)
+      # Shared library, at the same /data path Emby and Plex see it (Cirvel matches Muvyo-made
+      # STRM by path). Read-only, except Movie/TV: Muvyo is the only writer of those two trees
+      # (STRM, subtitles, Vyo's -mediainfo.json). JAV & co. stay mdc/cms-owned.
       - /srv/emby/data:/data:ro
+      - /srv/emby/data/Movie:/data/Movie
+      - /srv/emby/data/TV:/data/TV
+      # qBittorrent's completed dir: the directory-monitor rule uploads from here to 115.
+      - /srv/torrent/qbittorrent/completed:/downloads
     environment:
       TZ: Asia/Shanghai
+      # Run as normal (1000), like emby/cms/qbittorrent, so files written into the shared library
+      # and qB's download dir keep one owner. /srv/muvyo/{data,strm} are chowned to match.
+      PUID: "1000"
+      PGID: "1000"
       MEDIAVAULT_BASE: /opt
       UMASK: "022"
       MV_OTA: "off"
