@@ -455,8 +455,12 @@ linked_repo = "homelab-infra"
 run_directory = "stacks/amane"
 file_paths = ["compose.yaml"]
 # JAV scraper + organizer replacing mdc. Libraries live on the 115 mount (/mnt/CloudNAS → /media,
-# rslave); link_template writes STRM/NFO/images into the shared /srv/emby/data (/data). No secrets:
-# the API token is auto-generated into /srv/amane/data, LLM keys are entered in the UI.
+# rslave); link_template writes STRM/NFO/images into the shared /srv/emby/data (/data). The API
+# token is auto-generated into /srv/amane/data, LLM keys are entered in the UI. Bundled Postgres
+# (r18.dev offline source) — its superuser password is a Komodo Variable.
+environment = """
+AMANE_DB_PASSWORD=[[AMANE_DB_PASSWORD]]
+"""
 
 [[stack]]
 name = "autobrr"

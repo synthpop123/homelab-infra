@@ -11,6 +11,10 @@
 # the SQLite DB, downloaded resources and the auto-generated API token (`token`) live in
 # /srv/amane/data. LLM/translation keys are entered in the UI and stored in that DB.
 #
+# amane-postgres is internal-only and exists for the r18.dev offline source: its importer needs a
+# superuser DSN (CREATEDB/CREATEROLE) and creates the r18dev DB + read-only role itself. The DSN
+# (postgresql://postgres:<AMANE_DB_PASSWORD>@amane-postgres:5432/postgres) is set in 设置 → r18.
+#
 # Runs as normal (1000:1000), the owner of /srv/emby/data — create /srv/amane/data with that owner
 # before the first deploy, or Docker makes it root-owned and the app cannot write.
 services:
@@ -19,6 +23,9 @@ services:
     image: ghcr.io/sqzw-x/amane:0.22.0
     restart: unless-stopped
     user: "1000:1000"
+    depends_on:
+      amane-postgres:
+        condition: service_healthy
     environment:
       - TZ=Asia/Shanghai
       - AMANE_DATA_DIR=/config
@@ -41,6 +48,23 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 10s
+
+  amane-postgres:
+    container_name: amane-postgres
+    image: postgres:17
+    restart: unless-stopped
+    shm_size: 256m
+    environment:
+      TZ: Asia/Shanghai
+      POSTGRES_PASSWORD: ${AMANE_DB_PASSWORD}
+    volumes:
+      - /srv/amane/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
       start_period: 10s
 
 networks:

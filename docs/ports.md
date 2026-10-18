@@ -57,7 +57,7 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,
-> mdc's `flaresolverr`, the plex stack's `kometa` / `letterboxd-plex-sync`) are internal-only (no host port).
+> mdc's `flaresolverr`, amane's `amane-postgres`, the plex stack's `kometa` / `letterboxd-plex-sync`) are internal-only (no host port).
 >
 > **Vacated:** `20025` previously published mdc's `flaresolverr`; it is now internal-only (mdc reaches
 > it in-network at `flaresolverr:8191`), so `20025` is unused. `20030` previously published
