@@ -51,8 +51,9 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20035 | gpt-load              | 3001           | GPT-Load AI API proxy (SQLite) → gptload.lkwplus.com |
 | 20038 | muvyo (admin)         | 7811           | Muvyo admin panel + API → muvyo.lkwplus.com |
 | 20039 | muvyo (Vyo)           | 7810           | Muvyo Vyo web/client → vyo.lkwplus.com |
+| 20041 | amane                 | 8000           | Amane JAV scraper/organizer → amane.lkwplus.com |
 
-**Next free: `20041`**
+**Next free: `20042`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,

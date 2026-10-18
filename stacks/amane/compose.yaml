@@ -1,0 +1,48 @@
+# Amane — JAV scraper + organizer (successor to mdc, same author as mdcx), https://sqzw-x.github.io/amane/.
+# Upstream's compose, adapted to repo conventions. Web UI + API on 8000 → amane.lkwplus.com (behind Akko).
+#
+# Libraries point at the 115 tree through the clouddrive2 mount (/media/115/...); organize moves the
+# video on 115 itself, and the library's link_template writes STRM + NFO + images outside the library
+# into the shared media tree (/data, the same /srv/emby/data every media container sees as /data).
+# The STRM body is the library's strm_content_template — a Muvyo path-only redirect URL — so Plex
+# (Cirvel) and Vyo play straight from 115. Organize is manual (UI or API); there is no CD2 webhook.
+#
+# AMANE_DATA_DIR is moved off its upstream default /data so /data can stay the shared media tree;
+# the SQLite DB, downloaded resources and the auto-generated API token (`token`) live in
+# /srv/amane/data. LLM/translation keys are entered in the UI and stored in that DB.
+#
+# Runs as normal (1000:1000), the owner of /srv/emby/data — create /srv/amane/data with that owner
+# before the first deploy, or Docker makes it root-owned and the app cannot write.
+services:
+  amane:
+    container_name: amane
+    image: ghcr.io/sqzw-x/amane:0.22.0
+    restart: unless-stopped
+    user: "1000:1000"
+    environment:
+      - TZ=Asia/Shanghai
+      - AMANE_DATA_DIR=/config
+      - AMANE_LOG_DIR=/config/logs
+      # Boundary for the file browser and library/link paths.
+      - AMANE_SAFE_DIRS=/media,/data
+      # Mounts the in-app restart endpoint; `restart: unless-stopped` brings it back up.
+      - AMANE_SUPERVISED=1
+    volumes:
+      - /srv/amane/data:/config
+      # Plain parent dir with rslave, as in stacks/mdc: a bind of the /mnt/CloudNAS/115 FUSE
+      # mountpoint itself would go dead on a clouddrive2 remount. Library paths are /media/115/...
+      - /mnt/CloudNAS:/media:rslave
+      - /srv/emby/data:/data
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20041:8000/tcp"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  default:
+    name: amane

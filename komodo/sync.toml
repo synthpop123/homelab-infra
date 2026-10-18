@@ -444,6 +444,21 @@ MDC_PASSWORD=[[MDC_PASSWORD]]
 """
 
 [[stack]]
+name = "amane"
+description = "https://amane.lkwplus.com"
+deploy = false
+tags = ["app", "host-fame", "media"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/amane"
+file_paths = ["compose.yaml"]
+# JAV scraper + organizer replacing mdc. Libraries live on the 115 mount (/mnt/CloudNAS → /media,
+# rslave); link_template writes STRM/NFO/images into the shared /srv/emby/data (/data). No secrets:
+# the API token is auto-generated into /srv/amane/data, LLM keys are entered in the UI.
+
+[[stack]]
 name = "autobrr"
 description = "https://autobrr.lkwplus.com"
 deploy = false
