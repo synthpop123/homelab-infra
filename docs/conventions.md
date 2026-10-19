@@ -12,6 +12,10 @@
 ## Image pinning
 - **App images:** pin to an explicit version (`org/name:1.2.3`, never `:latest`) so Renovate can
   propose upgrades as PRs — see [workflow.md](./workflow.md).
+- **OTA-updating apps:** an app that updates itself inside the running container (muvyo's 自动更新
+  plugin) is the one exception — a pin would always lag the live version, so it tracks `latest`,
+  its image line carries an inline `# allow-latest` for the lint gate, and Renovate is disabled
+  for that image in `renovate.json`.
 - **Databases & caches** (Postgres, Redis, …): pin to the **major line** instead
   (`pgvector/pgvector:pg16`, `redis:7`). Patches arrive on the next pull and container
   recreation, while a *major* bump

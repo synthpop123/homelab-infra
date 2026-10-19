@@ -88,10 +88,10 @@
       "versioning": "regex:^RELEASE\\.(?<major>\\d+)-(?<minor>\\d+)-(?<patch>\\d+)T(?<build>\\d+)-\\d+-\\d+Z$"
     },
     {
-      "description": "Muvyo tags are v3.12.4 plus same-version rebuilds v3.12.4-1, -2, …; default docker versioning would treat -1 as a compatibility suffix that must match exactly, stranding the pin on that rebuild line. Parse the rebuild counter as build; the anchor also excludes the -ota-amd64 / -ota-arm64 payload tags.",
+      "description": "Muvyo runs `latest` because its in-container OTA plugin updates ahead of any pinned tag, so tracked PRs would always arrive stale (stacks/muvyo/compose.yaml, docs/conventions.md). Disable the datasource entirely so Renovate opens no version or digest PRs for it.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["thsrite/muvyo"],
-      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:-(?<build>\\d+))?$"
+      "enabled": false
     },
     {
       "description": "Same LinuxServer.io problem for kometa, whose tags look like v2.4.4-ls103.",

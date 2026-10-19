@@ -12,7 +12,8 @@
 #   2. compose config  — the SAME parser Komodo uses; catches schema errors
 #   3. shell syntax    — bootstrap scripts parse before they are installed on a host
 #   4. sync.toml schema / renovate.json — resource types and JSON syntax of the files that drive automation
-#   5. image pins      — every `image:` carries an explicit tag, never `:latest` (docs/conventions.md)
+#   5. image pins      — every `image:` carries an explicit tag, never `:latest`, unless the line
+#                        opts out with an inline `# allow-latest` (docs/conventions.md)
 #
 # STRICT=1 (set in CI) turns "tool not installed -> skip" into a hard failure, so CI
 # always runs every check. Locally, missing tools are skipped with a warning.
@@ -149,9 +150,12 @@ echo "== image pins =="
 pins_ok=1
 while IFS= read -r line; do
   file="${line%%:*}"; rest="${line#*:}"; lineno="${rest%%:*}"
-  image="$(printf '%s' "${rest#*:}" | sed -E 's/^[[:space:]]*image:[[:space:]]*//; s/[[:space:]]+#.*$//; s/^["'\'']//; s/["'\'']$//')"
+  raw="${rest#*:}"
+  image="$(printf '%s' "$raw" | sed -E 's/^[[:space:]]*image:[[:space:]]*//; s/[[:space:]]+#.*$//; s/^["'\'']//; s/["'\'']$//')"
   name="${image##*/}"
-  if [[ "$image" != *@sha256:* && ( "$name" != *:* || "$name" == *:latest ) ]]; then
+  # `# allow-latest` opts a line out: used when upstream updates itself out-of-band, so a
+  # version pin would only ever lag behind the running software.
+  if [[ "$raw" != *allow-latest* && "$image" != *@sha256:* && ( "$name" != *:* || "$name" == *:latest ) ]]; then
     echo "FAIL: $file:$lineno image not pinned to an explicit tag: $image" >&2
     pins_ok=0
   fi

@@ -10,16 +10,18 @@
 #
 # Updates: the 自动更新 plugin's online upgrade (OTA) swaps the program inside the running container
 # in the 04:00–06:00 idle window, signature-checked, with automatic rollback — no docker.sock is
-# mounted, so it can never recreate containers. The image pin below stays the baseline Renovate
-# bumps: a newer pulled image takes over from the OTA copy, and versions that change system
-# components (OTA refuses those) only arrive through it.
+# mounted, so it can never recreate containers. Because OTA moves the running version ahead of any
+# tag Renovate could pin, a version pin would always lag and every bump PR would arrive stale.
+# The image is therefore `latest` (validate.sh: `# allow-latest`), Renovate is disabled for it, and
+# the baseline version comes from the image pull on redeploy. Versions that change system
+# components (OTA refuses those) still arrive only by recreating the container from a fresh pull.
 #
 # Joins the external mediacenter-net (fixed IP 172.22.0.11, see docs/media.md) to reach
 # emby/plex by address; Postgres and Redis stay on the stack's private default network.
 services:
   muvyo:
     container_name: muvyo
-    image: thsrite/muvyo:v3.12.6
+    image: thsrite/muvyo:latest  # allow-latest — upstream OTA self-updates (see header)
     restart: unless-stopped
     ulimits:
       nofile:
