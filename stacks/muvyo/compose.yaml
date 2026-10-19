@@ -19,7 +19,7 @@
 services:
   muvyo:
     container_name: muvyo
-    image: thsrite/muvyo:v3.12.6
+    image: thsrite/muvyo:v3.12.7
     restart: unless-stopped
     ulimits:
       nofile:
