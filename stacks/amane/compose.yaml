@@ -24,7 +24,7 @@
 services:
   amane:
     container_name: amane
-    image: ghcr.io/sqzw-x/amane:0.22.0
+    image: ghcr.io/sqzw-x/amane:0.22.1
     restart: unless-stopped
     user: "1000:1000"
     depends_on:
