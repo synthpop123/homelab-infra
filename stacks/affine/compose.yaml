@@ -35,6 +35,10 @@ services:
       - /srv/affine/storage:/root/.affine/storage
       - /srv/affine/config:/root/.affine/config
     environment: &affine-env
+      # The image leaves this unset. The Node side then defaults to selfhosted, but the native
+      # runtime (BYOK policy, AI routing) defaults to Cloud — which hides the BYOK "custom
+      # API-compatible endpoint" option. Same value as the Node default, so nothing else moves.
+      DEPLOYMENT_TYPE: selfhosted
       REDIS_SERVER_HOST: affine-redis
       DATABASE_URL: postgresql://affine:${AFFINE_DB_PASSWORD}@affine-postgres:5432/affine
       AFFINE_INDEXER_ENABLED: "false"
