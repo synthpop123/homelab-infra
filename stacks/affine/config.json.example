@@ -1,0 +1,29 @@
+{
+  "$schema": "https://github.com/toeverything/affine/releases/latest/download/config.schema.json",
+  "server": {
+    "name": "AFFiNE Self-hosted",
+    "externalUrl": "https://affine.lkwplus.com"
+  },
+  "storages": {
+    "blob.storage": {
+      "provider": "aws-s3",
+      "bucket": "affine",
+      "config": {
+        "endpoint": "https://s3.lkwplus.com",
+        "region": "us-east-1",
+        "forcePathStyle": true,
+        "credentials": {
+          "accessKeyId": "affine",
+          "secretAccessKey": "<silo secret for user affine>"
+        }
+      }
+    }
+  },
+  "copilot": {
+    "enabled": true,
+    "byok": {
+      "enabled": true,
+      "allowCustomEndpoint": true
+    }
+  }
+}

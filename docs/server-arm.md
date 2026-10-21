@@ -3,7 +3,7 @@
 One-page inventory of the second VPS — an Oracle Cloud ARM machine in Chuncheon, South
 Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md)).
 Runs the **multica**, **storageui**, **dsh**, **sure**, **ghostfolio**, **trek**, **airtrail**,
-**wealthfolio**, **silo** and **beszel-agent** stacks (see below). The primary
+**wealthfolio**, **silo**, **affine** and **beszel-agent** stacks (see below). The primary
 host's page: [server.md](./server.md).
 
 ## System
@@ -45,7 +45,7 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 | Process | Port | Purpose |
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
-| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure / ghostfolio / trek / airtrail / wealthfolio / silo) |
+| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / dsh / sure / ghostfolio / trek / airtrail / wealthfolio / silo / affine) |
 | multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) |
 | komari-agent | outbound | reports to the komari probe on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
@@ -220,6 +220,22 @@ Docker **29.5.3**, default address pools.
   `docker exec silo mcli` (alias the server as `http://127.0.0.1:9000` inside the container).
   Tags are `RELEASE.<timestamp>`, which Renovate's default docker versioning cannot order, so
   `renovate.json` parses them with a regex rule (it also skips the `-distroless`/`-arm64` variants).
+- **affine** ([stacks/affine](../stacks/affine/)) — AFFiNE docs/whiteboard/knowledge workspace
+  (server + one-shot `affine-migration` job + bundled Postgres (pgvector) + Redis). Port
+  `127.0.0.1:20011` fronted by the host Caddy at `affine.lkwplus.com` (WebSocket sync goes through
+  Caddy's `reverse_proxy` untouched). App settings live off-git in
+  `/srv/affine/config/config.json` (sanitized template: `config.json.example`); the predeploy job
+  also writes `/srv/affine/config/private.key` there — back it up, replacing it invalidates
+  signed/encrypted data. **Blobs live on silo**, bucket `affine`, through its own user `affine`
+  (policy `affine-rw`, that bucket only). The endpoint must be the public `https://s3.lkwplus.com`,
+  not the in-network `silo:9000`: AFFiNE answers every blob GET with a 302 to a presigned S3 URL,
+  so the browser has to reach the same origin the server signs for (the container reaches it by
+  hairpinning out and back through Caddy; silo's default CORS already allows the AFFiNE origin).
+  Avatars and copilot files stay on the fs provider under `/srv/affine/storage`. So a backup is
+  Postgres + `/srv/affine/{config,storage}` + the silo bucket. The server-side indexer is off
+  (upstream default). The first account created from the UI is the admin; SMTP is not configured,
+  so invitations and password resets by mail do not work until it is (Admin Panel or `mailer` in
+  `config.json`).
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;

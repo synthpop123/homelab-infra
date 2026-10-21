@@ -765,6 +765,25 @@ SILO_ROOT_PASSWORD=[[SILO_ROOT_PASSWORD]]
 """
 
 [[stack]]
+name = "affine"
+description = "https://affine.lkwplus.com"
+deploy = false
+tags = ["app", "host-arm"]
+
+[stack.config]
+server = "Oracle-Arm"
+linked_repo = "homelab-infra"
+run_directory = "stacks/affine"
+file_paths = ["compose.yaml"]
+# Docs/whiteboard workspace on the arm host (image is multi-arch incl. linux/arm64). Server +
+# one-shot migration job + bundled Postgres (pgvector) + Redis; only the server publishes a
+# loopback port for host Caddy. App settings (incl. the silo S3 key for blobs) live off-git in
+# /srv/affine/config/config.json. The first account created from the UI is the admin.
+environment = """
+AFFINE_DB_PASSWORD=[[AFFINE_DB_PASSWORD]]
+"""
+
+[[stack]]
 name = "beszel-agent"
 description = "arm metrics agent -> beszel hub on fame"
 deploy = false

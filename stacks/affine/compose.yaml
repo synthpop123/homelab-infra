@@ -1,0 +1,86 @@
+# affine — open-source docs/whiteboard/knowledge workspace (https://github.com/toeverything/AFFiNE).
+# Runs on the arm host (Oracle-Arm, aarch64 — ghcr.io/toeverything/affine is multi-arch incl.
+# linux/arm64), served by arm's host Caddy at affine.lkwplus.com. Only the server publishes a host
+# port (127.0.0.1:20011); Postgres and Redis are internal-only.
+#
+# Upstream: the release docker-compose.yml (https://docs.affine.pro/self-host-affine). Deltas:
+# - `stable` / untagged `redis` become pinned tags, relative ./data + ./config become absolute
+#   binds under /srv/affine/ (repo convention), and service/container names are hyphenated.
+# - Upstream runs Postgres with `trust` auth; here it has a password (Komodo Variable
+#   AFFINE_DB_PASSWORD, plain hex so it can sit in DATABASE_URL unescaped).
+# - affine-migration runs the one-shot predeploy (Prisma migrations + config/private.key) and must
+#   use the same image tag as the server — Renovate bumps both lines together.
+#
+# Application settings live in /srv/affine/config/config.json on the host (never committed — it
+# holds the silo S3 credentials); the sanitized template is config.json.example next to this file.
+# Uploaded blobs go to the `affine` bucket on silo (s3.lkwplus.com); /srv/affine/storage still
+# holds avatars and copilot files (fs providers). Back up /srv/affine/config/private.key — losing
+# or replacing it invalidates signed/encrypted data.
+services:
+  affine:
+    container_name: affine
+    image: ghcr.io/toeverything/affine:0.27.4
+    restart: unless-stopped
+    depends_on:
+      affine-redis:
+        condition: service_healthy
+      affine-postgres:
+        condition: service_healthy
+      affine-migration:
+        condition: service_completed_successfully
+    ports:
+      # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
+      - "127.0.0.1:20011:3010/tcp"
+    volumes:
+      - /srv/affine/storage:/root/.affine/storage
+      - /srv/affine/config:/root/.affine/config
+    environment: &affine-env
+      REDIS_SERVER_HOST: affine-redis
+      DATABASE_URL: postgresql://affine:${AFFINE_DB_PASSWORD}@affine-postgres:5432/affine
+      AFFINE_INDEXER_ENABLED: "false"
+      TZ: Asia/Shanghai
+
+  affine-migration:
+    container_name: affine-migration
+    image: ghcr.io/toeverything/affine:0.27.4
+    command: ["sh", "-c", "node ./scripts/self-host-predeploy.js"]
+    volumes:
+      - /srv/affine/storage:/root/.affine/storage
+      - /srv/affine/config:/root/.affine/config
+    environment: *affine-env
+    depends_on:
+      affine-postgres:
+        condition: service_healthy
+      affine-redis:
+        condition: service_healthy
+
+  affine-redis:
+    container_name: affine-redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  affine-postgres:
+    container_name: affine-postgres
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: affine
+      POSTGRES_DB: affine
+      POSTGRES_PASSWORD: ${AFFINE_DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    volumes:
+      - /srv/affine/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "affine", "-d", "affine"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: affine
