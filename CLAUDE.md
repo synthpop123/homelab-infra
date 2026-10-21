@@ -57,9 +57,9 @@ so `extra_args = "--build"` rebuilds the local image.
 
 To avoid that manual step for a source-built stack, **keep the upstream version pin in
 `compose.yaml` under `build.args`, never in the `Dockerfile`** — the bump then lands in a
-watched file and redeploys itself. `stacks/dsh` is the worked example (`DSH_VERSION`, plus a
-`customManagers` regex entry in `renovate.json`, since the `docker-compose` manager only reads
-`image:` keys). Only what genuinely belongs to the build (the `FROM` base image) stays behind.
+watched file and redeploys itself. A build arg the `docker-compose` manager cannot see (it only
+reads `image:` keys) needs a `customManagers` regex entry in `renovate.json` to be tracked. Only
+what genuinely belongs to the build (the `FROM` base image) stays behind.
 
 Both `sync.toml` and the redeploy procedure are themselves defined as code in
 `komodo/sync.toml`. Stacks reference their git source via `linked_repo = "homelab-infra"`

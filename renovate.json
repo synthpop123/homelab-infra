@@ -12,15 +12,6 @@
   "customManagers": [
     {
       "customType": "regex",
-      "description": "dsh has no published container image, so stacks/dsh builds from upstream's npm package with the version pinned in compose.yaml's build.args (see that file for why it lives there and not in the Dockerfile). The docker-compose manager only reads `image:` keys, so the build arg needs its own manager.",
-      "managerFilePatterns": ["/(^|/)compose\\.ya?ml$/"],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)(?: versioning=(?<versioning>[^\\s]+?))?\\s+[A-Za-z0-9_]+_VERSION:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
-      ],
-      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
-    },
-    {
-      "customType": "regex",
       "description": "Track the shared Komodo Core / Periphery pin; bootstrap and the arm systemd agent are upgraded manually together.",
       "managerFilePatterns": [
         "/^bootstrap/komodo/compose\\.env\\.example$/"
@@ -50,12 +41,6 @@
       "description": "Topic Docker image PRs by the bare image name (Renovate's default prepends a 'dependency ' noun).",
       "matchManagers": ["docker-compose"],
       "commitMessageTopic": "{{depName}}"
-    },
-    {
-      "description": "dsh is a developer preview that has only ever published prereleases (0.0.1-rc.N, then 0.1.x-rc.N, now 0.1.2-alpha.N). With the default ignoreUnstable, Renovate allows a prerelease upgrade only when major.minor.patch match the current one — rc.7 -> rc.8 would be offered, but a move to a new prerelease line would be dropped with no PR and no dashboard entry. Upstream has already made that jump twice (0.0.1-rc.5 -> 0.1.0-rc.2 and 0.1.1-rc.2 -> 0.1.2-alpha.1), so opt into unstable explicitly. Note that npm's `latest` dist-tag still points at the older rc line while `alpha` carries the newer one; Renovate ranks by version, not dist-tag, so the alpha is still offered. Breaking changes are expected: read the release notes before merging.",
-      "matchDatasources": ["npm"],
-      "matchPackageNames": ["@deepseek-ai/dsh"],
-      "ignoreUnstable": false
     },
     {
       "description": "Mastodon ships its web/sidekiq image and the streaming image in lockstep at the same version, so group their updates into one PR.",

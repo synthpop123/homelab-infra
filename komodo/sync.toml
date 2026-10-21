@@ -42,7 +42,7 @@ enabled = true
 
 [[server]]
 name = "Oracle-Arm"
-description = "Oracle Cloud Chuncheon (arm) — aarch64, multica + storageui + dsh + sure + beszel-agent"
+description = "Oracle Cloud Chuncheon (arm) — aarch64, multica + storageui + sure + beszel-agent"
 
 [server.config]
 region = "Chuncheon, KR"
@@ -615,32 +615,6 @@ STORAGEUI_AUTH_SECRET=[[STORAGEUI_AUTH_SECRET]]
 STORAGEUI_R2_ACCOUNT_ID=[[STORAGEUI_R2_ACCOUNT_ID]]
 STORAGEUI_R2_ACCESS_KEY_ID=[[STORAGEUI_R2_ACCESS_KEY_ID]]
 STORAGEUI_R2_SECRET_ACCESS_KEY=[[STORAGEUI_R2_SECRET_ACCESS_KEY]]
-"""
-
-[[stack]]
-name = "dsh"
-description = "https://dsh.lkwplus.com"
-deploy = false
-tags = ["app", "host-arm", "source-build"]
-
-[stack.config]
-server = "Oracle-Arm"
-linked_repo = "homelab-infra"
-run_directory = "stacks/dsh"
-# Compose files only — Komodo parses every entry here as a ComposeFile, so listing the
-# Dockerfile makes the whole stack fail to load ("expected struct ComposeFile"), and a
-# Dockerfile-only change is therefore never selected by BatchDeployStackIfChanged. That is
-# why the dsh version pin sits in compose.yaml's `build.args` as DSH_VERSION instead of in
-# the Dockerfile: a Renovate bump lands in a file that IS watched, so it redeploys itself.
-# What remains Dockerfile-only is the base image (a Node major) — deploy that by hand.
-file_paths = ["compose.yaml"]
-# Installed from upstream's npm package @deepseek-ai/dsh, pinned by the DSH_VERSION build
-# arg in compose.yaml; `--build` is what applies a bump.
-extra_args = ["--build"]
-# Optional: inject DEEPSEEK_API_KEY for the native DeepSeek adapter; the Web UI can also
-# store provider keys in $DSH_HOME/.credentials.yaml.
-environment = """
-DEEPSEEK_API_KEY=[[DEEPSEEK_API_KEY]]
 """
 
 [[stack]]

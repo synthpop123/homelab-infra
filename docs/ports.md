@@ -91,7 +91,6 @@ to them, so nothing rides the `DOCKER-USER` exposure path at all (see
 | 20000 | multica (backend)  | 8080           | API + WebSocket, loopback-only     |
 | 20001 | multica (frontend) | 3000           | Web UI, loopback-only              |
 | 20002 | storageui          | 3000           | Storage UI (S3/R2 file manager), loopback-only |
-| 20003 | dsh                | 20003          | DeepSeek Harness Web UI, loopback-only         |
 | 20004 | sure               | 3000           | Sure personal finance, loopback-only           |
 | 20005 | ghostfolio         | 3333           | Ghostfolio wealth management, loopback-only    |
 | 20006 | trek               | 3000           | TREK travel planner, loopback-only             |
