@@ -39,6 +39,10 @@ services:
       # runtime (BYOK policy, AI routing) defaults to Cloud — which hides the BYOK "custom
       # API-compatible endpoint" option. Same value as the Node default, so nothing else moves.
       DEPLOYMENT_TYPE: selfhosted
+      # The native runtime does not read ~/.affine/config/config.json (only /app/config.json, the
+      # node binary's dir and this path, plus Admin Panel DB overrides), so copilot.byok.* there
+      # would silently not apply. Point it at the same file the Node side loads.
+      AFFINE_BACKEND_RUNTIME_CONFIG_PATH: /root/.affine/config/config.json
       REDIS_SERVER_HOST: affine-redis
       DATABASE_URL: postgresql://affine:${AFFINE_DB_PASSWORD}@affine-postgres:5432/affine
       AFFINE_INDEXER_ENABLED: "false"
