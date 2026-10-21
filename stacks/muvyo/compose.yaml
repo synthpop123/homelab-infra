@@ -95,7 +95,7 @@ services:
 
   muvyo-redis:
     container_name: muvyo-redis
-    image: redis:7-alpine
+    image: redis:8-alpine
     restart: unless-stopped
     command: ["redis-server", "--save", "600", "1", "--appendonly", "yes", "--requirepass", "${MUVYO_REDIS_PASSWORD}"]
     volumes:
