@@ -65,7 +65,9 @@ library scan, no new items (titles in Vyo are locked, so only images depend on E
 - Items added after the freeze are scraped by Vyo itself (Chinese poster when TMDB has one,
   else English).
 
-Around the core: **seerr** takes media requests, **tautulli** monitors Plex sessions,
+Around the core: **seerr** takes media requests against **Plex** (switched off Emby
+2026-10-22; libraries 电影/电视节目 only, admin user bound to the Plex owner account),
+**tautulli** monitors Plex sessions,
 **kometa** maintains Plex collections on a daily schedule (outbound-only),
 **letterboxd-plex-sync** mirrors Letterboxd watched/ratings/watchlist into Plex weekly
 (outbound-only), and the acquisition side is **torrent** (qBittorrent + qui) with
@@ -86,7 +88,7 @@ address in off-git config:
 | 172.22.0.4 | emby | cms (`EMBY_HOST_PORT`) |
 | 172.22.0.5 | cloud-media-sync | — (kept stable by convention) |
 | 172.22.0.6 | seerr | — (kept from the pre-migration setup) |
-| 172.22.0.7 | plex | tautulli, kometa, letterboxd-plex-sync |
+| 172.22.0.7 | plex | seerr, tautulli, kometa, letterboxd-plex-sync |
 | 172.22.0.8 | *(retired — was medialinker)* | — |
 | 172.22.0.9 | tautulli | — |
 | 172.22.0.10 | *(retired — was moviepilot)* | — |
