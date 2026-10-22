@@ -10,12 +10,12 @@
 # Cirvel's admin panel is https://plex.lkwplus.com/cirvel/ (server-owner Plex login); its settings
 # persist under /config. Free tier covers STRM playback; Pro features are licence-gated in the panel.
 #
-# Plex shares the .strm libraries under /srv/emby/data: mounts {Movie,TV,JAV,Hentai} read-only as
-# /data/{Movie,TV,JAV,Hentai} — Cirvel needs the container paths to stay what they were when the
+# Plex shares the .strm libraries under /srv/emby/data: mounts {Movie,TV,JAV,Hentai,Japan} read-only as
+# /data/{Movie,TV,JAV,Hentai,Japan} — Cirvel needs the container paths to stay what they were when the
 # libraries were scanned. Only two libraries exist: 电影 (/data/Movie) and 电视节目 (/data/TV), Muvyo-
 # written STRM (links to Muvyo's 302) scraped with Plex's own online agent. JAV/Hentai (cloud-media-sync
-# STRM + mdc nfo/posters) are mounted for a future "Plex NFO Movie" agent library (PMS >= 1.43.1) but
-# have none yet. Plex's own config/database lives in /srv/plex/config.
+# STRM + mdc nfo/posters) are the old mdc layout. Japan is the Amane-organized JAV tree (STRM + NFO +
+# posters per number dir, links to Muvyo's 302) for a "Plex NFO Movie" agent library (PMS >= 1.43.1). Plex's own config/database lives in /srv/plex/config.
 #
 # Media info: Cirvel's "媒体信息文件位置" is /{parentFolderPath}/ — the <strm-name>-mediainfo.json next
 # to each .strm (Muvyo writes them for Movie/TV, Emby's Strm Assistant for JAV) — so Cirvel fills media
@@ -69,6 +69,7 @@ services:
       - /srv/emby/data/TV:/data/TV:ro
       - /srv/emby/data/JAV:/data/JAV:ro
       - /srv/emby/data/Hentai:/data/Hentai:ro
+      - /srv/emby/data/Japan:/data/Japan:ro
       - /srv/emby/mediainfo:/mediainfo
     ports:
       # host:container — host port from the registry (see docs/ports.md). plex.lkwplus.com via
