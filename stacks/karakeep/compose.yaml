@@ -4,7 +4,7 @@
 services:
   karakeep-web:
     container_name: karakeep-web
-    image: ghcr.io/karakeep-app/karakeep:0.34.0
+    image: ghcr.io/karakeep-app/karakeep:0.34.1
     restart: unless-stopped
     depends_on:
       - karakeep-meilisearch
