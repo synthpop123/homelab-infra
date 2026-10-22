@@ -6,7 +6,11 @@ is split by owner:
 - **Movie / TV** — **muvyo** owns them end to end: uploads finished downloads to 115,
   organizes them, writes the `.strm` + `-mediainfo.json` trees, and serves the 302 links.
   Watched with **Plex** (via Cirvel) and **Vyo** (Muvyo's own player).
-- **JAV / Hentai / Porn** — still the original **cms + mdc + Emby** chain.
+- **JAV / Porn** — **Amane** owns them: it organizes the videos on 115 (`/Japan`, `/Porn`) and
+  writes `.strm` + NFO + images to `/srv/emby/data/{Japan,Western}`; Cirvel adds the
+  `-mediainfo.json`. Watched with Plex. (mdc is stopped; its data and the old cms/Emby
+  `JAV`/`Porn` trees are kept until the new libraries have proven themselves.)
+- **Hentai** — still the original **cms + mdc + Emby** chain.
 
 This doc is the topology — each stack's compose has the per-service detail.
 
@@ -41,11 +45,29 @@ organize the same way; edits made in the 115 app under `/Movie`, `/TV` are mirro
 STRM tree. The organize target is never the 115 root — muvyo fails with `Cloud path not
 found:` there.
 
-Plex mounts four subtrees of `/srv/emby/data` read-only but has only two libraries —
-电影 → `/data/Movie` and 电视节目 → `/data/TV`, ordinary online-agent libraries (zh-CN). The
-JAV/Hentai mounts are kept for a later NFO-agent library; none exists today. Cirvel reads the
-`-mediainfo.json` next to each `.strm` (media-info path `/{parentFolderPath}/`), so nothing
-probes the netdisk. The Plex-side tooling is scoped to those two libraries anyway: kometa's
+**Getting new JAV/Porn in:** put the video (or the whole download folder) under 115
+`/Others/待整理/JAV` or `/Others/待整理/Porn`. The Komodo procedure **Media Intake** runs the
+one-shot `amane-intake` job daily at 08:30 — or press *Run* for an on-demand intake. It moves the
+videos into the library's `_inbox`, scrapes (JAV: the usual content routes; Porn: ThePornDB on a
+`Studio.YY.MM.DD` number taken from the file name, so scene-release names like
+`blackedraw.25.10.28.name` work), organizes, and Plex picks the new `.strm` up by itself. Its
+container log is the report; whatever it could not scrape stays in `_inbox` (Amane UI: status
+pending) and is retried next run. Amane's own library automation stays off — without a
+CloudDrive2 membership (webhook) it would have to walk the whole tree on 115. Rename only in
+Amane, never in the 115 app.
+
+A nightly host timer (`orphan-cleanup.timer`, 03:20, `/root/orphan-cleanup.py`) tidies those two
+trees without touching 115: a film folder whose `.strm` is gone, a `.strm` no Amane row points at,
+and an Amane row whose `.strm` is gone. It moves files to `/srv/emby/data/.trash/<date>/` (kept 14
+days), and changes nothing when anything looks off (Amane unreachable, rows < 90 % of the
+`.strm`s, more than 40 changes in one tree, Amane tasks in flight).
+
+Plex mounts subtrees of `/srv/emby/data`: 电影 → `/data/Movie` and 电视节目 → `/data/TV` are
+ordinary online-agent libraries (zh-CN, read-only mounts); JAV → `/data/Japan` is a "Plex NFO
+Movie" library on Amane's NFOs. Cirvel reads the `-mediainfo.json` next to each `.strm`
+(media-info path `/{parentFolderPath}/`), so nothing probes the netdisk; where none exists it
+analyzes the `.strm` itself and, for the Amane trees (`/data/Japan`, `/data/Western`, the only
+writable Plex mounts), writes the json there ("生成媒体信息文件" on, "也写入其他工具…" off). The Plex-side tooling is scoped to those two libraries anyway: kometa's
 config whitelists only 电影/电视节目, letterboxd-plex-sync is pinned with
 `PLEX_LIBRARY_NAME=电影` (compose), and the local plex-metadata-fixer tool sets
 `PLEX_LIBRARIES=电影,电视节目` in its `.env`. Plex and Vyo
@@ -105,13 +127,14 @@ then redeploy the member stacks.
 
 | Path | Written by | Read by |
 |------|-----------|---------|
-| `/mnt/CloudNAS/115` (FUSE) | clouddrive2 | cms, mdc |
+| `/mnt/CloudNAS/115` (FUSE) | clouddrive2 | cms, mdc, amane |
 | `/srv/emby/data/{Movie,TV}` | muvyo (.strm, subtitles, `-mediainfo.json`) | plex (ro), emby, cms (ro) |
-| `/srv/emby/data/{JAV,Hentai,Porn}` | cms (.strm), mdc (nfo/jpg) | emby (JAV/Porn), muvyo (ro) |
+| `/srv/emby/data/{Japan,Western}` | amane (.strm, nfo/jpg), plex/Cirvel (`-mediainfo.json`) | plex |
+| `/srv/emby/data/{JAV,Hentai,Porn}` | cms (.strm), mdc (nfo/jpg) — legacy | emby (JAV/Porn), muvyo (ro) |
 | `/srv/emby/mediainfo` | emby (Strm Assistant `*-mediainfo.json`, JAV/Porn only) | emby, plex/Cirvel |
 | `/srv/torrent/qbittorrent/completed` | qBittorrent | muvyo (uploads to 115) |
 
-Consequence: **emby, cms and mdc only work while clouddrive2's mount is
+Consequence: **emby, cms, mdc and amane only work while clouddrive2's mount is
 healthy** (muvyo talks to 115 over its API, not the mount) — after a reboot or clouddrive2 restart, check the mount first
 ([operations.md → Reboot](./operations.md#reboot)).
 
