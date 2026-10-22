@@ -84,7 +84,8 @@ def intake(name, inbox, lib, root, min_size, content_type):
                 if os.path.splitext(f)[1].lower() not in VIDEO or os.path.getsize(src) < min_size:
                     continue
                 os.makedirs(stage, exist_ok=True)
-                dst = os.path.join(stage, f)
+                # Amane only reads "-cd1" as a part; "name - cd1.mp4" would be a separate whole film
+                dst = os.path.join(stage, re.sub(r"\s+-\s+cd(\d+)(?=\.[^.]+$)", r"-cd\1", f, flags=re.I))
                 if os.path.exists(dst):
                     say(name, "skip (already in _inbox):", f)
                     continue
