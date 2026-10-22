@@ -46,7 +46,7 @@ services:
 
   redis:
     container_name: cloudreve-redis
-    image: redis:8@sha256:718f745deb7dfefeac6eed7041fc7ec9476b50e61b247932682457c41adafa0e
+    image: redis:8@sha256:97ec88159e6d7cfb5ddef9015386087d58a912de80112f06ebdfa78fa5989901
     volumes:
       - /srv/cloudreve/redis:/data
     healthcheck:
