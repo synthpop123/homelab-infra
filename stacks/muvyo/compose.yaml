@@ -41,10 +41,13 @@ services:
       - /srv/muvyo/strm:/strm         # STRM staging (full regenerations land here first)
       # Shared library, at the same /data path Emby and Plex see it (Cirvel matches Muvyo-made
       # STRM by path). Read-only, except Movie/TV: Muvyo is the only writer of those two trees
-      # (STRM, subtitles, Vyo's -mediainfo.json). JAV & co. stay mdc/cms-owned.
+      # (STRM, subtitles, Vyo's -mediainfo.json). Japan is Amane-owned (STRM/NFO/images); it is
+      # writable here only so Vyo's admin-only JAV library can export -mediainfo.json next to the
+      # STRM (no metadata fetch, so nothing else is written). JAV/Hentai/Porn stay mdc/cms-owned.
       - /srv/emby/data:/data:ro
       - /srv/emby/data/Movie:/data/Movie
       - /srv/emby/data/TV:/data/TV
+      - /srv/emby/data/Japan:/data/Japan
       # qBittorrent's completed dir: the directory-monitor rule uploads from here to 115.
       - /srv/torrent/qbittorrent/completed:/downloads
     environment:
