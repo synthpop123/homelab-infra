@@ -888,3 +888,24 @@ name = "Redeploy changed stacks tagged source-build"
 executions = [
   { execution.type = "BatchDeployStackIfChanged", execution.params.pattern = "*", execution.params.tags = ["source-build"] },
 ]
+
+# JAV/Porn intake (stacks/amane/intake/media-intake.py): moves new videos from 115
+# /Others/待整理/{JAV,Porn} into the Amane libraries, scrapes and organizes them. Daily at 08:30,
+# after the 04:00-08:00 Cirvel maintenance window; "Run" it in the UI for an on-demand intake.
+# The report is the amane-intake container's log.
+[[procedure]]
+name = "Media Intake"
+description = "JAV/Porn intake: 115 /Others/待整理/{JAV,Porn} → Amane scrape + organize → Plex."
+
+[procedure.config]
+webhook_enabled = false
+schedule_format = "Cron"
+schedule = "0 30 8 * * *"
+schedule_timezone = "Asia/Shanghai"
+schedule_enabled = true
+
+[[procedure.config.stage]]
+name = "Run the intake job"
+executions = [
+  { execution.type = "DeployStack", execution.params.stack = "amane", execution.params.services = ["amane-intake"] },
+]

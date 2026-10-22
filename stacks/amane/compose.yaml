@@ -5,7 +5,8 @@
 # video on 115 itself, and the library's link_template writes STRM + NFO + images outside the library
 # into the shared media tree (/data, the same /srv/emby/data every media container sees as /data).
 # The STRM body is the library's strm_content_template — a Muvyo path-only redirect URL — so Plex
-# (Cirvel) and Vyo play straight from 115. Organize is manual (UI or API); there is no CD2 webhook.
+# (Cirvel) and Vyo play straight from 115. There is no CD2 webhook (needs a CD2 membership), so the
+# library automation stays off and new files come in through the amane-intake job below.
 #
 # AMANE_DATA_DIR is moved off its upstream default /data so /data can stay the shared media tree;
 # the SQLite DB, downloaded resources and the auto-generated API token (`token`) live in
@@ -70,6 +71,27 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  # One-shot JAV/Porn intake (intake/media-intake.py): 115 /Others/待整理/{JAV,Porn} → the libraries'
+  # _inbox → scrape → organize. Behind a profile so a normal deploy never runs it; Komodo's "Media Intake"
+  # procedure does `up -d amane-intake` daily at 08:30 (or when run by hand), which starts the exited
+  # container again. Its log is the run report.
+  amane-intake:
+    container_name: amane-intake
+    image: ghcr.io/sqzw-x/amane:0.22.1
+    profiles: ["intake"]
+    restart: "no"
+    user: "1000:1000"
+    command: ["python", "/intake/media-intake.py"]
+    depends_on:
+      amane:
+        condition: service_healthy
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - /srv/amane/data:/config:ro
+      - /mnt/CloudNAS:/media:rslave
+      - ./intake:/intake:ro
 
   flaresolverr:
     container_name: amane-flaresolverr
