@@ -24,7 +24,7 @@ VIDEO = {".mp4", ".mkv", ".avi", ".wmv", ".mov", ".m4v", ".ts", ".m2ts", ".mpg",
 # (name, inbox on 115, Amane library id, library root, minimum size, content_type override)
 INBOXES = [
     ("JAV", "/media/115/Others/待整理/JAV", 1, "/media/115/Japan", 200 << 20, None),
-    ("Porn", "/media/115/Others/待整理/Porn", 2, "/media/115/Porn", 50 << 20, "western"),
+    ("Porn", "/media/115/Others/待整理/Porn", 2, "/media/115/Porn", 30 << 20, "western"),
 ]
 TPDB_NUMBERS = "/config/plugins/sources/local.tpdbid/numbers.json"
 
