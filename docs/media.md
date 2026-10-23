@@ -11,8 +11,8 @@ is split by owner:
   `-mediainfo.json`. Watched with Plex (JAV, Porn). Deletes made in the 115 app reach the
   STRM trees through muvyo's 115 life events. (mdc is stopped and Emby's Porn library is gone;
   the old cms `JAV` tree and mdc data are kept until the new libraries have proven themselves.)
-- **Hentai** — only cms's legacy STRM tree `/srv/emby/data/Hentai` remains; no media server has a
-  library on it.
+- **Hentai** — stays on 115 only, in no media server. cms (which wrote its STRM tree) is stopped like
+  mdc; `/srv/emby/data/Hentai` (.strm + nfo/images) is kept frozen in case a library takes it over later.
 
 This doc is the topology — each stack's compose has the per-service detail.
 
@@ -27,7 +27,7 @@ qBittorrent completed/{Movie,TV}            115 netdisk
                         ▼                      │
   muvyo ─► .strm + -mediainfo.json ─► /srv/emby/data/{Movie,TV}
                         │                      │
-                        │       cms ─► .strm ──┼─► /srv/emby/data/{JAV,Hentai}   (legacy)
+                        │       cms ─► .strm ──┼─► /srv/emby/data/{JAV,Hentai}   (legacy, stopped)
                         │                      │
                         │ amane ─► .strm/nfo ──┴─► /srv/emby/data/{Japan,Western}
                         ▼     (muvyo life events: deletes)
