@@ -56,8 +56,12 @@ videos into the library's `_inbox`, scrapes (JAV: the usual content routes; Porn
 container log is the report; whatever it could not scrape stays in `_inbox` (Amane UI: status
 pending) and is retried next run. Amane's own library automation stays off — without a
 CloudDrive2 membership (webhook) it would have to walk the whole tree on 115. Rename only in
-Amane, never in the 115 app (a rename leaves a dead STRM). Plex skips each tree's `_inbox` (a
-`.plexignore` at `/srv/emby/data/{Japan,Western}`), where muvyo may give an unscraped file a STRM.
+Amane, never in the 115 app (a rename leaves a dead STRM). Plex skips each tree's `_inbox`, where
+muvyo's life events give every file moved in a STRM and then ask Plex to scan that folder alone: a
+`.plexignore` at `/srv/emby/data/{Japan,Western}` (`_inbox/*`) covers full scans, and one inside
+each `_inbox` (`*`) covers those partial scans, which ignore the tree-root file. The nightly
+`orphan-cleanup` restores the inner one if it is gone and trashes the `_inbox` STRM muvyo leaves
+behind once Amane has organized the file away.
 
 **Deleting JAV/Porn:** delete the video or its whole folder in the 115 app. Two muvyo life-event
 rules, STRM-only, `/Japan → /data/Japan` and `/Porn → /data/Western`, remove the STRM with the
