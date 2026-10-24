@@ -60,7 +60,7 @@
 services:
   plex:
     container_name: plex
-    image: tidewren/cirvel:0.1.33
+    image: tidewren/cirvel:0.1.34
     restart: unless-stopped
     environment:
       - PUID=1000
