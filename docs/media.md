@@ -9,8 +9,7 @@ is split by owner:
 - **JAV / Porn** — **Amane** owns them: it organizes the videos on 115 (`/Japan`, `/Porn`) and
   writes `.strm` + NFO + images to `/srv/emby/data/{Japan,Western}`; Cirvel adds the
   `-mediainfo.json`. Watched with Plex (JAV, Porn). Deletes made in the 115 app reach the
-  STRM trees through muvyo's 115 life events. (mdc is stopped and Emby's Porn library is gone;
-  the old cms `JAV` tree and mdc data are kept until the new libraries have proven themselves.)
+  STRM trees through muvyo's 115 life events. (mdc is stopped and its data, the old cms `JAV` tree and Emby's Porn library are gone.)
 - **Hentai** — stays on 115 only, in no media server. cms (which wrote its STRM tree) is stopped like
   mdc; `/srv/emby/data/Hentai` (.strm + nfo/images) is kept frozen in case a library takes it over later.
 
@@ -27,7 +26,7 @@ qBittorrent completed/{Movie,TV}            115 netdisk
                         ▼                      │
   muvyo ─► .strm + -mediainfo.json ─► /srv/emby/data/{Movie,TV}
                         │                      │
-                        │       cms ─► .strm ──┼─► /srv/emby/data/{JAV,Hentai}   (legacy, stopped)
+                        │       cms ─► .strm ──┼─► /srv/emby/data/Hentai   (legacy, stopped)
                         │                      │
                         │ amane ─► .strm/nfo ──┴─► /srv/emby/data/{Japan,Western}
                         ▼     (muvyo life events: deletes)
@@ -144,7 +143,7 @@ then redeploy the member stacks.
 | `/mnt/CloudNAS/115` (FUSE) | clouddrive2 | cms, mdc, amane |
 | `/srv/emby/data/{Movie,TV}` | muvyo (.strm, subtitles, `-mediainfo.json`) | plex (ro), emby, cms (ro) |
 | `/srv/emby/data/{Japan,Western}` | amane (.strm, nfo/jpg), muvyo (life-event .strm/deletes), plex/Cirvel (`-mediainfo.json`) | plex |
-| `/srv/emby/data/{JAV,Hentai}` | cms (.strm), mdc (nfo/jpg) — legacy, no library reads them | — |
+| `/srv/emby/data/Hentai` | cms (.strm), mdc (nfo/jpg) — legacy, frozen, no library reads it | plex (mounted, unused) |
 | `/srv/emby/mediainfo` | emby (Strm Assistant `*-mediainfo.json`) — legacy | — |
 | `/srv/torrent/qbittorrent/completed` | qBittorrent | muvyo (uploads to 115) |
 
