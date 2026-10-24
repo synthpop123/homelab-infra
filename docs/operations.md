@@ -32,7 +32,7 @@ than a stack, so it has no row there.
 
 ```bash
 ssh fame 'docker exec --env-file /etc/komodo/km.env komodo-core km ls stacks'
-ssh fame 'docker exec --env-file /etc/komodo/km.env komodo-core km execute deploy-stack <name> -y'
+ssh fame 'docker exec --env-file /etc/komodo/km.env komodo-core km execute -y deploy-stack <name>'
 ```
 
 - **HTTP API** — `km` 2.3 has **no delete** (only list/execute/create/update). For anything else,
