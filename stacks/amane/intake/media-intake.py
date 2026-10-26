@@ -26,7 +26,6 @@ INBOXES = [
     ("JAV", "/media/115/Others/待整理/JAV", 1, "/media/115/Japan", 200 << 20, None),
     ("Porn", "/media/115/Others/待整理/Porn", 2, "/media/115/Porn", 30 << 20, "western"),
 ]
-TPDB_NUMBERS = "/config/plugins/sources/local.tpdbid/numbers.json"
 
 
 def api(method, path, body=None):
@@ -52,11 +51,9 @@ def say(*parts):
     print(time.strftime("%F %T"), *parts, flush=True)
 
 
-def western_number(stem, known):
+def western_number(stem):
     """Studio.YY.MM.DD, the form ThePornDB matches on (studio + date); scene-release and "site - yy.mm.dd - title"."""
     base = re.sub(r"\s*-\s*cd\d+$", "", stem, flags=re.I)
-    if base in known:
-        return known[base]
     m = re.match(r"^(.+?)(?: - |\.)(\d{2}|\d{4})\.(\d\d)\.(\d\d)(?!\d)", base)
     if not m:
         return None
@@ -100,14 +97,12 @@ def intake(name, inbox, lib, root, min_size, content_type):
         say(name, "nothing new")
         return [], []
     run({"type": "refresh", "library_id": lib, "path": stage, "recursive": False, "scrape": []})
-    known = json.load(open(TPDB_NUMBERS)) if content_type == "western" and os.path.exists(TPDB_NUMBERS) else {}
-    known = {stem: number for number, stem in known.items()}
     done, failed = [], []
     for r in rows_under(lib, stage + "/"):
         stem = r["path"].rsplit("/", 1)[1].rsplit(".", 1)[0]
         task = {"type": "scrape", "media_id": r["id"]}
         if content_type == "western":
-            number = western_number(stem, known)
+            number = western_number(stem)
             if not number:
                 failed.append(f"{stem}: no Studio.YY.MM.DD in the name")
                 continue
