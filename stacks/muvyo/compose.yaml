@@ -9,12 +9,14 @@
 # Redis URL needs no escaping.
 #
 # Updates: the 自动更新 plugin's online upgrade (OTA) swaps the program inside the running container
-# in the 04:00–06:00 idle window, signature-checked, with automatic rollback — no docker.sock is
-# mounted, so it can never recreate containers. Because OTA moves the running version ahead of any
-# tag Renovate could pin, a version pin would always lag and every bump PR would arrive stale.
-# The image is therefore `latest` (validate.sh: `# allow-latest`), Renovate is disabled for it, and
-# the baseline version comes from the image pull on redeploy. Versions that change system
-# components (OTA refuses those) still arrive only by recreating the container from a fresh pull.
+# in the 04:00–06:00 idle window, signature-checked, with automatic rollback. Versions that change
+# system components (OTA refuses those) need a new image: for those the plugin falls back to
+# pulling the signed image and recreating this container through a temporary
+# `muvyo-auto-updater`, which is why docker.sock is mounted (root-equivalent on the host; leave
+# the plugin's 「检查其他容器的更新」 off so it only ever touches muvyo). Because OTA moves the
+# running version ahead of any tag Renovate could pin, a version pin would always lag and every
+# bump PR would arrive stale. The image is therefore `latest` (validate.sh: `# allow-latest`),
+# Renovate is disabled for it, and a Komodo redeploy also pulls the newest image.
 #
 # Joins the external mediacenter-net (fixed IP 172.22.0.11, see docs/media.md) to reach
 # emby/plex by address; Postgres and Redis stay on the stack's private default network.
@@ -51,12 +53,17 @@ services:
       - /srv/emby/data/Western:/data/Western
       # qBittorrent's completed dir: the directory-monitor rule uploads from here to 115.
       - /srv/torrent/qbittorrent/completed:/downloads
+      # 自动更新's image-update fallback (see header); reachable only via PGID below.
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       TZ: Asia/Shanghai
       # Run as normal (1000), like emby/cms/qbittorrent, so files written into the shared library
       # and qB's download dir keep one owner. /srv/muvyo/{data,strm} are chowned to match.
       PUID: "1000"
-      PGID: "1000"
+      # fame's `docker` group (owner of the 0660 docker.sock). The entrypoint resets supplementary
+      # groups via initgroups, so group_add is dropped — the primary group is the only way in.
+      # New files get group 997 instead of 1000; the other uid-1000 containers still own them.
+      PGID: "997"
       MEDIAVAULT_BASE: /opt
       UMASK: "022"
       MV_DATABASE_TYPE: postgresql
