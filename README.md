@@ -72,7 +72,7 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [autobrr](./stacks/autobrr) | [autobrr.lkwplus.com](https://autobrr.lkwplus.com) | 20026 | IRC/RSS release automation (+ TMDB→Telegram notify sidecar) |
 | [umami](./stacks/umami) | [umami.lkwplus.com](https://umami.lkwplus.com) | 20027 | Privacy-focused web analytics (+ dedicated Postgres) |
 | [bark](./stacks/bark) | [bark.lkwplus.com](https://bark.lkwplus.com) | 20028 | Bark push notification server |
-| [cliproxyapi](./stacks/cliproxyapi) | [cpa.lkwplus.com](https://cpa.lkwplus.com) | 20029 | CLIProxyAPI AI proxy (CPA; built-in management at /management.html) |
+| [cliproxyapi](./stacks/cliproxyapi) | [cpa.lkwplus.com](https://cpa.lkwplus.com) | 20029, 20042 | CLIProxyAPI AI proxy (CPA) + Oh My CPA console at /omc/ |
 | [gpt-load](./stacks/gpt-load) | [gptload.lkwplus.com](https://gptload.lkwplus.com) | 20035 | GPT-Load AI API proxy (built-in SQLite) |
 | [plex](./stacks/plex) | [plex.lkwplus.com](https://plex.lkwplus.com) / [tautulli.lkwplus.com](https://tautulli.lkwplus.com) | 20031 / 20033 | Plex media server via Cirvel (strm direct play; fixed IP 172.22.0.7) + Tautulli Plex monitor (172.22.0.9) + Kometa metadata/collections + letterboxd-plex-sync (weekly Letterboxd → Plex) |
 | [muvyo](./stacks/muvyo) | [muvyo.lkwplus.com](https://muvyo.lkwplus.com) / [vyo.lkwplus.com](https://vyo.lkwplus.com) | 20038 / 20039 | Muvyo — owns Movie/TV (qB → 115 upload, organize, STRM, 302) + Vyo player (+ dedicated Postgres + Redis; fixed IP 172.22.0.11) |

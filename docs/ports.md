@@ -52,8 +52,9 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20038 | muvyo (admin)         | 7811           | Muvyo admin panel + API → muvyo.lkwplus.com |
 | 20039 | muvyo (Vyo)           | 7810           | Muvyo Vyo web/client → vyo.lkwplus.com |
 | 20041 | amane                 | 8000           | Amane JAV scraper/organizer → amane.lkwplus.com |
+| 20042 | oh-my-cpa             | 8080           | Oh My CPA console (cliproxyapi stack) → cpa.lkwplus.com/omc/ |
 
-**Next free: `20042`**
+**Next free: `20043`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,
@@ -61,7 +62,7 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 >
 > **Vacated:** `20025` previously published mdc's `flaresolverr`; it is now internal-only (mdc reaches
 > it in-network at `flaresolverr:8191`), so `20025` is unused. `20030` previously published
-> `cpa-manager-plus`; CPA's built-in `/management.html` panel replaced it, so `20030` is unused.
+> `cpa-manager-plus`; Oh My CPA (`20042`) is now CPA's console, so `20030` is unused.
 > `20032` previously published `medialinker`; Cirvel (the plex stack's image) took over its strm
 > direct play, so `20032` is unused. `20007` (new-api), `20017` (openwebui), `20034`, `20036` and `20037` (moviepilot) are also vacated. New services still take the next sequential number (**Next free** above),
 > not these gaps.

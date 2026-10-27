@@ -79,6 +79,12 @@
       "enabled": false
     },
     {
+      "description": "Same for the cliproxyapi stack: Oh My CPA's updater container updates both OMC and CPA in place from its console, so they run `latest` (stacks/cliproxyapi/compose.yaml).",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["wiziscool/oh-my-cpa", "eceasy/cli-proxy-api"],
+      "enabled": false
+    },
+    {
       "description": "Same LinuxServer.io problem for kometa, whose tags look like v2.4.4-ls103.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["linuxserver/kometa"],

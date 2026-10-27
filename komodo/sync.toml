@@ -526,8 +526,13 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/cliproxyapi"
 file_paths = ["compose.yaml"]
-# CPA's own secrets (Management Key + client api-keys) live in the off-git /srv/cliproxyapi/config.yaml.
-# No Komodo Variables needed — all config is in the off-git config.yaml.
+# CPA + Oh My CPA (console at /omc/) + OMC's updater. Client api-keys live in the off-git
+# /srv/cliproxyapi/config.yaml; OMCPA_MASTER_KEY must never change (it encrypts OMC's data).
+environment = """
+CPA_MANAGEMENT_KEY=[[CPA_MANAGEMENT_KEY]]
+OMCPA_MASTER_KEY=[[OMCPA_MASTER_KEY]]
+CPA_TRUSTED_PROXY_CIDRS=[[CPA_TRUSTED_PROXY_CIDRS]]
+"""
 
 [[stack]]
 name = "gpt-load"

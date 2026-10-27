@@ -1,23 +1,95 @@
-# CLIProxyAPI (CPA) — turns Gemini/Codex/Claude/Grok OAuth accounts + API keys into
-# OpenAI/Claude/Gemini-compatible endpoints. Its AI API (/v1/*) is fronted by
-# https://cpa.lkwplus.com; the built-in management panel lives at /management.html.
+# CLIProxyAPI (CPA) + Oh My CPA (OMC). CPA turns Gemini/Codex/Claude/Grok OAuth accounts + API
+# keys into OpenAI/Claude/Gemini-compatible endpoints; OMC (https://github.com/WizisCool/oh-my-cpa)
+# is its web console and usage tracker. Both sit behind https://cpa.lkwplus.com on Akko: /omc and
+# /omc/* go to OMC, everything else (the AI API, /v1/*) to CPA. Adapted from upstream's
+# compose.full.yml; CPA's built-in /management.html is disabled — OMC replaces it.
 #
-# CPA's own secrets (remote-management.secret-key and api-keys) live in the off-git
-# /srv/cliproxyapi/config.yaml (bind-mounted; commit config.example.yaml instead).
+# Secrets: CPA_MANAGEMENT_KEY (CPA admin key = OMC sign-in password, fed to CPA as
+# MANAGEMENT_PASSWORD so config.yaml keeps secret-key empty) and OMCPA_MASTER_KEY (encrypts OMC's
+# data — never rotate it, or /srv/cliproxyapi/omc-data becomes unreadable) are Komodo Variables, as
+# is CPA_TRUSTED_PROXY_CIDRS (Akko's address, kept off git). Client api-keys live in the off-git
+# /srv/cliproxyapi/config.yaml (managed from OMC; commit config.example.yaml instead).
+#
+# Updates: oh-my-cpa-updater (holds docker.sock, root-equivalent on the host) lets OMC's System
+# Information page update OMC and CPA in place, so the running versions move ahead of any tag
+# Renovate could pin. Like muvyo, both images therefore track `latest` (validate.sh:
+# `# allow-latest`), Renovate is disabled for them, and a Komodo redeploy also pulls the newest.
 services:
   cli-proxy-api:
     container_name: cli-proxy-api
-    image: eceasy/cli-proxy-api:v7.2.157
+    image: eceasy/cli-proxy-api:latest  # allow-latest — OMC's updater manages it (see header)
+    environment:
+      TZ: Asia/Shanghai
+      MANAGEMENT_PASSWORD: ${CPA_MANAGEMENT_KEY}
     ports:
       # host:container — host port from the registry (see docs/ports.md). cpa.lkwplus.com
       - "20029:8317/tcp"
     volumes:
-      # config.yaml carries secrets, so it lives on the host (off-git). It must already exist as a
-      # FILE before first deploy or Docker creates a directory in its place. auths/ holds the OAuth
-      # credential files (uploaded via the panel or the CPA login flow).
+      # config.yaml must already exist as a FILE before first deploy or Docker creates a directory
+      # in its place. auths/ holds the OAuth credential files (uploaded via OMC or CPA's login flow).
       - /srv/cliproxyapi/config.yaml:/CLIProxyAPI/config.yaml
       - /srv/cliproxyapi/auths:/root/.cli-proxy-api
       - /srv/cliproxyapi/logs:/CLIProxyAPI/logs
+      - /srv/cliproxyapi/plugins:/CLIProxyAPI/plugins
+    healthcheck:
+      # The image has no wget/curl, so the probe speaks HTTP through bash's /dev/tcp (upstream's).
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8317 && printf 'GET /healthz HTTP/1.0\\r\\n\\r\\n' >&3 && head -n 1 <&3 | grep -q ' 200 '"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  oh-my-cpa:
+    container_name: oh-my-cpa
+    image: wiziscool/oh-my-cpa:latest  # allow-latest — OMC's updater manages it (see header)
+    # /srv/cliproxyapi/omc-data must be owned by 10001:10001.
+    user: "10001:10001"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    depends_on:
+      cli-proxy-api:
+        condition: service_healthy
+    ports:
+      # host:container — host port from the registry (see docs/ports.md). cpa.lkwplus.com/omc/
+      - "20042:8080/tcp"
+    environment:
+      TZ: Asia/Shanghai
+      OMCPA_LISTEN_ADDR: ":8080"
+      OMCPA_BASE_PATH: /omc
+      OMCPA_DATA_DIR: /data
+      OMCPA_CPA_BASE_URL: http://cli-proxy-api:8317
+      OMCPA_CPA_USAGE_ADDR: cli-proxy-api:8317
+      OMCPA_CPA_MANAGEMENT_KEY: ${CPA_MANAGEMENT_KEY}
+      OMCPA_MASTER_KEY: ${OMCPA_MASTER_KEY}
+      OMCPA_PUBLIC_URL: https://cpa.lkwplus.com
+      OMCPA_TRUSTED_PROXY_CIDRS: ${CPA_TRUSTED_PROXY_CIDRS}
+      # OMC is CPA's only usage reader (CPA hands each record to one reader).
+      OMCPA_USAGE_INGEST_MODE: auto
+    volumes:
+      - /srv/cliproxyapi/omc-data:/data
+    restart: unless-stopped
+
+  # Applies the updates OMC's System Information page offers: pulls the new image and recreates
+  # oh-my-cpa / cli-proxy-api with the same config, rolling back if the replacement is unhealthy.
+  # OMC finds it by container name on the shared network.
+  oh-my-cpa-updater:
+    container_name: oh-my-cpa-updater
+    image: wiziscool/oh-my-cpa:latest  # allow-latest — see header
+    command: ["updater", "serve"]
+    # The socket belongs to root; with every capability dropped this is root that can open the
+    # socket and nothing else.
+    user: "0:0"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
 
 networks:
