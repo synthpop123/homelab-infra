@@ -1,7 +1,10 @@
 # CLIProxyAPI (CPA) + Oh My CPA (OMC). CPA turns Gemini/Codex/Claude/Grok OAuth accounts + API
 # keys into OpenAI/Claude/Gemini-compatible endpoints; OMC (https://github.com/WizisCool/oh-my-cpa)
 # is its web console and usage tracker. Both sit behind https://cpa.lkwplus.com on Akko: /omc and
-# /omc/* go to OMC, everything else (the AI API, /v1/*) to CPA. Adapted from upstream's
+# /omc/* go to OMC, everything else (the AI API, /v1/*) to CPA. Plugin UI pages are one multi-MB
+# HTML, so Akko `encode`s OMC's text/html (OMC gzips only its own JS/JSON; SSE stays unencoded) and
+# sets `response_buffers` on /omc/api/v1/plugin-host/v0/resource/plugins/* — unbuffered, a slow
+# client stalls OMC until it drops the connection and the page hangs half-loaded. Adapted from upstream's
 # compose.full.yml; CPA's built-in /management.html is disabled — OMC replaces it.
 #
 # Secrets: CPA_MANAGEMENT_KEY (CPA admin key = OMC sign-in password, fed to CPA as

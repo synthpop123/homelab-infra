@@ -28,6 +28,12 @@ access:
 oauth:
   auth-dir: /root/.cli-proxy-api
 observability:
+  logs:
+    # Write app logs to rotating files under /CLIProxyAPI/logs (/srv/cliproxyapi/logs) instead of
+    # stdout only — OMC's 日志查看 page reads them through the management API; without this it
+    # shows "CPA 未开启文件日志". Hot-reloaded, no restart needed.
+    logging-to-file: true
+    logs-max-total-size-mb: 512
   usage:
     # OMC collects usage from CPA's queue; retention bounds its poll interval.
     usage-statistics-enabled: true
