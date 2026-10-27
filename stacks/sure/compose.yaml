@@ -93,7 +93,7 @@ services:
 
   sure-postgres:
     container_name: sure-postgres
-    image: postgres:16
+    image: postgres:18
     restart: unless-stopped
     environment:
       POSTGRES_USER: sure_user
