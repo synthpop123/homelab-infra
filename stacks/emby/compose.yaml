@@ -11,7 +11,7 @@
 services:
   emby:
     container_name: emby
-    image: linuxserver/emby:4.10.1.0-ls301
+    image: linuxserver/emby:4.10.2.0-ls305
     restart: unless-stopped
     environment:
       - PUID=1000
