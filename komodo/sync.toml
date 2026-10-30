@@ -548,6 +548,20 @@ file_paths = ["compose.yaml"]
 # No compose secrets: SQLite, auth.key and encryption.key live in /srv/gpt-load/data.
 
 [[stack]]
+name = "miaomiaowu"
+description = "https://miaomiaowu.lkwplus.com"
+deploy = false
+tags = ["app", "host-fame"]
+
+[stack.config]
+server = "Famesystems"
+linked_repo = "homelab-infra"
+run_directory = "stacks/miaomiaowu"
+file_paths = ["compose.yaml"]
+# No compose secrets: SQLite traffic.db, subscribes and rule_templates live in /srv/miaomiaowu/.
+# Image tracks `latest` because the app self-updates in place into /app/data/server (docs/conventions.md).
+
+[[stack]]
 name = "plex"
 description = "https://plex.lkwplus.com (Cirvel) / https://tautulli.lkwplus.com"
 deploy = false

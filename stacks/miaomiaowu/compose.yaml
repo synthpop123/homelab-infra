@@ -1,0 +1,49 @@
+# MiaoMiaoWu (妙妙屋) — Clash/proxy subscription manager + traffic dashboard
+# (https://miaomiaowu.net). Fronted by https://miaomiaowu.lkwplus.com via Akko.
+# Single Go binary, built-in SQLite: no external database, cache or search container.
+#
+# The image tracks `latest` on purpose: the app updates itself from its own UI (个人设置 → 检查更新).
+# Its updater downloads the new binary to /app/data/server, and docker-entrypoint.sh prefers that
+# file over the image's /app/server — so a pinned tag would always lag the version actually running
+# (same reasoning as muvyo). Renovate is disabled for this image; a Komodo redeploy pulls the
+# newest image. Because the downloaded binary wins over the image, a redeploy does NOT roll back an
+# in-app update: delete /srv/miaomiaowu/data/server to fall back to the image's own version.
+#
+# Container layout — the app resolves all three as *relative* paths under its /app workdir, so they
+# must be mounted at exactly these targets:
+#   /app/data            SQLite traffic.db (users, nodes, settings) + the self-updated `server` binary
+#   /app/subscribes      subscription YAML files
+#   /app/rule_templates   Clash rule templates
+# subscribes/ and rule_templates/ are seeded from embedded copies on start and never overwritten
+# afterwards, so an empty host directory is fine and user edits survive redeploys.
+#
+# Ownership follows the image: it starts as root, chowns all three volumes, then drops to its own
+# `appuser` (PUID/PGID, default 1000:1000). No host-side chown is needed. Data is under
+# /srv/miaomiaowu/ like every other stack, outside Komodo's git clone.
+services:
+  miaomiaowu:
+    container_name: miaomiaowu
+    image: ghcr.io/iluobei/miaomiaowu:latest  # allow-latest — upstream in-app self-update (see header)
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      PORT: "8080"
+      LOG_LEVEL: info
+    ports:
+      # host:container — host port from the registry (see docs/ports.md)
+      - "20043:8080/tcp"
+    volumes:
+      - /srv/miaomiaowu/data:/app/data
+      - /srv/miaomiaowu/subscribes:/app/subscribes
+      - /srv/miaomiaowu/rule_templates:/app/rule_templates
+    # The image ships the same HEALTHCHECK; restated so the repo shows what Komodo monitors.
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+networks:
+  default:
+    name: miaomiaowu

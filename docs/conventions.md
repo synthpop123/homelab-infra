@@ -13,7 +13,9 @@
 - **App images:** pin to an explicit version (`org/name:1.2.3`, never `:latest`) so Renovate can
   propose upgrades as PRs — see [workflow.md](./workflow.md).
 - **Self-updating apps:** an app that updates itself in place (muvyo's 自动更新 plugin; the
-  cliproxyapi stack, whose Oh My CPA updater container upgrades OMC and CPA from its console) is
+  cliproxyapi stack, whose Oh My CPA updater container upgrades OMC and CPA from its console;
+  miaomiaowu, whose UI updater writes a new binary into `/app/data/server`, which its entrypoint
+  then prefers over the image) is
   the exception — a pin would always lag the live version, so it tracks `latest`,
   its image line carries an inline `# allow-latest` for the lint gate, and Renovate is disabled
   for that image in `renovate.json`.

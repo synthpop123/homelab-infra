@@ -53,8 +53,9 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20039 | muvyo (Vyo)           | 7810           | Muvyo Vyo web/client → vyo.lkwplus.com |
 | 20041 | amane                 | 8000           | Amane JAV scraper/organizer → amane.lkwplus.com |
 | 20042 | oh-my-cpa             | 8080           | Oh My CPA console (cliproxyapi stack) → cpa.lkwplus.com/omc/ |
+| 20043 | miaomiaowu            | 8080           | MiaoMiaoWu proxy subscription manager → miaomiaowu.lkwplus.com |
 
-**Next free: `20043`**
+**Next free: `20044`**
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,

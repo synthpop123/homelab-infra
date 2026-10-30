@@ -85,6 +85,12 @@
       "enabled": false
     },
     {
+      "description": "Same for miaomiaowu: its UI's updater writes a new binary to /app/data/server and the entrypoint prefers that over the image's /app/server, so a pinned tag would always lag the live version and every bump PR would arrive stale (stacks/miaomiaowu/compose.yaml).",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/iluobei/miaomiaowu"],
+      "enabled": false
+    },
+    {
       "description": "Same LinuxServer.io problem for kometa, whose tags look like v2.4.4-ls103.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["linuxserver/kometa"],
