@@ -26,7 +26,7 @@ services:
   postgresql:
     container_name: cloudreve-postgresql
     # Pinned to the major line (17); a major upgrade needs a manual data migration.
-    image: postgres:17-alpine@sha256:f02121de6f74d30d8a94cd1d9584125e2178d7e6c377d8130112d4e52d867995
+    image: postgres:17-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
     environment:
       POSTGRES_USER: cloudreve
       POSTGRES_DB: cloudreve
