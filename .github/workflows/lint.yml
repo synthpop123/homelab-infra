@@ -41,6 +41,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       # ubuntu-24.04 ships yamllint via pipx; install only if a future image drops it.
       # The validator venv is created without its own pip (bootstrapping pip into a fresh

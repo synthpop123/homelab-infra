@@ -34,12 +34,14 @@ skip_or_fail() { # message
   fi
 }
 
-# --- 1) yamllint every compose file ---------------------------------------------
-echo "== yamllint =="
+# --- 1) yamllint every compose file (reported after 2) ---------------------------
+# Started in the background so it overlaps the compose checks below; its result is
+# reported right after them.
+yamllint_out="$(mktemp)"
+yamllint_pid=""
 if command -v yamllint >/dev/null 2>&1; then
-  yamllint stacks/ bootstrap/komodo/mongo.compose.yaml || fail=1
-else
-  skip_or_fail "yamllint not installed"
+  yamllint stacks/ bootstrap/komodo/mongo.compose.yaml > "$yamllint_out" 2>&1 &
+  yamllint_pid=$!
 fi
 
 # --- 2) docker compose config — real schema validation --------------------------
@@ -103,6 +105,15 @@ if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; 
 else
   skip_or_fail "docker compose not available"
 fi
+
+echo "== yamllint =="
+if [ -n "$yamllint_pid" ]; then
+  wait "$yamllint_pid" || fail=1
+  cat "$yamllint_out"
+else
+  skip_or_fail "yamllint not installed"
+fi
+rm -f "$yamllint_out"
 
 # --- 3) bootstrap shell syntax ---------------------------------------------------
 echo "== bootstrap shell syntax =="
