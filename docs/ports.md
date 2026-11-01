@@ -120,3 +120,4 @@ A host firewall governs who can reach these ports from the public internet — s
 - **Host-process ports** (not Docker-published): SSH `11322`, Caddy `80/443`, komari `25774` ride
   the `INPUT` chain and stay internet-facing. clouddrive2's `19798` (host-networked) is restricted
   to **Akko-only** via a dedicated `FAME-INPUT` subchain.
+
