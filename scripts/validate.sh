@@ -45,13 +45,16 @@ fi
 # --- 2) docker compose config — real schema validation --------------------------
 echo "== docker compose config =="
 if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
-  for compose in stacks/*/compose.yaml bootstrap/komodo/*.compose.yaml; do
+  # Each compose file is checked in its own background job: one `config` is ~80 ms of
+  # mostly CLI start-up, so ~40 of them serially dominated the whole gate. Every file sits
+  # in its own directory, so the per-file env placeholders below never collide.
+  check_compose() { # compose
+    local compose="$1" dir created="" out
     dir="$(dirname "$compose")"
     # env_file targets (.env / .env.production) are git-ignored — Komodo materializes
     # them at deploy. Create placeholders so `config` doesn't fail on a missing file,
     # then remove them again so the working tree stays clean. The Komodo bootstrap needs
     # its example values for compose-time interpolation; stack env files can stay empty.
-    created=""
     if [ "$compose" = "bootstrap/komodo/mongo.compose.yaml" ]; then
       if [ ! -e "$dir/compose.env" ]; then
         cp "$dir/compose.env.example" "$dir/compose.env"
@@ -73,12 +76,30 @@ if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; 
     if out="$("${command[@]}" 2>&1)"; then
       echo "ok: $compose"
     else
-      echo "FAIL: $compose" >&2
-      printf '%s\n' "$out" | grep -v 'level=warning' >&2
-      fail=1
+      echo "FAIL: $compose"
+      printf '%s\n' "$out" | grep -v 'level=warning'
+      for c in $created; do rm -f "$c"; done
+      return 1
     fi
     for c in $created; do rm -f "$c"; done
+  }
+  results="$(mktemp -d)"
+  i=0
+  for compose in stacks/*/compose.yaml bootstrap/komodo/*.compose.yaml; do
+    i=$((i + 1))
+    check_compose "$compose" > "$results/$i.out" 2>&1 &
+    echo $! > "$results/$i.pid"
   done
+  # Collect in file order so the log reads the same as the old serial loop.
+  for n in $(seq 1 "$i"); do
+    if wait "$(cat "$results/$n.pid")"; then
+      cat "$results/$n.out"
+    else
+      cat "$results/$n.out" >&2
+      fail=1
+    fi
+  done
+  rm -rf "$results"
 else
   skip_or_fail "docker compose not available"
 fi

@@ -6,11 +6,15 @@
 # config is caught before it can be merged into `main` and deployed on the VPS.
 #
 # It runs entirely on GitHub's runners — it does NOT touch the VPS and deploys nothing.
+#
+# Docs/README-only changes skip it on both events. `main` has no branch protection today;
+# if `lint` ever becomes a *required* check, a path-skipped PR would wait on it forever —
+# drop the PR `paths` filter then (or add a no-op job with the same name for skipped paths).
 name: lint
 
 on:
   pull_request:
-    paths:
+    paths: &lint-paths
       - "stacks/**"
       - "bootstrap/**"
       - "komodo/**"
@@ -21,6 +25,13 @@ on:
       - ".github/workflows/lint.yml"
   push:
     branches: [main]
+    paths: *lint-paths
+
+# A newer push to the same PR cancels the stale run. On `main` the group is per-commit,
+# so every commit that reaches the deploy path is linted in full and never cancelled.
+concurrency:
+  group: lint-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -31,13 +42,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install yamllint
-        run: pipx install yamllint
-
-      - name: Install resource schema validator
+      # ubuntu-24.04 ships yamllint via pipx; install only if a future image drops it.
+      # The validator venv is created without its own pip (bootstrapping pip into a fresh
+      # venv was most of this step's time) and filled by the system pip via --python.
+      - name: Install lint tools
         run: |
-          python3 -m venv /tmp/homelab-lint
-          /tmp/homelab-lint/bin/pip install -r scripts/lint-requirements.txt
+          command -v yamllint >/dev/null || pipx install yamllint
+          python3 -m venv --without-pip /tmp/homelab-lint
+          python3 -m pip --python /tmp/homelab-lint/bin/python install \
+            --disable-pip-version-check -r scripts/lint-requirements.txt
           echo "/tmp/homelab-lint/bin" >> "$GITHUB_PATH"
 
       # STRICT=1 makes a missing tool a hard failure, so CI never silently skips a check.
