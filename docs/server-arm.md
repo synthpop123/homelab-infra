@@ -46,7 +46,8 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
 | Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / sure / ghostfolio / trek / airtrail / wealthfolio / silo / affine) |
-| multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) |
+| multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) — **not running** since 2026-11-03 (stack stopped, see below) |
+| Amp runner | outbound | `amp --no-tui` serving `~agent/code` checkouts to ampcode.com threads (user `agent`; see systemd units) |
 | komari-agent | outbound | reports to the komari probe on fame |
 | unified-monitoring-agent | outbound | Oracle Cloud's own telemetry (stock on OCI images) |
 | rpcbind | 111 (WAN-dropped) | stock on OCI images; left running but closed by `ARM-INPUT` |
@@ -62,6 +63,16 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
   (same [`jail.local`](../bootstrap/fail2ban/jail.local) as fame; banning within minutes
   of deploy).
 - **`periphery.service`** — the Komodo agent (above).
+- **`amp-runner.service`** — *user* unit of `agent` (`~agent/.config/systemd/user/`, lingering;
+  manage with `sudo -u agent XDG_RUNTIME_DIR=/run/user/1002 systemctl --user …`). Runs
+  `amp --no-tui --runner-id oracle-arm --no-serve-cwd --discover-dirs=/home/agent/code
+  --remote-control-terminal --amp-env`: only git checkouts under `~/code` are served
+  (`amp runner dirs list`). Threads run inside the unit's cgroup, capped at
+  `MemoryHigh=3G` / `MemoryMax=4G` / `CPUQuota=150%` / `CPUWeight=50` so they cannot starve
+  the stacks (no swap here); `OOMPolicy=continue` keeps the runner up when a build is
+  OOM-killed. The runner self-updates in place (same PID). Restarts back off exponentially
+  5s → 10min (`RestartSteps`/`RestartMaxDelaySec`); a `Session expired … amp login` in the
+  journal means it needs `sudo -u agent -i amp login` before it can register again.
 - **`unattended-upgrades`** — Ubuntu defaults.
 - docker, komari-agent — `enabled`.
 
@@ -72,7 +83,9 @@ Docker **29.5.3**, default address pools.
 
 ## Stacks on this host
 
-- **multica** ([stacks/multica](../stacks/multica/)) — the first stack here. Backend +
+- **multica** ([stacks/multica](../stacks/multica/)) — **stopped 2026-11-03** (unused; definition and
+  `/srv/multica/` data kept — `km execute -y deploy-stack multica` to bring it back). A merged
+  Renovate bump to its compose file *will* redeploy (start) it. The first stack here. Backend +
   web + bundled Postgres; data under `/srv/multica/`; ports `127.0.0.1:20000/20001`
   fronted by the host Caddy at `multica.lkwplus.com`. The daemon side (the `multica` CLI
   + AI coding tools) runs as host user **`agent`**, not a container. Keep the CLI at
