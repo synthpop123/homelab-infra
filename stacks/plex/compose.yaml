@@ -105,7 +105,7 @@ services:
 
   kometa:
     container_name: kometa
-    image: linuxserver/kometa:v2.5.4-ls2
+    image: linuxserver/kometa:v2.5.4-ls3
     restart: unless-stopped
     depends_on:
       - plex
