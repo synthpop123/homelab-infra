@@ -48,8 +48,11 @@
 # per film (hours for a large history), weekly runs only map new films. The image is built locally
 # from ./letterboxd-sync: the upstream image (digest-pinned in that Dockerfile, still Renovate-
 # tracked) plus a curl_cffi patch that gets logins past Letterboxd's Cloudflare TLS-fingerprint
-# wall — the stock cloudscraper session 403s (upstream issue #18). Letterboxd credentials, the
-# Plex token and the TMDB key are LETTERBOXD_* Komodo Variables.
+# wall — the stock cloudscraper session 403s (upstream issue #18). Cloudflare keeps retiring
+# fingerprints, so the curl_cffi version (build arg, Renovate-tracked) and the ordered list of
+# browser profiles to try (LB_IMPERSONATE) both live here: refreshing either is a compose change
+# that redeploys itself. Letterboxd credentials, the Plex token and the TMDB key are LETTERBOXD_*
+# Komodo Variables.
 #
 # On the external mediacenter-net at the FIXED IP 172.22.0.7 so tautulli, kometa and
 # letterboxd-plex-sync reach it at 172.22.0.7:32400. The network is created/managed outside
@@ -127,7 +130,11 @@ services:
     container_name: letterboxd-plex-sync
     # Built locally from ./letterboxd-sync (upstream image + Cloudflare TLS-fingerprint patch —
     # see that Dockerfile); the stack deploys with `--build` (komodo/sync.toml).
-    build: ./letterboxd-sync
+    build:
+      context: ./letterboxd-sync
+      args:
+        # Newer releases ship newer browser fingerprints — see LB_IMPERSONATE below.
+        CURL_CFFI_VERSION: "0.17.0"
     restart: unless-stopped
     depends_on:
       - plex
@@ -140,6 +147,9 @@ services:
       - LB_USERNAME=${LETTERBOXD_USERNAME}
       - LB_PASSWORD=${LETTERBOXD_PASSWORD}
       - TMDB_API_KEY=${LETTERBOXD_TMDB_API_KEY}
+      # curl_cffi profiles tried in order; the first one Cloudflare lets through /data/export wins.
+      # All three passed from fame on 2026-11-04 with curl_cffi 0.17.0 (older ones are challenged).
+      - LB_IMPERSONATE=chrome152,safari2601,firefox154
       # Monday 10:00 (container runs on Asia/Shanghai via TZ + the /etc/localtime mount).
       # RUN_NOW=false: syncs only on schedule, never on container start (see header).
       - CRON_SCHEDULE=0 10 * * 1

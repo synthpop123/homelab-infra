@@ -23,6 +23,18 @@
       "depNameTemplate": "moghtech/komodo",
       "versioningTemplate": "semver",
       "extractVersionTemplate": "^v(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Track curl_cffi for the locally built letterboxd-plex-sync image. The pin is a compose build arg, so a bump changes compose.yaml and Komodo redeploys the plex stack with --build; newer releases carry the newer browser fingerprints Letterboxd's Cloudflare still accepts.",
+      "managerFilePatterns": [
+        "/^stacks/plex/compose\\.yaml$/"
+      ],
+      "matchStrings": [
+        "CURL_CFFI_VERSION: \"(?<currentValue>[^\"\\s]+)\""
+      ],
+      "datasourceTemplate": "pypi",
+      "depNameTemplate": "curl_cffi"
     }
   ],
   "packageRules": [
