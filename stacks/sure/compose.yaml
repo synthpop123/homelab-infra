@@ -109,7 +109,7 @@ services:
 
   sure-redis:
     container_name: sure-redis
-    image: redis:7-alpine
+    image: redis:8-alpine
     restart: unless-stopped
     volumes:
       - /srv/sure/redis:/data
