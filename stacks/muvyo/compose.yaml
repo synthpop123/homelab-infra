@@ -90,6 +90,9 @@ services:
     restart: unless-stopped
     # Upstream: without it /dev/shm is 64MB and heavy library queries fail with HTTP 500.
     shm_size: 1g
+    # Muvyo budgets ~191 concurrent connections (warns at startup against the default 100); 300
+    # covers that plus headroom for psql/backups.
+    command: ["postgres", "-c", "max_connections=300"]
     environment:
       TZ: Asia/Shanghai
       POSTGRES_DB: muvyo
