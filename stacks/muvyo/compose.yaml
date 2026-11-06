@@ -3,10 +3,11 @@
 # behind Akko: admin panel + API 7811 → muvyo.lkwplus.com, Vyo web/client 7810 → vyo.lkwplus.com.
 # The Emby proxy (8091) is not published: Emby is being retired, Plex/Cirvel and Vyo replace it.
 #
-# DB/cache connection is injected through the env vars the app reads at startup (MV_DATABASE_*,
-# MV_REDIS_URL — they override vault.ini and show read-only in 存储配置 as 「由容器环境变量提供」),
-# so nothing has to be typed into the UI. Both passwords are Komodo Variables; keep them hex so the
-# Redis URL needs no escaping.
+# DB/cache connection lives in /srv/muvyo/data/config/vault.ini ([database] / [cache], set in the
+# 存储配置 page; host muvyo-postgres / muvyo-redis), not in env: the MV_DATABASE_* / MV_REDIS_URL
+# overrides re-log 「已应用环境变量配置覆盖」 on every config read (~44 lines/min), and upstream's
+# answer is to drop them. Both passwords are still Komodo Variables (the Postgres and Redis
+# containers need them) and must match vault.ini; keep them hex so the Redis URL needs no escaping.
 #
 # Updates: the 自动更新 plugin's online upgrade (OTA) swaps the program inside the running container
 # in the 04:00–06:00 idle window, signature-checked, with automatic rollback. Versions that change
@@ -66,13 +67,6 @@ services:
       PGID: "997"
       MEDIAVAULT_BASE: /opt
       UMASK: "022"
-      MV_DATABASE_TYPE: postgresql
-      MV_DATABASE_HOST: muvyo-postgres
-      MV_DATABASE_PORT: "5432"
-      MV_DATABASE_NAME: muvyo
-      MV_DATABASE_USER: muvyo
-      MV_DATABASE_PASSWORD: ${MUVYO_DB_PASSWORD}
-      MV_REDIS_URL: redis://:${MUVYO_REDIS_PASSWORD}@muvyo-redis:6379/0
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7811/api/v1/system/health"]
       interval: 30s

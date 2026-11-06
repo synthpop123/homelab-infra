@@ -253,7 +253,7 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/muvyo"
 file_paths = ["compose.yaml"]
-# Bundled Postgres + Redis, wired in via MV_DATABASE_* / MV_REDIS_URL; both passwords are Komodo
+# Bundled Postgres + Redis, wired into muvyo via its vault.ini (not env); both passwords are Komodo
 # Variables (hex — the Redis one is embedded in a URL). Fixed IP 172.22.0.11 on mediacenter-net.
 environment = """
 MUVYO_DB_PASSWORD=[[MUVYO_DB_PASSWORD]]
