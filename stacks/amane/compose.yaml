@@ -57,7 +57,7 @@ services:
 
   amane-postgres:
     container_name: amane-postgres
-    image: postgres:17
+    image: postgres:18
     restart: unless-stopped
     shm_size: 256m
     environment:

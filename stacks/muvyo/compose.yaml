@@ -86,7 +86,7 @@ services:
 
   muvyo-postgres:
     container_name: muvyo-postgres
-    image: postgres:17
+    image: postgres:18
     restart: unless-stopped
     # Upstream: without it /dev/shm is 64MB and heavy library queries fail with HTTP 500.
     shm_size: 1g
