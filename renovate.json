@@ -26,6 +26,19 @@
     },
     {
       "customType": "regex",
+      "description": "Track the komari panel, a host binary on fame outside Komodo. The PR is the update notice; after merging, run bootstrap/komari/upgrade.sh on the host.",
+      "managerFilePatterns": [
+        "/^bootstrap/komari/upgrade\\.sh$/"
+      ],
+      "matchStrings": [
+        "KOMARI_VERSION=\"(?<currentValue>[^\"\\s]+)\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "komari-monitor/komari",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
       "description": "Track curl_cffi for the locally built letterboxd-plex-sync image. The pin is a compose build arg, so a bump changes compose.yaml and Komodo redeploys the plex stack with --build; newer releases carry the newer browser fingerprints Letterboxd's Cloudflare still accepts.",
       "managerFilePatterns": [
         "/^stacks/plex/compose\\.yaml$/"
