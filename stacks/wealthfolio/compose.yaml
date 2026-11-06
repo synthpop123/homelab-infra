@@ -4,7 +4,11 @@
 #
 # Upstream: compose.yml + compose.proxy.yml. Deltas: the named volume becomes an absolute bind
 # under /srv/wealthfolio/ (repo convention), the port binds loopback-only, and the long tail of
-# optional OIDC/MCP knobs is dropped — only what this deployment actually sets is listed.
+# optional OIDC knobs is dropped — only what this deployment actually sets is listed.
+#
+# The MCP endpoint (/mcp, behind the same Caddy host) is on: cf-workers-api reads the portfolio
+# through it with a read-only personal access token minted in Settings → AI agent access. Every
+# call is authenticated by that token on top of Wealthfolio auth, and audit logging stays on.
 # Upstream's hardening (read-only rootfs, no-new-privileges, tmpfs /tmp, memory cap) is kept.
 #
 # Everything lives in one SQLite database at /data/wealthfolio.db plus the encrypted credential
@@ -44,6 +48,8 @@ services:
       WF_AUTH_TOKEN_TTL_MINUTES: "1440"
       # Required once auth is on: the browser origin the app is served from.
       WF_CORS_ALLOW_ORIGINS: https://wealthfolio.lkwplus.com
+      # Streamable HTTP MCP at /mcp; requires the auth above (the server refuses to start without).
+      WF_MCP_ENABLED: "true"
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8088/api/v1/healthz"]
       interval: 30s
