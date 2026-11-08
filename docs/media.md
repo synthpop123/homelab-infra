@@ -64,13 +64,12 @@ behind once Amane has organized the file away.
 
 **The intake report** goes to Telegram (and the container log) whenever a run handled or left
 something; a run with nothing to report stays silent. It lists every original name → number and
-marks what to check. A **success does not mean a right match**: Amane only needs the number it read
-from the name to exist on a site.
+marks what to check; titles only one site had are noted in the log alone (`weak in:`). A **success
+does not mean a right match**: Amane only needs the number it read from the name to exist on a site.
 
 | Mark | Meaning |
 |------|---------|
 | 🔴 | Already in the library, but doubtful: the number is not a contiguous piece of the name (`madoubt.com 628589…` read as `COM-628589`), the name or its download folder holds another number, or JavDB and JavBus dates differ by over a year (two films under one number; 99 of 11.6k titles when calibrated, so rarely a false alarm) |
-| 🟡 | Only one site had it |
 | ❌ | Not in the library: the file stays in `/Japan/_inbox` or `/Porn/_inbox`, retried every run. "目标已存在" means a duplicate of a film already organized: delete the extra file |
 | ⚠️ | Still in `/Others/待整理`: 30 MB or more but under the size floor, or a same-named file already in `_inbox`. Smaller files are taken for ads and not reported |
 

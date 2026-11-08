@@ -242,13 +242,10 @@ def build_messages(results):
     for name, entries, skipped, error in results:
         added = [x for x in entries if x["path"]]
         strong = [x for x in added if x["strong"]]
-        weak = [x for x in added if x["weak"] and not x["strong"]]
         left = [x for x in entries if not x["path"]]
         counts = [f"新增 {len(added)}"]
         if strong:
             counts.append(f"🔴 {len(strong)}")
-        if weak:
-            counts.append(f"🟡 {len(weak)}")
         if left:
             counts.append(f"❌ {len(left)}")
         if skipped:
@@ -266,14 +263,11 @@ def build_messages(results):
             attention.append(f"❌ <b>{name} 未入库，留在 _inbox</b>\n" + "\n".join(
                 f"• {e(clip(x['name']))}\n  {e(x['error'])}"
                 + (f"\n  {e('；'.join(x['strong']))}" if x["strong"] else "") for x in left))
-        if weak:
-            attention.append(f"🟡 <b>{name} 来源单一</b>\n" + "\n".join(
-                f"• {e(x['number'])}（{e(x['weak'][0])}）" for x in weak))
         if skipped:
             attention.append(f"⚠️ <b>{name} 未处理，还在待整理</b>\n" + "\n".join(
                 f"• {e(clip(n))}（{e(why)}）" for n, why in skipped))
         for x in sorted(entries, key=lambda x: x["name"].lower()):
-            mark = "❌" if not x["path"] else "🔴" if x["strong"] else "🟡" if x["weak"] else "✓"
+            mark = "❌" if not x["path"] else "🔴" if x["strong"] else "✓"
             listing.append((mark, x["name"], x["number"] or "—"))
     return "\n".join(head), attention, listing
 
