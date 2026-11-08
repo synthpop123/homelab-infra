@@ -12,10 +12,12 @@ WORKDIR /app
 ADD https://github.com/SashaBusinaro/komodo-telegram-alerter/archive/refs/tags/${ALERTER_VERSION}.tar.gz /tmp/src.tar.gz
 COPY server.patch format.js /tmp/
 
-RUN mkdir /tmp/upstream && \
+RUN apk add --no-cache --virtual .patch-deps patch && \
+    mkdir /tmp/upstream && \
     tar xzf /tmp/src.tar.gz -C /tmp/upstream --strip-components=1 && \
     cp /tmp/upstream/src/package.json /tmp/upstream/src/package-lock.json /tmp/upstream/src/server.js /tmp/format.js . && \
     patch server.js /tmp/server.patch && \
+    apk del .patch-deps && \
     npm ci --omit=dev --ignore-scripts && \
     npm cache clean --force && \
     rm -rf /tmp/upstream /tmp/src.tar.gz /tmp/server.patch /tmp/format.js && \
