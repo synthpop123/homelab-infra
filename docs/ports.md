@@ -101,8 +101,9 @@ to them, so nothing rides the `DOCKER-USER` exposure path at all (see
 | 20009 | silo (S3 API)      | 9000           | Silo object storage S3 API, loopback-only      |
 | 20010 | silo (Console)     | 9001           | Silo web Console, loopback-only                |
 | 20011 | affine             | 3010           | AFFiNE docs/whiteboard workspace, loopback-only |
+| 20012 | komodo-telegram-alerter | 3000      | Komodo alerts → Telegram, loopback-only        |
 
-**Next free (arm): `20012`**
+**Next free (arm): `20013`**
 
 > **Outside the scheme (arm)**: `beszel-agent` is host-networked and reserves host port
 > **45876** (only bound as a fallback when its outbound WebSocket to the hub on fame is

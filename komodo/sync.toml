@@ -458,9 +458,12 @@ file_paths = ["compose.yaml"]
 # rslave); link_template writes STRM/NFO/images into the shared /srv/emby/data (/data). The API
 # token is auto-generated into /srv/amane/data, LLM keys are entered in the UI. Bundled Postgres
 # (r18.dev offline source) — its superuser password is a Komodo Variable — plus an internal-only
-# flaresolverr (container amane-flaresolverr, reached in-network at flaresolverr:8191).
+# flaresolverr (container amane-flaresolverr, reached in-network at flaresolverr:8191). The Telegram
+# pair is for the amane-intake job's run report.
 environment = """
 AMANE_DB_PASSWORD=[[AMANE_DB_PASSWORD]]
+TELEGRAM_TOKEN=[[TELEGRAM_TOKEN]]
+TELEGRAM_CHAT_ID=[[TELEGRAM_CHAT_ID]]
 """
 
 [[stack]]
@@ -758,6 +761,20 @@ SILO_ROOT_PASSWORD=[[SILO_ROOT_PASSWORD]]
 """
 
 [[stack]]
+name = "komodo-telegram-alerter"
+description = "https://tg-notify.lkwplus.com (Komodo alerts -> Telegram)"
+deploy = false
+tags = ["app", "host-arm", "source-build"]
+
+[stack.config]
+server = "Oracle-Arm"
+linked_repo = "homelab-infra"
+run_directory = "stacks/komodo-telegram-alerter"
+file_paths = ["compose.yaml"]
+# Built locally: upstream's image is amd64-only, and a patch makes the messages readable.
+extra_args = ["--build"]
+
+[[stack]]
 name = "affine"
 description = "https://affine.lkwplus.com"
 deploy = false
@@ -810,6 +827,16 @@ BESZEL_ARM_TOKEN=[[BESZEL_ARM_TOKEN]]
 #   Set up this procedure's push webhook in the Komodo UI (Procedure page -> copy webhook URL),
 #   and make sure the `homelab` ResourceSync's webhook is turned OFF so it doesn't double-run.
 # ----------------------------------------------------------------------------
+# Every Komodo alert goes to Telegram through the komodo-telegram-alerter stack on arm: Core has no
+# Telegram endpoint of its own. Core interpolates the two Variables when it sends.
+[[alerter]]
+name = "Telegram"
+
+[alerter.config]
+enabled = true
+endpoint.type = "Custom"
+endpoint.params.url = "https://tg-notify.lkwplus.com/alert?token=[[TELEGRAM_TOKEN]]&chat_id=[[TELEGRAM_CHAT_ID]]"
+
 [[procedure]]
 name = "Redeploy On Push"
 description = "On git push: run the homelab sync (reconcile definitions), then deploy stacks whose compose changed."
@@ -911,7 +938,8 @@ executions = [
 # JAV/Porn intake (stacks/amane/intake/media-intake.py): moves new videos from 115
 # /Others/待整理/{JAV,Porn} into the Amane libraries, scrapes and organizes them. Daily at 08:30,
 # after the 04:00-08:00 Cirvel maintenance window; "Run" it in the UI for an on-demand intake.
-# The report is the amane-intake container's log.
+# The report is the amane-intake container's log, and the job sends it to Telegram itself, so the
+# "schedule ran" alert would only be noise.
 [[procedure]]
 name = "Media Intake"
 description = "JAV/Porn intake: 115 /Others/待整理/{JAV,Porn} → Amane scrape + organize → Plex."
@@ -922,6 +950,7 @@ schedule_format = "Cron"
 schedule = "0 30 8 * * *"
 schedule_timezone = "Asia/Shanghai"
 schedule_enabled = true
+schedule_alert = false
 
 [[procedure.config.stage]]
 name = "Run the intake job"

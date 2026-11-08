@@ -52,16 +52,40 @@ found:` there.
 one-shot `amane-intake` job daily at 08:30 — or press *Run* for an on-demand intake. It moves the
 videos into the library's `_inbox`, scrapes (JAV: the usual content routes; Porn: ThePornDB on a
 `Studio.YY.MM.DD` number taken from the file name, so scene-release names like
-`blackedraw.25.10.28.name` work), organizes, and Plex picks the new `.strm` up by itself. Its
-container log is the report; whatever it could not scrape stays in `_inbox` (Amane UI: status
-pending) and is retried next run. Amane's own library automation stays off — without a
-CloudDrive2 membership (webhook) it would have to walk the whole tree on 115. Rename only in
-Amane, never in the 115 app (a rename leaves a dead STRM). Plex skips each tree's `_inbox`, where
+`blackedraw.25.10.28.name` work), organizes, and Plex picks the new `.strm` up by itself. Amane's
+own library automation stays off — without a CloudDrive2 membership (webhook) it would have to
+walk the whole tree on 115. Rename an organized file only in Amane, never in the 115 app (a rename
+leaves a dead STRM). Plex skips each tree's `_inbox`, where
 muvyo's life events give every file moved in a STRM and then ask Plex to scan that folder alone: a
 `.plexignore` at `/srv/emby/data/{Japan,Western}` (`_inbox/*`) covers full scans, and one inside
 each `_inbox` (`*`) covers those partial scans, which ignore the tree-root file. The nightly
 `orphan-cleanup` restores the inner one if it is gone and trashes the `_inbox` STRM muvyo leaves
 behind once Amane has organized the file away.
+
+**The intake report** goes to Telegram (and the container log) whenever a run handled or left
+something; a run with nothing to report stays silent. It lists every original name → number and
+marks what to check. A **success does not mean a right match**: Amane only needs the number it read
+from the name to exist on a site.
+
+| Mark | Meaning |
+|------|---------|
+| 🔴 | Already in the library, but doubtful: the number is not a contiguous piece of the name (`madoubt.com 628589…` read as `COM-628589`), the name or its download folder holds another number, or JavDB and JavBus dates differ by over a year (two films under one number; 99 of 11.6k titles when calibrated, so rarely a false alarm) |
+| 🟡 | Only one site had it |
+| ❌ | Not in the library: the file stays in `/Japan/_inbox` or `/Porn/_inbox`, retried every run. "目标已存在" means a duplicate of a film already organized: delete the extra file |
+| ⚠️ | Still in `/Others/待整理`: 30 MB or more but under the size floor, or a same-named file already in `_inbox`. Smaller files are taken for ads and not reported |
+
+Fixing a ❌ or a wrong 🔴, either way:
+
+- **Amane UI:** 指定番号刮削 with the right number. For a ❌, the next run organizes it (a row
+  scraped by hand is not re-read from its file name), or press 整理 now. A wrong 🔴 is already in
+  the library, so press 整理 yourself to move it.
+- **115 app, ❌ only:** rename the file in `_inbox` to the number, then *Run* Media Intake. The old
+  row goes away by itself.
+
+A number can also be right while the merged metadata is wrong, because JavDB outranks JavBus and
+may hold a different film under that number. Then patch the fields from the right site's snapshot
+(`raw` on `GET /api/metadata/{id}`) with `PATCH /api/metadata/{id}`, which also locks them against
+later scrapes, and organize again.
 
 **Deleting JAV/Porn:** delete the video or its whole folder in the 115 app. Two muvyo life-event
 rules, STRM-only, `/Japan → /data/Japan` and `/Porn → /data/Western`, remove the STRM with the

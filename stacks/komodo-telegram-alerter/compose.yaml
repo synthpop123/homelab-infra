@@ -1,0 +1,24 @@
+# komodo-telegram-alerter — bridges Komodo's Custom alerter endpoint to Telegram
+# (https://github.com/SashaBusinaro/komodo-telegram-alerter). Runs on the arm host, served by arm's
+# host Caddy at tg-notify.lkwplus.com, which only lets fame (Komodo Core) reach it.
+#
+# Built locally with a formatting patch (see Dockerfile), so the deploy runs `--build`. It holds no
+# credentials and no state: the bot token and chat id arrive on each request, in the query string of
+# the `Telegram` alerter's URL (komodo/sync.toml), interpolated from Komodo Variables.
+services:
+  komodo-telegram-alerter:
+    container_name: komodo-telegram-alerter
+    build:
+      context: .
+      args:
+        ALERTER_VERSION: "v1.0.0"
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
+      - "127.0.0.1:20012:3000/tcp"
+
+networks:
+  default:
+    name: komodo-telegram-alerter

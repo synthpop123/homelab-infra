@@ -3,7 +3,7 @@
 One-page inventory of the second VPS — an Oracle Cloud ARM machine in Chuncheon, South
 Korea, connected to the Komodo control plane on fame ([komodo-servers.md](./komodo-servers.md)).
 Runs the **multica**, **storageui**, **sure**, **ghostfolio**, **trek**, **airtrail**,
-**wealthfolio**, **silo**, **affine** and **beszel-agent** stacks (see below). The primary
+**wealthfolio**, **silo**, **affine**, **komodo-telegram-alerter** and **beszel-agent** stacks (see below). The primary
 host's page: [server.md](./server.md).
 
 ## System
@@ -45,7 +45,7 @@ touch the `DOCKER-USER` exposure path. Config: `/etc/caddy/Caddyfile` on the hos
 | Process | Port | Purpose |
 |---------|------|---------|
 | sshd | 11322 | admin access (public; fail2ban-guarded) |
-| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / sure / ghostfolio / trek / airtrail / wealthfolio / silo / affine) |
+| Caddy | 80/443 | TLS + reverse proxy for this host's stacks (multica / storageui / sure / ghostfolio / trek / airtrail / wealthfolio / silo / affine / komodo-telegram-alerter) |
 | multica daemon | — | Multica agent daemon (user `agent`; binary under `~agent/.local/bin`) — **not running** since 2026-11-03 (stack stopped, see below) |
 | Amp runner | outbound | `amp --no-tui` serving `~agent/code` checkouts to ampcode.com threads (user `agent`; see systemd units) |
 | komari-agent | outbound | reports to the komari probe on fame |
@@ -179,6 +179,15 @@ Docker **29.5.3**, default address pools.
   (upstream default). The first account created from the UI is the admin; SMTP is not configured,
   so invitations and password resets by mail do not work until it is (Admin Panel or `mailer` in
   `config.json`).
+- **komodo-telegram-alerter** ([stacks/komodo-telegram-alerter](../stacks/komodo-telegram-alerter/))
+  — turns Komodo's Custom alerter POST into a Telegram message. Port `127.0.0.1:20012`, host Caddy
+  at `tg-notify.lkwplus.com`. The vhost answers fame's IPs only (`remote_ip` in the off-git
+  Caddyfile) and only `POST /alert`: the endpoint needs no login and takes any token, so nothing
+  else has a reason to reach it. **If fame's public IP changes, update that matcher**, or alerts
+  stop arriving (Core logs a 403). Built locally from upstream's tagged source: the published image
+  is amd64-only, and `server.patch` + `format.js` replace its raw-JSON Markdown message, which
+  Telegram rejects on an unpaired `_`. No credentials or state: the token and chat id come with
+  each request, from the `Telegram` alerter in `komodo/sync.toml`.
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;

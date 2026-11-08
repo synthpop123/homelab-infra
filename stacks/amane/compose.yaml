@@ -75,7 +75,8 @@ services:
   # One-shot JAV/Porn intake (intake/media-intake.py): 115 /Others/待整理/{JAV,Porn} → the libraries'
   # _inbox → scrape → organize. Behind a profile so a normal deploy never runs it; Komodo's "Media Intake"
   # procedure does `up -d amane-intake` daily at 08:30 (or when run by hand), which starts the exited
-  # container again. Its log is the run report.
+  # container again. The run report (original name -> number, suspects marked) is its log and goes to
+  # Telegram directly; the bot token and chat id are Komodo Variables.
   amane-intake:
     container_name: amane-intake
     image: ghcr.io/sqzw-x/amane:0.26.0
@@ -88,6 +89,8 @@ services:
         condition: service_healthy
     environment:
       - TZ=Asia/Shanghai
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
     volumes:
       - /srv/amane/data:/config:ro
       - /mnt/CloudNAS:/media:rslave

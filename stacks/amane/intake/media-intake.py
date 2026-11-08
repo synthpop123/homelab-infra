@@ -9,28 +9,47 @@ whose open115 quota Muvyo shares, so it stays small: one listing per inbox, one 
 
 Organize writes the STRM + NFO + images under /data/{Japan,Western}; Plex picks them up by itself.
 A file Amane cannot scrape stays in the library's _inbox (Amane UI: status pending) and is retried next run.
+
+The report (every original name -> number, with suspect matches marked) goes to the container log and to
+Telegram. A run with nothing to report stays silent.
 """
+import datetime
+import html
 import json
 import os
 import re
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 
 API = os.environ.get("AMANE_API", "http://amane:8000/api")
-TOKEN = open("/config/token").read().strip()
 VIDEO = {".mp4", ".mkv", ".avi", ".wmv", ".mov", ".m4v", ".ts", ".m2ts", ".mpg", ".mpeg", ".vob", ".iso", ".rmvb", ".flv"}
 # (name, inbox on 115, Amane library id, library root, minimum size, content_type override)
 INBOXES = [
     ("JAV", "/media/115/Others/待整理/JAV", 1, "/media/115/Japan", 200 << 20, None),
     ("Porn", "/media/115/Others/待整理/Porn", 2, "/media/115/Porn", 30 << 20, "western"),
 ]
+# Below min_size a file is left where it is. Ads sit far under this; anything above it may be the film.
+WORTH_REPORTING = 30 << 20
+
+TG_TEXT_LIMIT = 3800
+TG_MAX_LIST_MESSAGES = 3  # a longer list goes out as a .txt attachment
+DATE_CONFLICT_DAYS = 365
+
+# Site-name prefixes ("hhd800.com@ABC-123"): their digits and TLDs are what Amane misreads as a number.
+DOMAIN = re.compile(r"[a-z0-9-]+\.(?:com|net|org|xyz|me|cc|tv|la|fun|top|vip|info|io|co|site|club|live)\b", re.I)
+NUMBER_LIKE = re.compile(r"(?<![A-Za-z0-9])(\d{0,4}[A-Za-z]{2,8})[-_ ]?(\d{2,6})(?!\d)")
+NOT_A_NUMBER = {"CD", "PART", "HD", "FHD", "MP", "AV", "HEVC", "AAC", "VR"}
 
 
 def api(method, path, body=None):
+    with open("/config/token") as f:
+        token = f.read().strip()
     req = urllib.request.Request(API + path, method=method, data=None if body is None else json.dumps(body).encode(),
-                                 headers={"Authorization": "Bearer " + TOKEN, "Content-Type": "application/json"})
+                                 headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=180) as f:
         raw = f.read()
         return json.loads(raw) if raw else None
@@ -71,23 +90,82 @@ def rows_under(lib, prefix):
             return out
 
 
+def number_candidates(stem, number):
+    """Other number-shaped tokens in a file name, ignoring site-name prefixes."""
+    found = set()
+    for prefix, digits in NUMBER_LIKE.findall(DOMAIN.sub(" ", stem)):
+        cand = f"{prefix}-{digits}".upper()
+        if prefix.upper() not in NOT_A_NUMBER and prefix.upper() != number.split("-")[0].upper() and int(digits):
+            found.add(cand)
+    return sorted(found)
+
+
+def number_in_name(stem, number):
+    """Whether the number is a contiguous piece of the name (ABC-123, abc123, abc00123), not assembled across junk."""
+    m = re.match(r"(.+?)-(.+)$", number)
+    if not m:
+        return True
+    pattern = rf"(?<![A-Za-z0-9]){re.escape(m.group(1))}(?:[-_]?PPV)?[-_]?0*{re.escape(m.group(2).lstrip('0'))}(?!\d)"
+    return re.search(pattern, DOMAIN.sub(" ", stem), re.I) is not None
+
+
+def date_conflict(raw):
+    """JavDB and JavBus disagreeing by years means they hold different films under one number."""
+    try:
+        a, b = (datetime.date.fromisoformat((raw[s].get("release") or "")[:10]) for s in ("javdb", "javbus"))
+    except (KeyError, ValueError):
+        return None
+    return f"JavDB {a} 与 JavBus {b} 发行日不符，可能是同番号的另一部" if abs((a - b).days) > DATE_CONFLICT_DAYS else None
+
+
+def suspects(stem, number, folder, raw):
+    """(strong, weak) reasons to doubt a match. Only for name-derived numbers: Porn's are built from the name."""
+    from amane.parsing.file_info import extract_number
+
+    strong, weak = [], []
+    if not number_in_name(stem, number):
+        strong.append(f"{number} 不是原名中的连续片段")
+    others = number_candidates(stem, number)
+    if others:
+        strong.append("原名里还有 " + "、".join(others))
+    from_folder = extract_number(folder) if folder else None
+    if from_folder and re.sub(r"^\d+", "", from_folder) != re.sub(r"^\d+", "", number):
+        strong.append(f"文件夹名是 {from_folder}")
+    conflict = date_conflict(raw)
+    if conflict:
+        strong.append(conflict)
+    if len(raw) == 1:
+        weak.append(f"只有 {next(iter(raw))} 一个来源")
+    return strong, weak
+
+
 def intake(name, inbox, lib, root, min_size, content_type):
+    """Returns (entries, skipped): one entry per file handled, skipped = (name, why) left in the inbox."""
     stage = f"{root}/_inbox"
     moved = 0
+    folders, skipped = {}, []
     if os.path.isdir(inbox):
         for d, _, files in os.walk(inbox):
             for f in sorted(files):
                 src = os.path.join(d, f)
-                if os.path.splitext(f)[1].lower() not in VIDEO or os.path.getsize(src) < min_size:
+                if os.path.splitext(f)[1].lower() not in VIDEO:
+                    continue
+                size = os.path.getsize(src)
+                if size < min_size:
+                    if size >= WORTH_REPORTING:
+                        skipped.append((os.path.relpath(src, inbox), f"{size >> 20} MB，小于阈值"))
                     continue
                 os.makedirs(stage, exist_ok=True)
                 # Amane only reads "-cd1" as a part; "name - cd1.mp4" would be a separate whole film
                 dst = os.path.join(stage, re.sub(r"\s+-\s+cd(\d+)(?=\.[^.]+$)", r"-cd\1", f, flags=re.I))
                 if os.path.exists(dst):
-                    say(name, "skip (already in _inbox):", f)
+                    skipped.append((os.path.relpath(src, inbox), "_inbox 里已有同名文件"))
                     continue
                 os.rename(src, dst)
                 moved += 1
+                # The move flattens the download folder away, and with it Amane's fallback on the folder name
+                if d != inbox:
+                    folders[os.path.basename(dst)] = os.path.basename(d)
                 time.sleep(1.1)
         for d, sub, files in sorted(os.walk(inbox), key=lambda w: -len(w[0])):  # drop emptied download folders
             if d != inbox and not os.listdir(d):
@@ -95,48 +173,199 @@ def intake(name, inbox, lib, root, min_size, content_type):
                 time.sleep(1.1)
     if not moved and not os.path.isdir(stage):
         say(name, "nothing new")
-        return [], []
+        return [], skipped
     run({"type": "refresh", "library_id": lib, "path": stage, "recursive": False, "scrape": []})
-    done, failed = [], []
+    entries = []
     for r in rows_under(lib, stage + "/"):
-        stem = r["path"].rsplit("/", 1)[1].rsplit(".", 1)[0]
-        task = {"type": "scrape", "media_id": r["id"]}
-        if content_type == "western":
-            number = western_number(stem)
-            if not number:
-                failed.append(f"{stem}: no Studio.YY.MM.DD in the name")
-                continue
-            task.update(number=number, content_type="western")
-        t = run(task)
-        if t["status"] != "done":
-            failed.append(f"{stem}: scrape {t.get('error') or t['status']}")
+        fname = r["path"].rsplit("/", 1)[1]
+        stem = fname.rsplit(".", 1)[0]
+        if not os.path.exists(r["path"]):
+            # Deleted or renamed in the 115 app. Organize drops a row whose file is gone; refresh's "remove" scan
+            # would not do: it compares the whole library against the one folder it just walked.
+            run({"type": "organize", "library_id": lib, "media_file_ids": [r["id"]]})
+            say(name, "dropped (file gone):", fname)
             continue
-        run({"type": "organize", "library_id": lib, "media_file_ids": [r["id"]]})
+        entry = {"name": fname, "number": None, "path": None, "error": None, "strong": [], "weak": []}
+        entries.append(entry)
+        metadata_id = r.get("metadata_id")
+        if not metadata_id:  # otherwise already scraped by hand ("指定番号刮削"): the file name must not undo that
+            task = {"type": "scrape", "media_id": r["id"]}
+            if content_type == "western":
+                number = western_number(stem)
+                if not number:
+                    entry["error"] = "原名里没有 Studio.YY.MM.DD"
+                    continue
+                task.update(number=number, content_type="western")
+            t = run(task)
+            entry["number"] = (t.get("payload") or {}).get("number")
+            if t["status"] != "done":
+                entry["error"] = t.get("error") or t["status"]
+                if not content_type and entry["number"]:
+                    entry["strong"] = suspects(stem, entry["number"], folders.get(fname), {})[0]
+                continue
+            metadata_id = (t.get("result") or {}).get("metadata_id")
+        meta = api("GET", f"/metadata/{metadata_id}")["metadata"]
+        entry["number"] = meta["number"]
+        if not content_type and not r.get("metadata_id"):
+            entry["strong"], entry["weak"] = suspects(stem, meta["number"], folders.get(fname), meta.get("raw") or {})
+        organized = run({"type": "organize", "library_id": lib, "media_file_ids": [r["id"]]})
         try:
             path = api("GET", f"/media/{r['id']}")["path"]
         except Exception:
             path = stage  # row dropped on a failed stat: re-registered from _inbox next run
-        if path.startswith(stage):
-            failed.append(f"{stem}: organize failed")
+        if not path.startswith(stage):
+            entry["path"] = path.removeprefix(root + "/")
+        elif (organized.get("result") or {}).get("conflicted"):
+            entry["error"] = f"目标已存在，{meta['number']} 重复了"
         else:
-            done.append(path.removeprefix(root + "/"))
+            entry["error"] = "整理失败"
         time.sleep(3)
-    return done, failed
+    return entries, skipped
+
+
+# --- report ---------------------------------------------------------------------------------------------------
+
+
+def clip(text, width=70):
+    return text if len(text) <= width else text[:width - 21] + "…" + text[-20:]
+
+
+def e(text):
+    return html.escape(str(text), quote=False)
+
+
+def build_messages(results):
+    """Telegram HTML messages (headline + what needs attention) and the full original-name list, in pages."""
+    now = time.strftime("%m-%d %H:%M")
+    head = [f"🎬 <b>Media Intake</b> {now}"]
+    attention, listing = [], []
+    for name, entries, skipped, error in results:
+        added = [x for x in entries if x["path"]]
+        strong = [x for x in added if x["strong"]]
+        weak = [x for x in added if x["weak"] and not x["strong"]]
+        left = [x for x in entries if not x["path"]]
+        counts = [f"新增 {len(added)}"]
+        if strong:
+            counts.append(f"🔴 {len(strong)}")
+        if weak:
+            counts.append(f"🟡 {len(weak)}")
+        if left:
+            counts.append(f"❌ {len(left)}")
+        if skipped:
+            counts.append(f"⚠️ 跳过 {len(skipped)}")
+        if error:
+            counts.append("💥 出错")
+        if entries or skipped or error:
+            head.append(f"{name}：" + " · ".join(counts))
+        if error:
+            attention.append(f"💥 <b>{name} 中断</b>\n{e(error)}")
+        if strong:
+            attention.append(f"🔴 <b>{name} 可疑，已入库，请核对</b>\n" + "\n".join(
+                f"• {e(clip(x['name']))} → <b>{e(x['number'])}</b>\n  {e('；'.join(x['strong']))}" for x in strong))
+        if left:
+            attention.append(f"❌ <b>{name} 未入库，留在 _inbox</b>\n" + "\n".join(
+                f"• {e(clip(x['name']))}\n  {e(x['error'])}"
+                + (f"\n  {e('；'.join(x['strong']))}" if x["strong"] else "") for x in left))
+        if weak:
+            attention.append(f"🟡 <b>{name} 来源单一</b>\n" + "\n".join(
+                f"• {e(x['number'])}（{e(x['weak'][0])}）" for x in weak))
+        if skipped:
+            attention.append(f"⚠️ <b>{name} 未处理，还在待整理</b>\n" + "\n".join(
+                f"• {e(clip(n))}（{e(why)}）" for n, why in skipped))
+        for x in sorted(entries, key=lambda x: x["name"].lower()):
+            mark = "❌" if not x["path"] else "🔴" if x["strong"] else "🟡" if x["weak"] else "✓"
+            listing.append((mark, x["name"], x["number"] or "—"))
+    return "\n".join(head), attention, listing
+
+
+def paginate(blocks, sep="\n"):
+    """Join blocks into pages under Telegram's limit; a block longer than a page is split on its lines."""
+    pages, cur = [], ""
+    for block in blocks:
+        for piece in ([block] if len(block) <= TG_TEXT_LIMIT else block.split("\n")):
+            if cur and len(cur) + len(piece) + len(sep) > TG_TEXT_LIMIT:
+                pages.append(cur)
+                cur = ""
+            cur = f"{cur}{sep}{piece}" if cur else piece
+    return pages + [cur] if cur else pages
+
+
+def telegram(method, fields, attachment=None):
+    token, chat = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
+    if not token or not chat:
+        say("telegram: TELEGRAM_TOKEN / TELEGRAM_CHAT_ID not set, report only in this log")
+        return
+    fields = {"chat_id": chat, **fields}
+    if attachment:
+        filename, content = attachment
+        boundary = uuid.uuid4().hex
+        body = b"".join(
+            f'--{boundary}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode()
+            for k, v in fields.items())
+        body += (f'--{boundary}\r\nContent-Disposition: form-data; name="document"; filename="{filename}"\r\n'
+                 "Content-Type: text/plain; charset=utf-8\r\n\r\n").encode() + content + f"\r\n--{boundary}--\r\n".encode()
+        ctype = f"multipart/form-data; boundary={boundary}"
+    else:
+        body, ctype = json.dumps(fields).encode(), "application/json"
+    req = urllib.request.Request(f"https://api.telegram.org/bot{token}/{method}", data=body,
+                                 headers={"Content-Type": ctype})
+    for attempt in (1, 2):
+        try:
+            with urllib.request.urlopen(req, timeout=60):
+                return
+        except urllib.error.HTTPError as err:  # the message never carries the URL, so the token stays out of the log
+            say("telegram:", method, err.code, err.read().decode(errors="replace")[:300])
+        except OSError as err:
+            say("telegram:", method, type(err).__name__, err)
+        if attempt == 1:
+            time.sleep(5)
+
+
+def send_report(results):
+    head, attention, listing = build_messages(results)
+    if len(head.split("\n")) == 1:  # nothing happened in any inbox
+        return
+    send = lambda text: telegram("sendMessage", {"text": text, "parse_mode": "HTML"})
+    for page in paginate([head, *attention], sep="\n\n"):
+        send(page)
+    if not listing:
+        return
+    rows = [f"{mark} {e(clip(name))} → <b>{e(number)}</b>" for mark, name, number in listing]
+    list_pages = paginate(["📋 <b>原名 → 番号</b>\n" + rows[0], *rows[1:]])
+    if len(list_pages) <= TG_MAX_LIST_MESSAGES:
+        for page in list_pages:
+            send(page)
+    else:
+        text = "\n".join(f"{mark} {name} -> {number}" for mark, name, number in listing)
+        telegram("sendDocument", {"caption": f"📋 原名 → 番号，共 {len(listing)} 条"},
+                 (f"media-intake-{time.strftime('%Y%m%d-%H%M')}.txt", text.encode()))
 
 
 if __name__ == "__main__":
     bad = False
+    results = []
     for box in INBOXES:
         try:
-            done, failed = intake(*box)
-        except Exception as e:  # one inbox failing must not stop the other
+            entries, skipped = intake(*box)
+            results.append((box[0], entries, skipped, None))
+        except Exception as err:  # one inbox failing must not stop the other
             bad = True
-            say(box[0], "ERROR", type(e).__name__, e)
+            say(box[0], "ERROR", type(err).__name__, err)
+            results.append((box[0], [], [], f"{type(err).__name__}: {err}"))
             continue
-        for p in done:
-            say(box[0], "in:", p)
-        for p in failed:
-            say(box[0], "left in _inbox:", p)
-        if done or failed:
-            say(box[0], f"{len(done)} added, {len(failed)} left in _inbox")
+        for x in entries:
+            if x["path"]:
+                mark = "SUSPECT " if x["strong"] else "weak " if x["weak"] else ""
+                say(box[0], f"{mark}in:", x["name"], "->", x["number"], "->", x["path"], *x["strong"], *x["weak"])
+            else:
+                say(box[0], "left in _inbox:", x["name"], "->", x["number"], ":", x["error"], *x["strong"])
+        for n, why in skipped:
+            say(box[0], f"left in place: {n} ({why})")
+        if entries:
+            added = sum(1 for x in entries if x["path"])
+            say(box[0], f"{added} added, {len(entries) - added} left in _inbox")
+    try:
+        send_report(results)
+    except Exception as err:  # the intake itself is done; the log still has the report
+        say("telegram: report failed", type(err).__name__, err)
     sys.exit(1 if bad else 0)

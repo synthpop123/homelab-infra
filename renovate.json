@@ -48,6 +48,18 @@
       ],
       "datasourceTemplate": "pypi",
       "depNameTemplate": "curl_cffi"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the upstream source of the locally built komodo-telegram-alerter image. The pin is a compose build arg, so a bump redeploys the stack with --build; if upstream changes server.js, server.patch fails the build loudly and needs refreshing.",
+      "managerFilePatterns": [
+        "/^stacks/komodo-telegram-alerter/compose\\.yaml$/"
+      ],
+      "matchStrings": [
+        "ALERTER_VERSION: \"(?<currentValue>[^\"\\s]+)\""
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "SashaBusinaro/komodo-telegram-alerter"
     }
   ],
   "packageRules": [

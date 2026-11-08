@@ -53,6 +53,11 @@ api write "{\"type\":\"DeleteStack\",\"params\":{\"id\":\"<name>\"}}" >/dev/null
   **Write responses echo the full object, secret `value` included** — send them to `/dev/null`
   when writing a secret, and generate the value on the host (`$(openssl rand -hex 16)`).
 
+- **Alerts** — the `Telegram` alerter (`komodo/sync.toml`) sends every Komodo alert through the
+  `komodo-telegram-alerter` stack on arm ([server-arm.md](./server-arm.md)). Test the whole chain
+  with `api execute '{"type":"TestAlerter","params":{"alerter":"Telegram"}}'`. Chain down means no
+  alert about it: when arm itself is unreachable, nothing arrives until it is back.
+
 Komodo's Stats page now provides multi-server charts and separates memory use from
 cache. Use it alongside Beszel/Komari; those monitors remain independent of Core.
 Custom resource/container list API callers must paginate or set `limit: 0` on
