@@ -37,6 +37,7 @@ WORTH_REPORTING = 30 << 20
 
 TG_TEXT_LIMIT = 3800
 TG_MAX_LIST_MESSAGES = 3  # a longer list goes out as a .txt attachment
+TG_SEND_INTERVAL = 3.1  # Telegram allows about 20 messages a minute to one chat
 DATE_CONFLICT_DAYS = 365
 
 # Site-name prefixes ("hhd800.com@ABC-123"): their digits and TLDs are what Amane misreads as a number.
@@ -272,15 +273,28 @@ def build_messages(results):
     return "\n".join(head), attention, listing
 
 
+def cut_line(line):
+    """A line longer than a page, in page-sized pieces, none ending inside an HTML entity or tag."""
+    pieces = []
+    while len(line) > TG_TEXT_LIMIT:
+        piece = re.sub(r"(?:&[a-z]*|</?[a-z]*)$", "", line[:TG_TEXT_LIMIT]) or line[:TG_TEXT_LIMIT]
+        pieces.append(piece)
+        line = line[len(piece):]
+    return pieces + [line]
+
+
 def paginate(blocks, sep="\n"):
-    """Join blocks into pages under Telegram's limit; a block longer than a page is split on its lines."""
+    """Join blocks into pages under Telegram's limit, sep between blocks; a block longer than a page is split on its
+    lines, which stay together with a plain newline, and a line longer than a page is cut."""
     pages, cur = [], ""
     for block in blocks:
-        for piece in ([block] if len(block) <= TG_TEXT_LIMIT else block.split("\n")):
-            if cur and len(cur) + len(piece) + len(sep) > TG_TEXT_LIMIT:
+        pieces = [block] if len(block) <= TG_TEXT_LIMIT else [p for line in block.split("\n") for p in cut_line(line)]
+        for i, piece in enumerate(pieces):
+            joiner = "\n" if i else sep
+            if cur and len(cur) + len(joiner) + len(piece) > TG_TEXT_LIMIT:
                 pages.append(cur)
                 cur = ""
-            cur = f"{cur}{sep}{piece}" if cur else piece
+            cur = f"{cur}{joiner}{piece}" if cur else piece
     return pages + [cur] if cur else pages
 
 
@@ -303,16 +317,24 @@ def telegram(method, fields, attachment=None):
         body, ctype = json.dumps(fields).encode(), "application/json"
     req = urllib.request.Request(f"https://api.telegram.org/bot{token}/{method}", data=body,
                                  headers={"Content-Type": ctype})
-    for attempt in (1, 2):
+    for attempt in (1, 2, 3):
+        wait = 5
         try:
             with urllib.request.urlopen(req, timeout=60):
+                time.sleep(TG_SEND_INTERVAL)
                 return
         except urllib.error.HTTPError as err:  # the message never carries the URL, so the token stays out of the log
-            say("telegram:", method, err.code, err.read().decode(errors="replace")[:300])
+            reply = err.read().decode(errors="replace")
+            say("telegram:", method, err.code, reply[:300])
+            if err.code == 429:
+                try:
+                    wait = int(json.loads(reply)["parameters"]["retry_after"]) + 1
+                except (ValueError, KeyError, TypeError):
+                    wait = 60
         except OSError as err:
             say("telegram:", method, type(err).__name__, err)
-        if attempt == 1:
-            time.sleep(5)
+        if attempt < 3:
+            time.sleep(wait)
 
 
 def send_report(results):
