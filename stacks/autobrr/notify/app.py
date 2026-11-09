@@ -76,9 +76,17 @@ class Release(BaseModel):
 
 
 def _retrying_session() -> requests.Session:
-    """A requests session that retries transient TMDB/Telegram 5xx errors."""
+    """A requests session that retries TMDB/Telegram 429 and 5xx, honouring Retry-After.
+
+    POST must be listed: urllib3 leaves it out by default, and Telegram's sendMessage is a POST.
+    """
     session = requests.Session()
-    retries = Retry(total=5, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+    retries = Retry(
+        total=5,
+        backoff_factor=1,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["GET", "POST"],
+    )
     session.mount("https://", HTTPAdapter(max_retries=retries))
     return session
 
@@ -136,8 +144,9 @@ class MovieClient:
 class MessageFormatter:
     """Render the Telegram MarkdownV2 message body."""
 
-    # Characters that MarkdownV2 requires to be backslash-escaped.
-    SPECIAL = "_*[]()~`>#+-=|{}.!"
+    # Characters that MarkdownV2 requires to be backslash-escaped. The backslash goes first, or
+    # the loop in escape() would escape the backslashes it has just added.
+    SPECIAL = "\\_*[]()~`>#+-=|{}.!"
 
     @classmethod
     def escape(cls, text: str) -> str:
