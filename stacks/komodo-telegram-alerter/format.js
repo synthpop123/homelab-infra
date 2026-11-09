@@ -42,10 +42,14 @@ export function formatAlert(alert) {
   const when = alert.ts
     ? new Date(alert.ts).toLocaleString('zh-CN', { hour12: false, timeZone: process.env.TZ || 'Asia/Shanghai' })
     : '';
-  const head = `${LEVEL[level] || 'ℹ️'} <b>${esc(level)} · ${esc(type)}</b>  ${alert.resolved ? '✅ 已恢复' : '❌ 未恢复'}`;
+  // `resolved` alone means "closed", not "fixed": one-shot events (ProcedureFailed, StackStateChange, Test...) are
+  // filed closed from the start, with resolved_ts = ts. Only a closed stateful alert has a later resolved_ts.
+  const recovered = alert.resolved && level === 'OK' && alert.resolved_ts > alert.ts;
+  const head = `${LEVEL[level] || 'ℹ️'} <b>${esc(level)} · ${esc(type)}</b>${recovered ? '  ✅ 已恢复' : ''}`;
   const who = `<b>${esc(data.name || 'Unnamed')}</b>${target ? ` (${esc(target)})` : ''}`;
   const body = esc([...details(data), when].filter(Boolean).join('\n'));
   const text = `${head}\n${who}\n${body}`;
-  // cut only inside the escaped body so a tag is never left open
-  return text.length > LIMIT ? `${text.slice(0, LIMIT).replace(/&[a-z]*$/, '')}…` : text;
+  // cut only inside the escaped body so a tag is never left open; half an entity or half a surrogate pair
+  // would make Telegram reject the whole message
+  return text.length > LIMIT ? `${text.slice(0, LIMIT).replace(/[\uD800-\uDBFF]$/, '').replace(/&[a-z]*$/, '')}…` : text;
 }

@@ -2,9 +2,9 @@
 # (https://github.com/SashaBusinaro/komodo-telegram-alerter). Runs on the arm host, served by arm's
 # host Caddy at tg-notify.lkwplus.com, which only lets fame (Komodo Core) reach it.
 #
-# Built locally with a formatting patch (see Dockerfile), so the deploy runs `--build`. It holds no
-# credentials and no state: the bot token and chat id arrive on each request, in the query string of
-# the `Telegram` alerter's URL (komodo/sync.toml), interpolated from Komodo Variables.
+# Built locally with a patch (see Dockerfile), so the deploy runs `--build`. The bot token and chat
+# id are Komodo Variables, read from this container's environment: upstream takes them from the query
+# string, where Caddy's error log writes them out, and Core's Custom alerter has no way to send headers.
 services:
   komodo-telegram-alerter:
     container_name: komodo-telegram-alerter
@@ -15,6 +15,8 @@ services:
     restart: unless-stopped
     environment:
       - TZ=Asia/Shanghai
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
     ports:
       # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
       - "127.0.0.1:20012:3000/tcp"

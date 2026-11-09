@@ -773,6 +773,10 @@ run_directory = "stacks/komodo-telegram-alerter"
 file_paths = ["compose.yaml"]
 # Built locally: upstream's image is amd64-only, and a patch makes the messages readable.
 extra_args = ["--build"]
+environment = """
+TELEGRAM_TOKEN=[[TELEGRAM_TOKEN]]
+TELEGRAM_CHAT_ID=[[TELEGRAM_CHAT_ID]]
+"""
 
 [[stack]]
 name = "affine"
@@ -828,14 +832,15 @@ BESZEL_ARM_TOKEN=[[BESZEL_ARM_TOKEN]]
 #   and make sure the `homelab` ResourceSync's webhook is turned OFF so it doesn't double-run.
 # ----------------------------------------------------------------------------
 # Every Komodo alert goes to Telegram through the komodo-telegram-alerter stack on arm: Core has no
-# Telegram endpoint of its own. Core interpolates the two Variables when it sends.
+# Telegram endpoint of its own. The stack holds the bot token and chat id; keep them out of this URL,
+# which the proxy in front of it logs.
 [[alerter]]
 name = "Telegram"
 
 [alerter.config]
 enabled = true
 endpoint.type = "Custom"
-endpoint.params.url = "https://tg-notify.lkwplus.com/alert?token=[[TELEGRAM_TOKEN]]&chat_id=[[TELEGRAM_CHAT_ID]]"
+endpoint.params.url = "https://tg-notify.lkwplus.com/alert"
 
 [[procedure]]
 name = "Redeploy On Push"

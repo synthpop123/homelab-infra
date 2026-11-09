@@ -182,12 +182,12 @@ Docker **29.5.3**, default address pools.
 - **komodo-telegram-alerter** ([stacks/komodo-telegram-alerter](../stacks/komodo-telegram-alerter/))
   — turns Komodo's Custom alerter POST into a Telegram message. Port `127.0.0.1:20012`, host Caddy
   at `tg-notify.lkwplus.com`. The vhost answers fame's IPs only (`remote_ip` in the off-git
-  Caddyfile) and only `POST /alert`: the endpoint needs no login and takes any token, so nothing
-  else has a reason to reach it. **If fame's public IP changes, update that matcher**, or alerts
+  Caddyfile) and only `POST /alert`: the endpoint needs no login, so nothing else has a reason to
+  reach it. **If fame's public IP changes, update that matcher**, or alerts
   stop arriving (Core logs a 403). Built locally from upstream's tagged source: the published image
   is amd64-only, and `server.patch` + `format.js` replace its raw-JSON Markdown message, which
-  Telegram rejects on an unpaired `_`. No credentials or state: the token and chat id come with
-  each request, from the `Telegram` alerter in `komodo/sync.toml`.
+  Telegram rejects on an unpaired `_`. No state. The token and chat id are Komodo Variables in the
+  container's environment, never in the URL: Caddy's error log prints the full URI on a 502.
 - **beszel-agent** ([stacks/beszel-agent](../stacks/beszel-agent/)) — metrics agent for
   the beszel hub on fame. Host-networked, outbound-only to `fame.lkwplus.com:20011`
   (fame's public-exception hub port, skipping Akko); data under `/srv/beszel-agent/`;
