@@ -93,8 +93,9 @@ bring Core back and are **not** in git:
 Komodo's own `komodo_mongo-data` / `komodo_keys`). Nothing backs `/srv` up today.
 
 ```
-~103G  /srv total  — dominated by emby ~50G and plex ~45G (.strm + scraped metadata/artwork,
-       mostly rebuildable), cms 3.3G; then immich 1.4G, ...
+~147G  /srv total  — dominated by plex 61G and emby 43G (.strm + scraped metadata/artwork,
+       mostly rebuildable), _backups 38G (2026-10 pre-migration snapshots), amane 23G; then
+       muvyo 5.5G, cms 5.2G, immich 1.4G, ...
 ```
 
 ### Make the backup consistent

@@ -132,6 +132,15 @@
       "matchDatasources": ["docker"],
       "matchPackageNames": ["linuxserver/kometa"],
       "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ls(?<build>\\d+)$"
+    },
+    {
+      "description": "cms, mdc and multica are stopped but stay defined (docs/media.md, docs/server-arm.md). A merged bump changes their compose file, and Redeploy On Push would then deploy — i.e. start — the stack again. Open no PRs for them; drop a stack from this list when it is brought back. Keep this rule last so nothing re-enables them.",
+      "matchFileNames": [
+        "stacks/cms/compose.yaml",
+        "stacks/mdc/compose.yaml",
+        "stacks/multica/compose.yaml"
+      ],
+      "enabled": false
     }
   ]
 }

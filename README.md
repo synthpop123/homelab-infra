@@ -34,6 +34,7 @@ admits only Akko), while arm's are reached directly through arm's own host **Cad
 ├── bootstrap/komodo/               # Komodo itself (Core/Periphery/Mongo): deployed by hand
 ├── bootstrap/firewall/             # host firewall (DOCKER-USER rules): deployed by hand
 ├── bootstrap/fail2ban/             # sshd brute-force jail: deployed by hand
+├── bootstrap/media/                # STRM housekeeping timers on fame: deployed by hand
 ├── renovate.json                   # Renovate config (auto-detects stacks/*/compose.yaml)
 ├── scripts/validate.sh             # pre-deploy lint (stacks/bootstrap/Komodo/Renovate)
 ├── .github/workflows/lint.yml      # runs validate.sh on infra PRs (no VPS access)
@@ -66,9 +67,9 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [seerr](./stacks/seerr) | [seerr.lkwplus.com](https://seerr.lkwplus.com) | 20016 | Media requests (+ dedicated Postgres) |
 | [gitea](./stacks/gitea) | [git.lkwplus.com](https://git.lkwplus.com) | 20018 | Git hosting (+ dedicated Postgres; SSH on 222) |
 | [torrent](./stacks/torrent) | [qb.lkwplus.com](https://qb.lkwplus.com) / [qui.lkwplus.com](https://qui.lkwplus.com) | 20019 / 20020 | qBittorrent + qui WebUI manager (BT on 65231) |
-| [emby](./stacks/emby) | [emby.lkwplus.com](https://emby.lkwplus.com) | 20021 | Emby media server — JAV/Porn; Movie/TV libraries frozen as Vyo's image source (fixed IP 172.22.0.4 on mediacenter-net) |
-| [cms](./stacks/cms) | [cms.lkwplus.com](https://cms.lkwplus.com) / [emby-302.lkwplus.com](https://emby-302.lkwplus.com) | 20022 / 20023 | cloud-media-sync — web UI + strm-302 proxy (fixed IP 172.22.0.5) |
-| [mdc](./stacks/mdc) | [mdc.lkwplus.com](https://mdc.lkwplus.com) | 20024 | Movie Data Capture scraper (+ internal flaresolverr) |
+| [emby](./stacks/emby) | [emby.lkwplus.com](https://emby.lkwplus.com) | 20021 | Emby media server — Movie/TV libraries frozen as Vyo's image source, nothing new is added (fixed IP 172.22.0.4 on mediacenter-net) |
+| [cms](./stacks/cms) | [cms.lkwplus.com](https://cms.lkwplus.com) / [emby-302.lkwplus.com](https://emby-302.lkwplus.com) | 20022 / 20023 | cloud-media-sync — web UI + strm-302 proxy (fixed IP 172.22.0.5) — **stopped** (only the frozen Hentai STRM still point at it) |
+| [mdc](./stacks/mdc) | [mdc.lkwplus.com](https://mdc.lkwplus.com) | 20024 | Movie Data Capture scraper (+ internal flaresolverr) — **stopped**, replaced by amane |
 | [autobrr](./stacks/autobrr) | [autobrr.lkwplus.com](https://autobrr.lkwplus.com) | 20026 | IRC/RSS release automation (+ TMDB→Telegram notify sidecar) |
 | [umami](./stacks/umami) | [umami.lkwplus.com](https://umami.lkwplus.com) | 20027 | Privacy-focused web analytics (+ dedicated Postgres) |
 | [bark](./stacks/bark) | [bark.lkwplus.com](https://bark.lkwplus.com) | 20028 | Bark push notification server |
@@ -122,8 +123,9 @@ both hosts sits behind fail2ban ([bootstrap/fail2ban](./bootstrap/fail2ban/)).
 The most intertwined subsystem: a 115 netdisk exposed as a `.strm` library, where playback
 is a 302-redirect straight to the cloud — media bytes never transit the VPS. Muvyo owns
 Movie/TV (uploads qBittorrent downloads, organizes, writes the STRM) for Plex and its own Vyo
-player; cms + mdc still feed JAV & co. to Emby and Plex. Plex gets the STRM trick from its
-Cirvel image; seerr, tautulli and kometa orbit around.
+player; Amane owns JAV/Porn (scrapes, organizes on 115, writes STRM + NFO) for Plex, fed by a
+daily intake job. Muvyo serves the 302 for all of it. Plex gets the STRM trick from its
+Cirvel image; seerr, tautulli and kometa orbit around; cms and mdc, the old JAV feeders, are stopped.
 Topology, fixed IPs, and failure modes: [media.md](./docs/media.md).
 
 ## Hosts & operations
@@ -134,9 +136,9 @@ the Komodo Core. A second host — **arm** (Oracle Cloud Chuncheon, 2 vCPU aarch
 stacks marked *arm* in the [Services](#services) table; declaring a stack with
 `server = "Oracle-Arm"` in `sync.toml` is all it takes to target it (arm64 images only).
 How servers join Komodo: [komodo-servers.md](./docs/komodo-servers.md).
-Three things are managed by hand outside Komodo, versioned under
-[`bootstrap/`](./bootstrap/): Komodo itself, the host firewalls, and fail2ban (the latter
-two on both hosts). Host inventories
+A few things are managed by hand outside Komodo, versioned under
+[`bootstrap/`](./bootstrap/): Komodo itself, the host firewalls and fail2ban (those two on
+both hosts), and fame's media housekeeping timers. Host inventories
 and known state: [server.md](./docs/server.md) (fame), [server-arm.md](./docs/server-arm.md)
 (arm). Health checks, `km` CLI, "my push didn't deploy", reboot/housekeeping runbooks:
 [operations.md](./docs/operations.md).

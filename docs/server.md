@@ -3,8 +3,8 @@
 One-page inventory of the primary VPS — what lives on the host *besides* the
 Komodo-managed stacks, and its known state. Day-2 commands are in
 [operations.md](./operations.md). It runs the Komodo Core that also manages the second
-host, [Oracle-Arm](./server-arm.md), which currently runs multica, storageui, and beszel-agent; how
-servers join the control plane is in [komodo-servers.md](./komodo-servers.md).
+host, [Oracle-Arm](./server-arm.md) (its stacks are listed on that page); how servers join the
+control plane is in [komodo-servers.md](./komodo-servers.md).
 
 ## System
 
@@ -45,6 +45,9 @@ reads — see [media.md](./media.md).
 - **`unattended-upgrades`** — Debian **security** origin only. Docker engine/compose and
   other third-party repos are **not** auto-upgraded — do those by hand (with `live-restore`
   enabled, a daemon restart keeps containers running).
+- **`orphan-cleanup.timer`** (03:20) and **`muvyo-index.timer`** (09:30) — housekeeping for the
+  Amane STRM trees; a cleanup that refuses to act fails its unit and alerts on Telegram. Source
+  and runbook: [`bootstrap/media/`](../bootstrap/media/); what they do: [media.md](./media.md).
 - caddy, komari, docker — all `enabled`.
 
 ## Docker daemon (`/etc/docker/daemon.json`)
@@ -59,7 +62,9 @@ reads — see [media.md](./media.md).
 
 | Path | What | Size |
 |------|------|------|
-| `/srv/<service>/` | all app data (bind mounts) | ~103 GiB — emby ~50 (strm + artwork, mostly rebuildable), plex ~45, cms 3.3, immich 1.4 |
+| `/srv/<service>/` | all app data (bind mounts) | ~147 GiB (2026-11) — plex 61 (52 of it metadata/artwork), emby 43 (config 31, strm tree 11), amane 23, muvyo 5.5, cms 5.2 (stopped; 4.9 is image cache), immich 1.4 |
+| `/srv/_backups/` | pre-migration snapshots from the 2026-10 media move (`emby-frozen-20261018` 31 GiB, two `*-pre-migration-*`) | 38 GiB — delete once the new pipeline is trusted |
+| `/root/archive/` | one-off scripts from that migration, kept for reference | small |
 | `/opt/komodo/` | Komodo control plane (compose + env) | see [bootstrap/komodo](../bootstrap/komodo/) |
 | `/opt/{komari,containerd,fake115uploader}` | host tools; fake115uploader is dormant | small |
 | `/etc/komodo/repos/homelab-infra` | Komodo's clone of this repo | — |
@@ -70,7 +75,7 @@ The `/opt` → stacks migration is **complete**: no compose-managed services rem
 
 ## Known state / pending
 
-- **Reboot pending** — kernel `6.1.0-49` installed, `-28` still running (uptime > 300 days).
+- **Reboot pending** — kernel `6.1.0-54` installed, `-52` still running (last reboot 2026-08).
   A reboot picks up the new kernel; containers come back via `restart: unless-stopped`, the
   firewall re-applies, clouddrive2 remounts FUSE (see
   [operations.md → Reboot](./operations.md#reboot)).

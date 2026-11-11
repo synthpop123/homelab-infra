@@ -11,7 +11,7 @@ host's page: [server.md](./server.md).
 | | |
 |---|---|
 | Access | `ssh arm` (root, key auth; sshd on port **11322**, fail2ban-guarded) |
-| OS | Ubuntu 24.04 LTS (noble), Oracle kernel 6.17 |
+| OS | Ubuntu 24.04 LTS (noble), Oracle kernel 7.0 |
 | Hardware | 2 vCPU (Ampere/Neoverse-N1, **aarch64**), 12 GiB RAM, no swap, 96 GiB disk |
 | Network | private `10.0.0.0/24` VCN address on `enp0s6` (public IPv4 is Oracle-NATed) + a public IPv6; both stay off-git |
 | Region | `ap-chuncheon-1` (Oracle Cloud free-tier ARM shape) |
@@ -84,8 +84,9 @@ Docker **29.5.3**, default address pools.
 ## Stacks on this host
 
 - **multica** ([stacks/multica](../stacks/multica/)) — **stopped 2026-11-03** (unused; definition and
-  `/srv/multica/` data kept — `km execute -y deploy-stack multica` to bring it back). A merged
-  Renovate bump to its compose file *will* redeploy (start) it. The first stack here. Backend +
+  `/srv/multica/` data kept — `km execute -y deploy-stack multica` to bring it back). Any push
+  that changes its compose file *will* redeploy (start) it, so Renovate is switched off for the
+  stack (last rule in `renovate.json`); take it off that list when it comes back. The first stack here. Backend +
   web + bundled Postgres; data under `/srv/multica/`; ports `127.0.0.1:20000/20001`
   fronted by the host Caddy at `multica.lkwplus.com`. The daemon side (the `multica` CLI
   + AI coding tools) runs as host user **`agent`**, not a container. Keep the CLI at
