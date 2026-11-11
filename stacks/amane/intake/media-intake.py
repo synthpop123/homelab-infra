@@ -34,6 +34,9 @@ INBOXES = [
 ]
 # Below min_size a file is left where it is. Ads sit far under this; anything above it may be the film.
 WORTH_REPORTING = 30 << 20
+# A download folder holding nothing of that size is what the film left behind (ads, covers, links). It is
+# removed once nothing in it has changed for this long, so a folder still being uploaded is never taken.
+JUNK_AGE = 24 * 3600
 
 TG_TEXT_LIMIT = 3800
 TG_MAX_LIST_MESSAGES = 3  # a longer list goes out as a .txt attachment
@@ -140,6 +143,36 @@ def suspects(stem, number, folder, raw):
     return strong, weak
 
 
+def drop_junk_folders(name, inbox):
+    """Remove the download folders a film has left: every file under WORTH_REPORTING, none touched for JUNK_AGE.
+    Only folders: a loose file in the inbox itself is never deleted."""
+    try:
+        tops = sorted(os.listdir(inbox))
+    except OSError as err:
+        say(name, "junk folders not checked:", type(err).__name__, err)
+        return
+    for top in tops:
+        path = os.path.join(inbox, top)
+        if not os.path.isdir(path):
+            continue
+        try:
+            tree = list(os.walk(path, topdown=False))  # children first, the folder itself last
+            files = [os.path.join(d, f) for d, _, fs in tree for f in fs]
+            sizes = [os.path.getsize(f) for f in files]
+            newest = max(os.path.getmtime(p) for p in files + [d for d, _, _ in tree])
+            if not files or max(sizes) >= WORTH_REPORTING or time.time() - newest < JUNK_AGE:
+                continue
+            for p in files:
+                os.remove(p)
+                time.sleep(1.1)
+            for d, _, _ in tree:
+                os.rmdir(d)
+                time.sleep(1.1)
+            say(name, f"junk folder removed: {top} ({len(files)} files, {sum(sizes) / (1 << 20):.0f} MB)")
+        except OSError as err:  # housekeeping only: the intake itself goes on
+            say(name, "junk folder kept:", top, type(err).__name__, err)
+
+
 def intake(name, inbox, lib, root, min_size, content_type):
     """Returns (entries, skipped): one entry per file handled, skipped = (name, why) left in the inbox."""
     stage = f"{root}/_inbox"
@@ -172,6 +205,7 @@ def intake(name, inbox, lib, root, min_size, content_type):
             if d != inbox and not os.listdir(d):
                 os.rmdir(d)
                 time.sleep(1.1)
+        drop_junk_folders(name, inbox)
     if not moved and not os.path.isdir(stage):
         say(name, "nothing new")
         return [], skipped

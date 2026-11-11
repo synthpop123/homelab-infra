@@ -34,8 +34,8 @@ qBittorrent completed/{Movie,TV}            115 netdisk
   vyo  (muvyo)   reads Movie/TV
   emby           Movie/TV libraries frozen as an image source (see below)
 
-  playback: the client follows a 302 to the real 115 download link — served by muvyo for
-  Movie/TV and by cms's emby-302 proxy for the rest; no media bytes transit this host
+  playback: the client follows a 302 to the real 115 download link, served by muvyo for
+  every live tree (Movie, TV, Japan, Western); no media bytes transit this host
 ```
 
 **Getting new Movie/TV in:** download in qBittorrent — the default save path is
@@ -61,6 +61,11 @@ muvyo's life events give every file moved in a STRM and then ask Plex to scan th
 each `_inbox` (`*`) covers those partial scans, which ignore the tree-root file. The nightly
 `orphan-cleanup` restores the inner one if it is gone and trashes the `_inbox` STRM muvyo leaves
 behind once Amane has organized the file away.
+
+A download folder dropped into `待整理` usually carries ads next to the film. Once the film has
+been moved out, the intake deletes such a folder on 115 when every file left in it is under 30 MB
+and nothing in it has changed for a day (so a folder still uploading is left alone). Loose files
+directly under `待整理/{JAV,Porn}` are never deleted.
 
 **The intake report** goes to Telegram (and the container log) whenever a run handled or left
 something; a run with nothing to report stays silent. It lists every original name → number and
@@ -92,15 +97,18 @@ NFO/images beside it (or the whole local folder) and ask Plex to rescan. Those r
 Amane's own organizes (CloudDrive2's moves do raise 115 life events): muvyo then rewrites Amane's
 `.strm` at the same path with its own `&pickcode=` form and notifies Plex — harmless, both play.
 muvyo resolves a delete event through its 115 file index (`file_info`), and a folder it never
-indexed is silently ignored, so a host timer (`muvyo-index.timer`, 09:30, `/root/muvyo-index.py`)
-runs muvyo's incremental full file sync over `/Porn` and `/Japan` after each intake; each new
-folder costs one 115 lookup (~1.5 s).
+indexed is silently ignored, so a host timer (`muvyo-index.timer`, 09:30) runs muvyo's
+incremental full file sync over `/Porn` and `/Japan` after each intake; each new folder costs one
+115 lookup (~1.5 s).
 
-A nightly host timer (`orphan-cleanup.timer`, 03:20, `/root/orphan-cleanup.py`) tidies those two
-trees without touching 115: a film folder whose `.strm` is gone, a `.strm` no Amane row points at,
-and an Amane row whose `.strm` is gone. It moves files to `/srv/emby/data/.trash/<date>/` (kept 14
-days), and changes nothing when anything looks off (Amane unreachable, rows < 90 % of the
-`.strm`s, more than 40 changes in one tree, Amane tasks in flight).
+A nightly host timer (`orphan-cleanup.timer`, 03:20) tidies those two trees without touching 115:
+a film folder whose `.strm` is gone, a `.strm` no Amane row points at, and an Amane row whose
+`.strm` is gone. It moves files to `/srv/emby/data/.trash/<date>/` (kept 14 days), and leaves a
+tree untouched when it looks off (Amane unreachable, rows < 90 % of the `.strm`s, more than 40
+changes in one tree). Such a stop sends a Telegram message and fails the unit. The `_inbox`
+leftovers do not count toward the 40 — a big intake leaves hundreds, which used to block the
+cleanup for good. Both timers' scripts, units and the stop runbook:
+[`bootstrap/media/`](../bootstrap/media/).
 
 Plex mounts subtrees of `/srv/emby/data`: 电影 → `/data/Movie` and 电视节目 → `/data/TV` are
 ordinary online-agent libraries (zh-CN, read-only mounts); JAV → `/data/Japan` is a "Plex NFO
@@ -167,25 +175,29 @@ then redeploy the member stacks.
 
 | Path | Written by | Read by |
 |------|-----------|---------|
-| `/mnt/CloudNAS/115` (FUSE) | clouddrive2 | cms, mdc, amane |
-| `/srv/emby/data/{Movie,TV}` | muvyo (.strm, subtitles, `-mediainfo.json`) | plex (ro), emby, cms (ro) |
+| `/mnt/CloudNAS/115` (FUSE) | clouddrive2 | amane (and cms, mdc — both stopped) |
+| `/srv/emby/data/{Movie,TV}` | muvyo (.strm, subtitles, `-mediainfo.json`) | plex (ro), emby |
 | `/srv/emby/data/{Japan,Western}` | amane (.strm, nfo/jpg), muvyo (life-event .strm/deletes), plex/Cirvel (`-mediainfo.json`) | plex |
 | `/srv/emby/data/Hentai` | cms (.strm), mdc (nfo/jpg) — legacy, frozen, no library reads it | plex (mounted, unused) |
 | `/srv/emby/mediainfo` | emby (Strm Assistant `*-mediainfo.json`) — legacy | — |
 | `/srv/torrent/qbittorrent/completed` | qBittorrent | muvyo (uploads to 115) |
 
-Consequence: **emby, cms, mdc and amane only work while clouddrive2's mount is
-healthy** (muvyo talks to 115 over its API, not the mount) — after a reboot or clouddrive2 restart, check the mount first
-([operations.md → Reboot](./operations.md#reboot)).
+Consequence: **amane and its intake job only work while clouddrive2's mount is healthy** (muvyo
+talks to 115 over its API, not the mount; the stopped cms and mdc needed it too) — after a reboot
+or clouddrive2 restart, check the mount first ([operations.md → Reboot](./operations.md#reboot)).
 
 ### Surviving a clouddrive2 remount
 
 A clouddrive2 redeploy (e.g. a Renovate bump) destroys and recreates the FUSE mount. Binding the
 mountpoint itself into a consumer is a snapshot, so the consumer is left holding a dead mount —
-empty dir or `ENOTCONN` — and no clouddrive2 restart fixes it. So mdc binds the **parent**
-`/mnt/CloudNAS` as `/media` with `:rslave`, and clouddrive2's umount/mount propagates into its
-namespace (hence the `/media/115/...` paths in its `config.json`). The host `/` is `shared`,
-which is what makes propagation work. Any future consumer of the mount wants the same bind.
+empty dir or `ENOTCONN` — and no clouddrive2 restart fixes it. So amane and amane-intake (like mdc
+before them) bind the **parent** `/mnt/CloudNAS` as `/media` with `:rslave`, and clouddrive2's
+umount/mount propagates into their namespace (hence the `/media/115/...` library paths). The host
+`/` is `shared`, which is what makes propagation work. Any future consumer of the mount wants the
+same bind.
+
+The rest of this section and the next are about **mdc, which is stopped**; they matter only if it
+is started again.
 
 mdc's fsnotify watches do not re-register after an umount, even once the path is live again; if
 its folder monitoring goes quiet after a clouddrive2 redeploy, `docker restart mdc` by hand.
@@ -207,10 +219,13 @@ ssh fame "docker exec mdc-flaresolverr curl -s localhost:8191/v1 -H 'Content-Typ
   -d '{\"cmd\":\"sessions.destroy\",\"session\":\"mdc_ng_<old>\"}'"
 ```
 
-## Why two 302 paths
+## The 302 path
 
-Every `.strm` holds a direct-link URL to a 302 service, never the media itself: muvyo's
-redirect for Movie/TV, cms's emby-302 proxy (`https://…/d/…`) for the rest. Emby and Vyo
+Every `.strm` holds a direct-link URL to a 302 service, never the media itself. All four live
+trees (Movie, TV, Japan, Western) point at muvyo's redirect (`https://muvyo.…/redirect?path=…`).
+Only the frozen Hentai tree still holds cms's emby-302 form (`https://cms.…/d/…`), which answers
+only while the cms stack runs; taking Hentai over later means regenerating its STRM through
+muvyo, not starting cms again. Emby and Vyo
 resolve those natively. Stock Plex refuses to play `.strm`, so the plex stack runs
 **Cirvel** (a drop-in Plex image with a bundled PMS): it hands the client the link inside
 the `.strm` and the client streams it directly — no transcoding load on this host either

@@ -1,0 +1,11 @@
+[Unit]
+Description=Trash orphaned STRM/metadata in the Amane trees (Japan, Western); local only
+Documentation=https://github.com/synthpop123/homelab-infra/blob/main/docs/media.md
+
+[Service]
+Type=oneshot
+# TELEGRAM_TOKEN / TELEGRAM_CHAT_ID for the "stopped" alert, from the .env Komodo writes for the
+# amane stack (its intake job reports through the same pair). Optional: without it a stop is only
+# logged and still fails the unit.
+EnvironmentFile=-/etc/komodo/repos/homelab-infra/stacks/amane/.env
+ExecStart=/usr/bin/python3 /usr/local/sbin/orphan-cleanup.py --apply

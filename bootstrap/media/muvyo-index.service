@@ -1,0 +1,7 @@
+[Unit]
+Description=Muvyo 115 file index sync for /Porn and /Japan (life-event deletes)
+Documentation=https://github.com/synthpop123/homelab-infra/blob/main/docs/media.md
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/sbin/muvyo-index.py

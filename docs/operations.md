@@ -14,7 +14,8 @@ ssh fame 'docker ps --filter health=unhealthy --filter status=restarting --forma
 ssh fame 'systemctl --failed --no-legend; df -h / | tail -1'
 ```
 
-Empty output + disk under ~80% = healthy. Dashboards: **beszel** (per-container CPU/mem)
+Empty output + disk under ~80% = healthy. A failed `orphan-cleanup.service` means the nightly
+STRM cleanup refused to act on a tree — runbook in [bootstrap/media](../bootstrap/media/). Dashboards: **beszel** (per-container CPU/mem)
 and **tautulli** (Plex sessions), both in the README table, plus **komari**, the public
 server probe at [komari.lkwplus.com](https://komari.lkwplus.com) — a host process rather
 than a stack, so it has no row there.
@@ -111,7 +112,8 @@ ssh fame 'uname -r; docker ps -q | wc -l; iptables -S DOCKER-USER | tail -1; ls 
 ```
 
 Expect the new kernel, ~60 containers, a trailing `DROP` rule, and a listing (not an
-empty/IO-error mount). cms/mdc depend on that mount — restart them if it came up late.
+empty/IO-error mount). amane binds the mount's parent with `rslave`, so it follows a late or
+repeated mount on its own ([media.md](./media.md#surviving-a-clouddrive2-remount)).
 
 ## Housekeeping
 

@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily Muvyo file index sync after Media Intake
+
+[Timer]
+OnCalendar=*-*-* 09:30:00
+Persistent=false
+
+[Install]
+WantedBy=timers.target
