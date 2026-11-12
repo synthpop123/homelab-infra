@@ -49,9 +49,9 @@ services:
       KOITO_TOKEN: ${KOITO_TOKEN}
       KOITO_USER: ${KOITO_USER}
       # 0.21.0+ built-in dashboard/API auth. Both are only read while the admin has no
-      # password / is first created, and ignored afterwards (Komodo Variable for the password).
+      # password / is first created, and ignored afterwards (both from Komodo Variables).
       # Ingress endpoints and outbound scrobbles to koito are not affected by auth.
-      ADMIN_SETUP_USER: lkw123
+      ADMIN_SETUP_USER: ${MS_ADMIN_SETUP_USER}
       ADMIN_SETUP_PW: ${MS_ADMIN_SETUP_PW}
     volumes:
       - /srv/koito/config:/config
