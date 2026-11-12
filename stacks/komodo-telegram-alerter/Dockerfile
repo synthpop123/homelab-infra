@@ -1,7 +1,7 @@
 # Upstream's own Dockerfile, built from its tagged source: the published image is amd64-only and
 # only tagged latest. server.patch swaps the raw JSON message for format.js and reads the credentials
 # from the environment. The version pin is a compose build arg (see compose.yaml).
-FROM node:22-alpine
+FROM node:26-alpine
 
 ARG ALERTER_VERSION
 
