@@ -98,12 +98,6 @@
       "groupName": "multica"
     },
     {
-      "description": "LinuxServer.io tags carry an -lsNN rebuild counter (emby: 4.9.5.0-ls283); default docker versioning treats that suffix as a compatibility variant that must match exactly, so updates are never offered. Parse the tag explicitly instead.",
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["linuxserver/emby"],
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)-ls(?<revision>\\d+)$"
-    },
-    {
       "description": "Silo (MinIO fork) tags are RELEASE.2026-09-16T00-00-00Z. Default docker versioning reads only the leading number and treats the rest as a variant suffix that must match exactly, so no update would ever be offered. Parse date as major.minor.patch and the time as build; the anchors also exclude the -distroless / -arm64 / -amd64 variants.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["pgsty/silo"],
@@ -128,16 +122,14 @@
       "enabled": false
     },
     {
-      "description": "Same LinuxServer.io problem for kometa, whose tags look like v2.4.4-ls103.",
+      "description": "LinuxServer.io tags carry an -lsNN rebuild counter (kometa: v2.4.4-ls103); default docker versioning treats that suffix as a compatibility variant that must match exactly, so updates are never offered. Parse the tag explicitly instead.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["linuxserver/kometa"],
       "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ls(?<build>\\d+)$"
     },
     {
-      "description": "cms, mdc and multica are stopped but stay defined (docs/media.md, docs/server-arm.md). A merged bump changes their compose file, and Redeploy On Push would then deploy — i.e. start — the stack again. Open no PRs for them; drop a stack from this list when it is brought back. Keep this rule last so nothing re-enables them.",
+      "description": "multica is stopped but stays defined (docs/server-arm.md). A merged bump changes their compose file, and Redeploy On Push would then deploy — i.e. start — the stack again. Open no PRs for it; drop a stack from this list when it is brought back. Keep this rule last so nothing re-enables it.",
       "matchFileNames": [
-        "stacks/cms/compose.yaml",
-        "stacks/mdc/compose.yaml",
         "stacks/multica/compose.yaml"
       ],
       "enabled": false

@@ -1,7 +1,8 @@
-# muvyo — media toolkit (115 cloud STRM / Emby proxy / Vyo player), https://muvyo.com/docs#deploy.
+# muvyo — media toolkit (115 cloud STRM / Vyo player), https://muvyo.com/docs#deploy.
 # Upstream's "PostgreSQL + Redis" compose, adapted to repo conventions. Two published ports, both
 # behind Akko: admin panel + API 7811 → muvyo.lkwplus.com, Vyo web/client 7810 → vyo.lkwplus.com.
-# The Emby proxy (8091) is not published: Emby is being retired, Plex/Cirvel and Vyo replace it.
+# Emby is gone (2026-11): Plex/Cirvel is the only media server muvyo manages, and Vyo holds no
+# library — the player stays reachable but empty.
 #
 # DB/cache connection lives in /srv/muvyo/data/config/vault.ini ([database] / [cache], set in the
 # 存储配置 page; host muvyo-postgres / muvyo-redis), not in env: the MV_DATABASE_* / MV_REDIS_URL
@@ -20,7 +21,7 @@
 # Renovate is disabled for it, and a Komodo redeploy also pulls the newest image.
 #
 # Joins the external mediacenter-net (fixed IP 172.22.0.11, see docs/media.md) to reach
-# emby/plex by address; Postgres and Redis stay on the stack's private default network.
+# plex by address; Postgres and Redis stay on the stack's private default network.
 services:
   muvyo:
     container_name: muvyo
@@ -42,11 +43,11 @@ services:
     volumes:
       - /srv/muvyo/data:/opt          # config / cache / logs (vault.ini, plugins, …)
       - /srv/muvyo/strm:/strm         # STRM staging (full regenerations land here first)
-      # Shared library, at the same /data path Emby and Plex see it (Cirvel matches Muvyo-made
+      # Shared library, at the same /data path Plex sees it (Cirvel matches Muvyo-made
       # STRM by path). Read-only, except Movie/TV: Muvyo is the only writer of those two trees
       # (STRM, subtitles, Vyo's -mediainfo.json). Japan/Western are Amane-owned and writable only so
       # the STRM-only 115 life-event rules /Japan, /Porn can drop a STRM when its video is deleted in
-      # the 115 app (docs/media.md); JAV & co. stay mdc/cms-owned.
+      # the 115 app (docs/media.md).
       - /srv/emby/data:/data:ro
       - /srv/emby/data/Movie:/data/Movie
       - /srv/emby/data/TV:/data/TV
@@ -58,7 +59,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       TZ: Asia/Shanghai
-      # Run as normal (1000), like emby/cms/qbittorrent, so files written into the shared library
+      # Run as normal (1000), like plex/amane/qbittorrent, so files written into the shared library
       # and qB's download dir keep one owner. /srv/muvyo/{data,strm} are chowned to match.
       PUID: "1000"
       # fame's `docker` group (owner of the 0660 docker.sock). The entrypoint resets supplementary

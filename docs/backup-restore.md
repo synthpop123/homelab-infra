@@ -16,7 +16,7 @@ radius. You need **all three** to come back from a total loss:
 |-------|----------|----------|--------------|----------------|
 | **1. Code / IaC** | `stacks/*/compose.yaml`, `komodo/sync.toml`, docs | this git repo | pushed to **GitHub** (off-box) | `git clone` to recover |
 | **2. Komodo metadata** | resource defs, **Variables/secrets**, users, API keys, git/registry accounts, audit log | MongoDB (`komodo-mongo`) | **built-in** dump → `/etc/komodo/backups` (daily) | secrets & accounts gone; stacks must be reconfigured by hand |
-| **3. Application data** | each service's DB, uploads, app-held keys | `/srv/<service>/` (~100 GB, mostly emby + plex) | **nothing yet** — see [Layer 2 below](#layer-2--application-data-srv) | the actual user data is gone for good |
+| **3. Application data** | each service's DB, uploads, app-held keys | `/srv/<service>/` (~100 GB, mostly plex + amane) | **nothing yet** — see [Layer 2 below](#layer-2--application-data-srv) | the actual user data is gone for good |
 
 Why all three, and why git alone is **not** enough:
 
@@ -93,9 +93,9 @@ bring Core back and are **not** in git:
 Komodo's own `komodo_mongo-data` / `komodo_keys`). Nothing backs `/srv` up today.
 
 ```
-~147G  /srv total  — dominated by plex 61G and emby 43G (.strm + scraped metadata/artwork,
-       mostly rebuildable), _backups 38G (2026-10 pre-migration snapshots), amane 23G; then
-       muvyo 5.5G, cms 5.2G, immich 1.4G, ...
+~108G  /srv total  — dominated by plex 64G (scraped metadata/artwork, mostly rebuildable) and
+       amane 23G; then _backups 7G (2026-10 pre-migration snapshots), emby 7G (the shared
+       .strm tree /srv/emby/data), muvyo 5.5G, immich 1.4G, ...
 ```
 
 ### Make the backup consistent

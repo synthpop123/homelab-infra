@@ -62,8 +62,8 @@ reads — see [media.md](./media.md).
 
 | Path | What | Size |
 |------|------|------|
-| `/srv/<service>/` | all app data (bind mounts) | ~147 GiB (2026-11) — plex 61 (52 of it metadata/artwork), emby 43 (config 31, strm tree 11), amane 23, muvyo 5.5, cms 5.2 (stopped; 4.9 is image cache), immich 1.4 |
-| `/srv/_backups/` | pre-migration snapshots from the 2026-10 media move (`emby-frozen-20261018` 31 GiB, two `*-pre-migration-*`) | 38 GiB — delete once the new pipeline is trusted |
+| `/srv/<service>/` | all app data (bind mounts) | ~108 GiB (2026-11) — plex 64 (mostly metadata/artwork), amane 23, emby 7 (only `data`, the shared STRM tree — the name outlived Emby), muvyo 5.5, immich 1.4 |
+| `/srv/_backups/` | snapshots from the 2026-10 media move (two `*-pre-migration-*`) and the muvyo DB dump taken before Emby's removal (`muvyo-pre-emby-removal-20261114`) | 7 GiB — delete once the new pipeline is trusted |
 | `/root/archive/` | one-off scripts from that migration, kept for reference | small |
 | `/opt/komodo/` | Komodo control plane (compose + env) | see [bootstrap/komodo](../bootstrap/komodo/) |
 | `/opt/{komari,containerd,fake115uploader}` | host tools; fake115uploader is dormant | small |

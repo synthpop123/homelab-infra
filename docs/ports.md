@@ -38,10 +38,6 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 | 20018 | gitea                 | 3000           | Gitea (HTTP)                |
 | 20019 | qbittorrent           | 8081           | qBittorrent WebUI (torrent) |
 | 20020 | qui                   | 7476           | qui — qBittorrent manager   |
-| 20021 | emby                  | 8096           | Emby media server           |
-| 20022 | cms (web UI)          | 9527           | cloud-media-sync web UI     |
-| 20023 | cms (emby-302)        | 9096           | strm 302 proxy → cms.lkwplus.com |
-| 20024 | mdc                   | 9208           | Movie Data Capture scraper  |
 | 20026 | autobrr               | 7474           | autobrr IRC/RSS automation  |
 | 20027 | umami                 | 3000           | Umami web analytics         |
 | 20028 | bark                  | 8080           | Bark push notification server |
@@ -59,10 +55,10 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 
 > Only the published service consumes a number. Bundled databases/caches/search/ML behind a stack
 > (Postgres, Redis/Valkey, Elasticsearch, immich ML, karakeep meilisearch/chrome, autobrr-notify,
-> mdc's `flaresolverr`, amane's `amane-postgres` / `flaresolverr`, the plex stack's `kometa` / `letterboxd-plex-sync`) are internal-only (no host port).
+> amane's `amane-postgres` / `flaresolverr`, the plex stack's `kometa` / `letterboxd-plex-sync`) are internal-only (no host port).
 >
-> **Vacated:** `20025` previously published mdc's `flaresolverr`; it is now internal-only (mdc reaches
-> it in-network at `flaresolverr:8191`), so `20025` is unused. `20030` previously published
+> **Vacated:** `20021` (emby), `20022`/`20023` (cms web UI / emby-302), `20024` (mdc) and `20025`
+> (mdc's `flaresolverr`) went with the Emby-era stacks, removed 2026-11. `20030` previously published
 > `cpa-manager-plus`; Oh My CPA (`20042`) is now CPA's console, so `20030` is unused.
 > `20032` previously published `medialinker`; Cirvel (the plex stack's image) took over its strm
 > direct play, so `20032` is unused. `20007` (new-api), `20017` (openwebui), `20034`, `20036` and `20037` (moviepilot) are also vacated. New services still take the next sequential number (**Next free** above),
@@ -75,8 +71,8 @@ section [below](#allocations-arm) with an independent numbering starting at `200
 > - `gitea` SSH stays on host port **222** (clone URLs), separate from its HTTP port above.
 > - `qbittorrent` BitTorrent listen port stays on host port **65231** (tcp + udp), separate from its WebUI above.
 >
-> **Fixed IPs on the shared external `mediacenter-net`** (`172.22.0.4`–`.11`: emby,
-> cloud-media-sync, seerr, plex, tautulli, muvyo; `.8` and `.10` are retired) are docker network addresses, not host
+> **Fixed IPs on the shared external `mediacenter-net`** (`172.22.0.6`–`.11`: seerr,
+> plex, tautulli, muvyo; `.4`, `.5`, `.8` and `.10` are retired) are docker network addresses, not host
 > ports, and must not change — the full table and rationale live in
 > [media.md](./media.md#the-shared-network).
 

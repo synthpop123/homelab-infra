@@ -67,9 +67,6 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [seerr](./stacks/seerr) | [seerr.lkwplus.com](https://seerr.lkwplus.com) | 20016 | Media requests (+ dedicated Postgres) |
 | [gitea](./stacks/gitea) | [git.lkwplus.com](https://git.lkwplus.com) | 20018 | Git hosting (+ dedicated Postgres; SSH on 222) |
 | [torrent](./stacks/torrent) | [qb.lkwplus.com](https://qb.lkwplus.com) / [qui.lkwplus.com](https://qui.lkwplus.com) | 20019 / 20020 | qBittorrent + qui WebUI manager (BT on 65231) |
-| [emby](./stacks/emby) | [emby.lkwplus.com](https://emby.lkwplus.com) | 20021 | Emby media server — Movie/TV libraries frozen as Vyo's image source, nothing new is added (fixed IP 172.22.0.4 on mediacenter-net) |
-| [cms](./stacks/cms) | [cms.lkwplus.com](https://cms.lkwplus.com) / [emby-302.lkwplus.com](https://emby-302.lkwplus.com) | 20022 / 20023 | cloud-media-sync — web UI + strm-302 proxy (fixed IP 172.22.0.5) — **stopped** (only the frozen Hentai STRM still point at it) |
-| [mdc](./stacks/mdc) | [mdc.lkwplus.com](https://mdc.lkwplus.com) | 20024 | Movie Data Capture scraper (+ internal flaresolverr) — **stopped**, replaced by amane |
 | [autobrr](./stacks/autobrr) | [autobrr.lkwplus.com](https://autobrr.lkwplus.com) | 20026 | IRC/RSS release automation (+ TMDB→Telegram notify sidecar) |
 | [umami](./stacks/umami) | [umami.lkwplus.com](https://umami.lkwplus.com) | 20027 | Privacy-focused web analytics (+ dedicated Postgres) |
 | [bark](./stacks/bark) | [bark.lkwplus.com](https://bark.lkwplus.com) | 20028 | Bark push notification server |
@@ -77,7 +74,7 @@ arm's own host Caddy (DNS points at arm, no Akko hop), with ports bound to loopb
 | [gpt-load](./stacks/gpt-load) | [gptload.lkwplus.com](https://gptload.lkwplus.com) | 20035 | GPT-Load AI API proxy (built-in SQLite) |
 | [plex](./stacks/plex) | [plex.lkwplus.com](https://plex.lkwplus.com) / [tautulli.lkwplus.com](https://tautulli.lkwplus.com) | 20031 / 20033 | Plex media server via Cirvel (strm direct play; fixed IP 172.22.0.7) + Tautulli Plex monitor (172.22.0.9) + Kometa metadata/collections + letterboxd-plex-sync (weekly Letterboxd → Plex) |
 | [muvyo](./stacks/muvyo) | [muvyo.lkwplus.com](https://muvyo.lkwplus.com) / [vyo.lkwplus.com](https://vyo.lkwplus.com) | 20038 / 20039 | Muvyo — owns Movie/TV (qB → 115 upload, organize, STRM, 302) + Vyo player (+ dedicated Postgres + Redis; fixed IP 172.22.0.11) |
-| [amane](./stacks/amane) | [amane.lkwplus.com](https://amane.lkwplus.com) | 20041 | Amane — JAV scraper/organizer on the 115 mount, writes STRM/NFO (replacing mdc) (+ Postgres for the r18.dev source, internal flaresolverr) |
+| [amane](./stacks/amane) | [amane.lkwplus.com](https://amane.lkwplus.com) | 20041 | Amane — JAV scraper/organizer on the 115 mount, writes STRM/NFO (+ Postgres for the r18.dev source, internal flaresolverr) |
 | [miaomiaowu](./stacks/miaomiaowu) | [miaomiaowu.lkwplus.com](https://miaomiaowu.lkwplus.com) | 20043 | MiaoMiaoWu (妙妙屋) — Clash/proxy subscription manager, node management + traffic aggregation (built-in SQLite; `latest` because it self-updates in place) |
 | [multica](./stacks/multica) | [multica.lkwplus.com](https://multica.lkwplus.com) | arm 20000 / 20001 | Multica self-host — AI-agent issue tracker (backend + web + Postgres; **runs on arm**, served by arm's host Caddy) — **stopped** since 2026-11-03 |
 | [storageui](./stacks/storageui) | [storageui.lkwplus.com](https://storageui.lkwplus.com) | arm 20002 | Storage UI — S3/R2 web file manager, two R2 buckets (**runs on arm**, served by arm's host Caddy) |
@@ -125,7 +122,7 @@ is a 302-redirect straight to the cloud — media bytes never transit the VPS. M
 Movie/TV (uploads qBittorrent downloads, organizes, writes the STRM) for Plex and its own Vyo
 player; Amane owns JAV/Porn (scrapes, organizes on 115, writes STRM + NFO) for Plex, fed by a
 daily intake job. Muvyo serves the 302 for all of it. Plex gets the STRM trick from its
-Cirvel image; seerr, tautulli and kometa orbit around; cms and mdc, the old JAV feeders, are stopped.
+Cirvel image; seerr, tautulli and kometa orbit around.
 Topology, fixed IPs, and failure modes: [media.md](./docs/media.md).
 
 ## Hosts & operations
