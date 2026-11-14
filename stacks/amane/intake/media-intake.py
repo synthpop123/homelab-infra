@@ -44,7 +44,9 @@ TG_SEND_INTERVAL = 3.1  # Telegram allows about 20 messages a minute to one chat
 DATE_CONFLICT_DAYS = 365
 
 # Site-name prefixes ("hhd800.com@ABC-123"): their digits and TLDs are what Amane misreads as a number.
-DOMAIN = re.compile(r"[a-z0-9-]+\.(?:com|net|org|xyz|me|cc|tv|la|fun|top|vip|info|io|co|site|club|live)\b", re.I)
+# The TLD ends at anything but a letter, so a prefix glued straight onto the number ("4k2.me390JNT-120")
+# is stripped too; \b would not end "me" before "390" and the name then reads as ME-390.
+DOMAIN = re.compile(r"[a-z0-9-]+\.(?:com|net|org|xyz|me|cc|tv|la|fun|top|vip|info|io|co|site|club|live)(?![a-z])", re.I)
 NUMBER_LIKE = re.compile(r"(?<![A-Za-z0-9])(\d{0,4}[A-Za-z]{2,8})[-_ ]?(\d{2,6})(?!\d)")
 NOT_A_NUMBER = {"CD", "PART", "HD", "FHD", "MP", "AV", "HEVC", "AAC", "VR"}
 
