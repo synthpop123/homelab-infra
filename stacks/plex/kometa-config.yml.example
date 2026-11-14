@@ -24,8 +24,13 @@ libraries:
           use_separator: false           # no "Countries" separator card
           use_other: false               # no "Other Countries" collection (was warning "not needed")
       # Letterboxd charts — Top 500 / 1001 Movies / One Million Watched Club only.
+      # Library order is driven by sort titles (`!<collection_section>_…`): IMDb Top 250 keeps the
+      # default chart section 020, the awards below move from 130 to 021 and Letterboxd from 020
+      # to 022 — so the row reads IMDb Top 250 → Cannes/Oscars → Letterboxd → universes (040) →
+      # countries (080).
       - default: letterboxd
         template_variables:
+          collection_section: "022"      # after the awards (021); default 020
           schedule: monthly(1), monthly(15)
           use_all: false                 # turn everything off, then re-enable only these:
           use_top_500: true              # Letterboxd Top 500
@@ -45,6 +50,7 @@ libraries:
       # Cannes — Palme d'Or winners only, no per-year collections.
       - default: cannes
         template_variables:
+          collection_section: "021"      # right after IMDb Top 250 (default 130 = after countries)
           schedule: monthly(1), monthly(15)
           use_year_collections: false    # drop "Cannes <year>", keep only the Palme d'Or collection
           collection_order: custom       # follow the winners-list order
@@ -52,12 +58,14 @@ libraries:
       # Oscars — keep Best Picture / Director / etc., drop per-year collections.
       - default: oscars
         template_variables:
+          collection_section: "021"      # right after IMDb Top 250, with Cannes
           schedule: monthly(1), monthly(15)
           use_year_collections: false
           collection_order: custom
           use_separator: false
-      # Universes — keep only Alien/Predator, DC Universe, Fast & Furious, MCU, Star Wars,
-      # Wizarding World, X-Men. Everything below is turned off.
+      # Universes — keep only Alien/Predator, DC Extended Universe, Fast & Furious, MCU, Star Wars,
+      # Wizarding World, X-Men. Everything below is turned off. New upstream keys default to ON
+      # (dceu/dcu appeared that way in 2026-10), so check this list after a Kometa bump.
       - default: universe
         template_variables:
           schedule: monthly(1), monthly(15)
@@ -66,6 +74,7 @@ libraries:
           use_askew: false               # View Askewniverse
           use_conjuring: false           # Conjuring Universe
           use_dca: false                 # DC Animated Universe
+          use_dcu: false                 # DC Universe (the post-2025 Gunn DCU; DCEU stays)
           use_middle: false              # Middle Earth
           use_rocky: false               # Rocky / Creed
           use_trek: false                # Star Trek
@@ -81,6 +90,37 @@ libraries:
           minimum_items: 10
           use_separator: false
           use_other: false               # no "Other Countries" collection (was warning "not needed")
+      # Network collections (smart) — only the mainstream networks below, not the ~250 in the
+      # default list. `include` replaces that list; upstream addons still fold variants in
+      # (e.g. Max → HBO Max, Apple TV+ → Apple TV). minimum_items drops any that fall under 10.
+      - default: network
+        template_variables:
+          style: color
+          sort_by: random
+          minimum_items: 10
+          use_separator: false
+          include:
+            - Netflix
+            - HBO
+            - HBO Max
+            - Prime Video
+            - Disney+
+            - Apple TV
+            - Hulu
+            - Showtime
+            - FX
+            - AMC
+            - NBC
+            - CBS
+            - ABC
+            - FOX
+            - BBC One
+            - Tencent Video
+            - iQiyi
+            - Youku
+            - tvN
+            - SBS
+            - JTBC
 
 plex:
   url: http://172.22.0.7:32400
