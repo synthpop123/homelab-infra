@@ -62,7 +62,7 @@ reads — see [media.md](./media.md).
 
 | Path | What | Size |
 |------|------|------|
-| `/srv/<service>/` | all app data (bind mounts) | ~108 GiB (2026-11) — plex 64 (mostly metadata/artwork), amane 23, emby 7 (only `data`, the shared STRM tree — the name outlived Emby), muvyo 5.5, immich 1.4 |
+| `/srv/<service>/` | all app data (bind mounts) | ~107 GiB (2026-11) — plex 64 (mostly metadata/artwork), amane 23, emby 6 (only `data`, the shared STRM tree — the name outlived Emby), muvyo 5.5, immich 1.4 |
 | `/srv/_backups/` | snapshots from the 2026-10 media move (two `*-pre-migration-*`) and the muvyo DB dump taken before Emby's removal (`muvyo-pre-emby-removal-20261114`) | 7 GiB — delete once the new pipeline is trusted |
 | `/root/archive/` | one-off scripts from that migration, kept for reference | small |
 | `/opt/komodo/` | Komodo control plane (compose + env) | see [bootstrap/komodo](../bootstrap/komodo/) |
