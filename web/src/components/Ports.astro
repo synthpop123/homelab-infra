@@ -7,7 +7,7 @@
  * when that stack answers (src/lib/status.ts). Both strips share one
  * cell width: arm's is shorter because it holds fewer.
  */
-import catalog from "@/data/catalog.json"
+import { catalog } from "@/lib/catalog"
 import type { Catalog, Host } from "../../scripts/catalog"
 
 const { hosts } = catalog as Catalog

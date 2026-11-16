@@ -38,7 +38,7 @@ admits only Akko), while arm's are reached directly through arm's own host **Cad
 ├── renovate.json                   # Renovate config (auto-detects stacks/*/compose.yaml)
 ├── scripts/validate.sh             # pre-deploy lint (stacks/bootstrap/Komodo/Renovate/consistency)
 ├── .github/workflows/lint.yml      # runs validate.sh on infra PRs (no VPS access)
-├── web/                            # homelab.lkwplus.com: the catalog as a page, on a Cloudflare Worker
+├── web/                            # lab.lkwplus.com: the catalog as a page, on a Cloudflare Worker
 └── docs/                           # conventions, host/ops/media docs, runbooks
 ```
 
@@ -46,7 +46,7 @@ admits only Akko), while arm's are reached directly through arm's own host **Cad
 
 One row per stack; a stack's containers, images and versions are its
 [`compose.yaml`](./stacks/). The live view of this table is
-[homelab.lkwplus.com](https://homelab.lkwplus.com) ([`web/`](./web/)).
+[lab.lkwplus.com](https://lab.lkwplus.com) ([`web/`](./web/)).
 
 ### fame
 
@@ -178,7 +178,7 @@ runbook: [migration.md](./docs/migration.md).
 
 ## The site
 
-[homelab.lkwplus.com](https://homelab.lkwplus.com) draws this repository: every stack with its version
+[lab.lkwplus.com](https://lab.lkwplus.com) draws this repository: every stack with its version
 and address, the port registry as a strip, the flows above, and the latest commits. It is built
 from the same four files a service is recorded in ([`web/scripts/catalog.ts`](./web/scripts/catalog.ts),
 which is also the lint gate's consistency check), so it has no list of its own to keep. A Worker

@@ -12,7 +12,7 @@
  * One edge-cached answer serves every visitor for a minute, so the page
  * cannot be used to hammer the services.
  */
-import catalog from "./data/catalog.json"
+import { catalog } from "./lib/catalog"
 
 export type Probe = { ok: boolean; status: number | null; ms: number }
 export type Status = { checkedAt: string; endpoints: Record<string, Probe> }
@@ -30,7 +30,7 @@ async function probe(url: string): Promise<Probe> {
     const response = await fetch(url, {
       redirect: "manual",
       headers: {
-        "user-agent": "homelab-status (+https://homelab.lkwplus.com)",
+        "user-agent": "homelab-status (+https://lab.lkwplus.com)",
       },
       signal: AbortSignal.timeout(TIMEOUT),
     })

@@ -1,4 +1,4 @@
-// homelab.lkwplus.com: the built page as static assets, plus one Worker
+// lab.lkwplus.com: the built page as static assets, plus one Worker
 // route, /api/status, that asks every service whether it answers.
 // Cloudflare Workers Builds runs `bun run build`, then `npx wrangler deploy`,
 // with this folder as the root directory.
@@ -9,7 +9,7 @@
   "compatibility_date": "2026-08-22",
   "workers_dev": false,
   "preview_urls": true,
-  "routes": [{ "pattern": "homelab.lkwplus.com", "custom_domain": true }],
+  "routes": [{ "pattern": "lab.lkwplus.com", "custom_domain": true }],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",

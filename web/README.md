@@ -1,6 +1,6 @@
 # web
 
-[homelab.lkwplus.com](https://homelab.lkwplus.com): this repository as a page. Astro for the page, one
+[lab.lkwplus.com](https://lab.lkwplus.com): this repository as a page. Astro for the page, one
 Worker route for what is live, Cloudflare Workers static assets for the rest.
 
 ## Where the content comes from

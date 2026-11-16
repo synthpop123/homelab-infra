@@ -1,4 +1,4 @@
-# The site in web/ (homelab.lkwplus.com): format, lint, type check and build.
+# The site in web/ (lab.lkwplus.com): format, lint, type check and build.
 #
 # Cloudflare Workers Builds deploys it on every push to `main`; this only says, on a pull
 # request, whether that build would pass. A change to the infra files the site reads cannot

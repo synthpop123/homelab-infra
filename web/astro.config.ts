@@ -1,7 +1,7 @@
 import { defineConfig } from "astro/config"
 
 export default defineConfig({
-  site: "https://homelab.lkwplus.com",
+  site: "https://lab.lkwplus.com",
   trailingSlash: "never",
   compressHTML: true,
   // No Markdown here; off so the build does not warn about Shiki and CSP.

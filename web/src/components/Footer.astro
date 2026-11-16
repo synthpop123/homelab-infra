@@ -3,7 +3,7 @@
  * Whose it is, and what it was built from: the commit the catalog was
  * read at, which is also the last thing deployed.
  */
-import catalog from "@/data/catalog.json"
+import { catalog } from "@/lib/catalog"
 import { HOME, REPO } from "@/consts"
 
 const built = new Intl.DateTimeFormat("en-US", {

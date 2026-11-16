@@ -159,11 +159,20 @@ function stoppedStacks() {
   )
 }
 
+/** The commit being built: what the builder says, else what git says. A
+ *  build environment may set neither a usable variable nor a readable
+ *  checkout, so each source is only a candidate. */
 function commit() {
-  const sha =
-    process.env.WORKERS_CI_COMMIT_SHA ??
-    Bun.spawnSync(["git", "-C", ROOT, "rev-parse", "HEAD"]).stdout.toString()
-  return /^[0-9a-f]{40}$/.test(sha.trim()) ? sha.trim() : null
+  const git = (...args: string[]) =>
+    Bun.spawnSync(["git", "-c", "safe.directory=*", "-C", ROOT, ...args])
+      .stdout.toString()
+      .trim()
+  const candidates = [
+    process.env.WORKERS_CI_COMMIT_SHA,
+    process.env.GITHUB_SHA,
+    git("rev-parse", "HEAD"),
+  ]
+  return candidates.find((sha) => sha && /^[0-9a-f]{40}$/.test(sha)) ?? null
 }
 
 export function load(): { catalog: Catalog; problems: string[] } {
@@ -391,7 +400,9 @@ if (import.meta.main) {
     const path = resolve(process.argv[out + 1])
     mkdirSync(dirname(path), { recursive: true })
     writeFileSync(path, `${JSON.stringify(catalog, null, 2)}\n`)
-    console.log(`catalog: ${catalog.services.length} stacks → ${path}`)
+    console.log(
+      `catalog: ${catalog.services.length} stacks at ${catalog.commit?.slice(0, 7) ?? "no commit"} → ${path}`,
+    )
   } else if (problems.length === 0) {
     console.log(
       `ok: ${catalog.services.length} stacks agree across sync.toml, compose, ports.md and the README`,

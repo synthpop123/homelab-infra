@@ -87,7 +87,7 @@ mapped in the stack's `environment`, tags matching the server and `build:`).
 
 ## The site (`web/`)
 
-`web/` is homelab.lkwplus.com: an Astro page plus one Worker route (`/api/status`), the only part of
+`web/` is lab.lkwplus.com: an Astro page plus one Worker route (`/api/status`), the only part of
 the repo with a build. It has **no service list of its own** — `web/scripts/catalog.ts` reads
 `sync.toml`, every `compose.yaml`, `docs/ports.md`, the README tables and `renovate.json` (a
 stack whose file Renovate is switched off for is drawn as stopped) into `src/data/catalog.json`
