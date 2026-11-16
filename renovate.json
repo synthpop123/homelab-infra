@@ -65,6 +65,12 @@
   ],
   "packageRules": [
     {
+      "description": "The site in web/ deploys nothing on the hosts, so its npm dependencies arrive as one PR instead of one each; web.yml builds it before merge.",
+      "matchFileNames": ["web/**"],
+      "matchManagers": ["bun", "npm"],
+      "groupName": "web"
+    },
+    {
       "description": "Pin bundled Postgres and Redis digests in cloudreve, n8n, and umami so updates within a major tag change compose.yaml and trigger Komodo's deploy-if-changed flow.",
       "matchManagers": ["docker-compose"],
       "matchFileNames": [
