@@ -29,7 +29,9 @@ async function probe(url: string): Promise<Probe> {
   try {
     const response = await fetch(url, {
       redirect: "manual",
-      headers: { "user-agent": "homelab-status (+https://homelab.lkwplus.com)" },
+      headers: {
+        "user-agent": "homelab-status (+https://homelab.lkwplus.com)",
+      },
       signal: AbortSignal.timeout(TIMEOUT),
     })
     await response.body?.cancel()
