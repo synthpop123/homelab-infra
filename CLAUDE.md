@@ -8,8 +8,9 @@ GitOps for self-hosted services — declarative infrastructure, so there is **no
 test step**. The one local check is a **lint gate**: `./scripts/validate.sh` (also run in CI
 on relevant infrastructure PRs via `.github/workflows/lint.yml`) validates stack and bootstrap
 Compose files with `yamllint` + `docker compose config`, bootstrap shell syntax, and
-`sync.toml` against a vendored Komodo schema and `renovate.json` syntax, and rejects untagged
-or `:latest` images. Run it before pushing. The unit of work is editing YAML/TOML
+`sync.toml` against a vendored Komodo schema and `renovate.json` syntax, rejects untagged
+or `:latest` images, and checks that the four places a service is recorded agree (needs `bun`;
+`web/scripts/catalog.ts`). Run it before pushing. The unit of work is editing YAML/TOML
 and pushing; deployment happens on the VPS via Komodo, not from this machine — you cannot run
 or verify a *deploy* locally.
 
@@ -79,6 +80,33 @@ Adding a service is a coordinated change across **four** places, ideally in one 
 
 Adopting an existing deployment from outside the repo (data move, secrets, cutover) has its
 own runbook: `docs/migration.md`.
+
+The lint gate holds those four to each other and to the conventions below (port registered
+under the right host, README row in the right host's table with the same ports, every `${VAR}`
+mapped in the stack's `environment`, tags matching the server and `build:`).
+
+## The site (`web/`)
+
+`web/` is homelab.lkwplus.com: an Astro page plus one Worker route (`/api/status`), the only part of
+the repo with a build. It has **no service list of its own** — `web/scripts/catalog.ts` reads
+`sync.toml`, every `compose.yaml`, `docs/ports.md`, the README tables and `renovate.json` (a
+stack whose file Renovate is switched off for is drawn as stopped) into `src/data/catalog.json`
+(git-ignored) on each build; the same script without `--json` is the consistency check. So a new
+stack appears on the site by being added the usual way. Host hardware lines and the Flow copy
+are the only hand-written content (`src/consts.ts`, `src/components/Flow.astro`).
+
+```bash
+cd web
+bun install
+bun run build      # catalog + astro check + astro build -> dist/
+bun run preview    # wrangler dev on :8787: assets and the Worker, as deployed
+bun run format     # Biome; `bun run lint` for the .ts
+```
+
+The design system is lkwplus.com's (`~/Code/homepage`: Radix Olive/Grass through `--neutral-*`
+tokens, hairlines, Inter + Geist Mono, the five `--step-*` sizes, no shadows, the accent only on
+live marks) — copy tokens from there rather than inventing new ones. Cloudflare Workers Builds
+deploys on push to `main` (root directory `web`); `bun run deploy` does it by hand.
 
 **This repo is public.** Never commit public IPs, tokens, or other instance-specific
 secrets — hostnames and host ports are fine (established practice), but IPs stay in off-git

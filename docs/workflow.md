@@ -55,7 +55,13 @@ closes that gap: on every relevant infrastructure PR (including the ones Renovat
   schema errors are caught here instead of on the box, and
 - syntax-checks the bootstrap firewall shell scripts with `bash -n`, and
 - validates `komodo/sync.toml` against the vendored Komodo resource schema, and parses `renovate.json` (JSON), and
-- rejects any `image:` that is untagged or `:latest` (Renovate can only bump explicit tags).
+- rejects any `image:` that is untagged or `:latest` (Renovate can only bump explicit tags), and
+- checks that the four places a service is recorded agree
+  ([`web/scripts/catalog.ts`](../web/scripts/catalog.ts), a dependency-free Bun script): every
+  stack folder has its `[[stack]]` block, README row and registered ports under the right host;
+  every `${VAR}` a compose reads is mapped in the stack's `environment`; tags match the server
+  and `build:`; networks are named; binds are absolute. The site in `web/` is built from the
+  same reading.
 
 It runs entirely on GitHub's runners — it **does not touch the VPS and deploys nothing**.
 Run it locally before pushing with `./scripts/validate.sh` (it skips any tool you don't

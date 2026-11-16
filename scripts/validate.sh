@@ -7,13 +7,16 @@
 # cheap gate that runs in CI (.github/workflows/lint.yml) on relevant infrastructure
 # PRs, and can be run by hand before pushing:  ./scripts/validate.sh
 #
-# It validates five things:
+# It validates six things:
 #   1. yamllint        — stack and bootstrap compose files (duplicate keys, tabs, structure)
 #   2. compose config  — the SAME parser Komodo uses; catches schema errors
 #   3. shell syntax    — bootstrap scripts parse before they are installed on a host
 #   4. sync.toml schema / renovate.json — resource types and JSON syntax of the files that drive automation
 #   5. image pins      — every `image:` carries an explicit tag, never `:latest`, unless the line
 #                        opts out with an inline `# allow-latest` (docs/conventions.md)
+#   6. consistency     — the four places a service is recorded (compose, sync.toml, docs/ports.md,
+#                        README) agree, and each stack follows docs/conventions.md; the same
+#                        reader builds the site's catalog (web/scripts/catalog.ts)
 #
 # STRICT=1 (set in CI) turns "tool not installed -> skip" into a hard failure, so CI
 # always runs every check. Locally, missing tools are skipped with a warning.
@@ -193,6 +196,15 @@ while IFS= read -r line; do
   fi
 done < <(grep -nE '^[[:space:]]*image:' stacks/*/compose.yaml bootstrap/komodo/*.compose.yaml /dev/null)
 if [ "$pins_ok" -eq 1 ]; then echo "ok: all images pinned"; else fail=1; fi
+
+# --- 6) cross-file consistency ----------------------------------------------------
+# A stack lives in four files; nothing else notices when one of them is forgotten.
+echo "== consistency =="
+if command -v bun >/dev/null 2>&1; then
+  bun web/scripts/catalog.ts || fail=1
+else
+  skip_or_fail "bun not installed"
+fi
 
 # --------------------------------------------------------------------------------
 if [ "$fail" -ne 0 ]; then

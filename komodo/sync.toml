@@ -42,7 +42,7 @@ enabled = true
 
 [[server]]
 name = "Oracle-Arm"
-description = "Oracle Cloud Chuncheon (arm) — aarch64, multica + storageui + sure + beszel-agent"
+description = "Oracle Cloud Chuncheon (arm) — aarch64, the stacks tagged host-arm"
 
 [server.config]
 region = "Chuncheon, KR"
@@ -246,7 +246,7 @@ GITEA_DB_PASSWORD=[[GITEA_DB_PASSWORD]]
 
 [[stack]]
 name = "muvyo"
-description = "https://muvyo.lkwplus.com"
+description = "https://muvyo.lkwplus.com / https://vyo.lkwplus.com"
 deploy = false
 tags = ["app", "host-fame", "media"]
 
@@ -688,7 +688,7 @@ WEALTHFOLIO_AUTH_PASSWORD_HASH=[[WEALTHFOLIO_AUTH_PASSWORD_HASH]]
 
 [[stack]]
 name = "silo"
-description = "https://silo.lkwplus.com"
+description = "https://silo.lkwplus.com / https://s3.lkwplus.com"
 deploy = false
 tags = ["app", "host-arm"]
 
