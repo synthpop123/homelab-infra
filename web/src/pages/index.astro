@@ -1,0 +1,229 @@
+---
+import Changes from "@/components/Changes.astro"
+import Flow from "@/components/Flow.astro"
+import Ports from "@/components/Ports.astro"
+import SectionHead from "@/components/SectionHead.astro"
+import Services from "@/components/Services.astro"
+import catalog from "@/data/catalog.json"
+import { REPO, SECTIONS } from "@/consts"
+import Layout from "@/layouts/Layout.astro"
+import type { Catalog, Host, Service } from "../../scripts/catalog"
+
+const { hosts, services } = catalog as Catalog
+/** A count of something per stack, in all and split by host. */
+const tally = (count: (service: Service) => number) => ({
+  total: services.reduce((n, service) => n + count(service), 0),
+  split: (Object.keys(hosts) as Host[])
+    .map((host) => {
+      const on = services.filter((service) => service.host === host)
+      return `${on.reduce((n, service) => n + count(service), 0)} ${host}`
+    })
+    .join(" · "),
+})
+const stacks = tally(() => 1)
+const containers = tally((service) => service.containers.length)
+const endpoints = services
+  .filter((service) => !service.stopped)
+  .reduce((n, service) => n + service.urls.length, 0)
+const head = Object.fromEntries(
+  SECTIONS.map((section) => [section.id, section]),
+)
+const repo = `https://github.com/${REPO}`
+---
+
+<Layout>
+  <header>
+    <h1>Homelab</h1>
+    <a href={repo}>homelab-infra ↗</a>
+  </header>
+  <prose-content>
+    <p>
+      Self-hosted services on two hosts, declared in git and deployed by Komodo:
+      merging is deploying. This page is built from the same files and asks each
+      service, every minute, whether it still answers.
+    </p>
+  </prose-content>
+
+  <dl class="readout">
+    <div>
+      <dt>Stacks</dt>
+      <dd>{stacks.total}</dd>
+      <dd>{stacks.split}</dd>
+    </div>
+    <div>
+      <dt>Containers</dt>
+      <dd>{containers.total}</dd>
+      <dd>{containers.split}</dd>
+    </div>
+    <div>
+      <dt>Answering</dt>
+      <dd><span data-answering>–</span><small>/{endpoints}</small></dd>
+      <dd><time data-checked>not asked yet</time></dd>
+    </div>
+  </dl>
+
+  <section>
+    <SectionHead {...head.services}>
+      <label class="filter">
+        <span class="sr">Filter services</span>
+        <input
+          type="search"
+          data-filter
+          placeholder="Filter"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <kbd aria-hidden="true">/</kbd>
+      </label>
+    </SectionHead>
+    <Services />
+  </section>
+
+  <section>
+    <SectionHead {...head.ports}>
+      <a href={`${repo}/blob/main/docs/ports.md`}>ports.md ↗</a>
+    </SectionHead>
+    <Ports />
+  </section>
+
+  <section>
+    <SectionHead {...head.flow}>
+      <a href={`${repo}/blob/main/docs/workflow.md`}>workflow.md ↗</a>
+    </SectionHead>
+    <Flow />
+  </section>
+
+  <section>
+    <SectionHead {...head.changes}>
+      <a href={`${repo}/commits/main`}>commits ↗</a>
+    </SectionHead>
+    <Changes />
+  </section>
+</Layout>
+
+<style>
+  /* The margin column every section shares: a host's name, a lane's, a
+     commit's age. */
+  :global(main) {
+    --host-column: 6.5rem;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-s);
+    margin-block-end: var(--space-m);
+
+    a {
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+      text-decoration-line: none;
+
+      &:hover {
+        color: var(--foreground);
+        text-decoration-line: underline;
+      }
+    }
+  }
+
+  h1 {
+    font-size: var(--step-1);
+    line-height: calc(var(--leading-offset) + 1em);
+    font-weight: var(--font-weight-display);
+    letter-spacing: var(--tracking-display);
+  }
+
+  section {
+    margin-block-start: var(--space-xl);
+  }
+
+  /* Three figures on a pair of hairlines: what is defined, and how much
+     of it answers right now; under each, how it splits or how old it is. */
+  .readout {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: var(--space-s);
+    margin-block-start: var(--space-m);
+    padding-block: var(--space-xs);
+    border-block: var(--hairline) solid var(--border);
+
+    dt {
+      font-size: var(--step--2);
+      font-feature-settings: var(--font-label-features);
+      letter-spacing: var(--tracking-label);
+      text-transform: uppercase;
+      color: var(--muted-foreground);
+    }
+
+    dd:last-child {
+      font-size: var(--step--2);
+      font-variant-numeric: tabular-nums;
+      color: var(--muted-foreground);
+    }
+
+    dd:not(:last-child) {
+      font-size: var(--step-1);
+      font-weight: var(--font-weight-medium);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: var(--tracking-figure);
+      line-height: 1.4;
+
+      :is(span, small) {
+        letter-spacing: inherit;
+      }
+
+      small {
+        font-size: inherit;
+        font-weight: var(--font-weight-normal);
+        color: var(--muted-foreground);
+      }
+    }
+  }
+
+  /* The filter: a word typed onto a hairline, at the far end of the
+     section's heading. */
+  .filter {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-3xs);
+    border-block-end: var(--hairline) solid var(--border-strong);
+
+    input {
+      inline-size: 7rem;
+      font-size: var(--step--1);
+      outline: none;
+
+      &::placeholder {
+        color: var(--muted-foreground);
+      }
+
+      &::-webkit-search-cancel-button {
+        display: none;
+      }
+    }
+
+    &:focus-within {
+      border-block-end-color: var(--ring);
+    }
+
+    kbd {
+      font-size: var(--step--2);
+      color: var(--muted-foreground);
+    }
+
+    &:focus-within kbd {
+      visibility: hidden;
+    }
+
+    @media (hover: none) {
+      kbd {
+        display: none;
+      }
+    }
+  }
+</style>
+
+<script>
+  import "@/lib/status"
+</script>

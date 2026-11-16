@@ -1,0 +1,59 @@
+---
+/**
+ * Whose it is, and what it was built from: the commit the catalog was
+ * read at, which is also the last thing deployed.
+ */
+import catalog from "@/data/catalog.json"
+import { HOME, REPO } from "@/consts"
+
+const built = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "Asia/Shanghai",
+}).format(new Date(catalog.builtAt))
+---
+
+<footer>
+  <p>
+    &copy; {new Date(catalog.builtAt).getFullYear()}
+    <a href={HOME.href}>{HOME.label}</a>
+  </p>
+  <p>
+    Built
+    {catalog.commit && (
+      <>
+        from
+        <a href={`https://github.com/${REPO}/commit/${catalog.commit}`}>
+          <code>{catalog.commit.slice(0, 7)}</code>
+        </a>
+      </>
+    )}
+    on <time datetime={catalog.builtAt}>{built}</time>
+  </p>
+</footer>
+
+<style>
+  footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3xs) var(--space-s);
+    margin-block: var(--space-xs) var(--page-offset-bottom);
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+  }
+
+  a {
+    --underline: var(--border-strong);
+
+    &:hover {
+      color: var(--foreground);
+    }
+  }
+
+  code {
+    font-size: var(--step--2);
+  }
+</style>

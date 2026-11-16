@@ -1,0 +1,185 @@
+---
+/**
+ * The site's one page, so the sidebar is its table of contents: the
+ * rail marks the section being read (set on scroll, below).
+ */
+import Logo from "@/assets/logo.svg"
+import ThemeToggle from "@/components/ThemeToggle.astro"
+import { SECTIONS, SITE } from "@/consts"
+---
+
+<aside data-bar>
+  <sidebar-inner>
+    <a href="/" aria-label={SITE.title}>
+      <Logo />
+      <span>{SITE.title}</span>
+    </a>
+    <nav aria-label="Sections">
+      <ul>
+        {SECTIONS.map(({ id, label }) => (
+          <li><a href={`#${id}`}>{label}</a></li>
+        ))}
+      </ul>
+    </nav>
+  </sidebar-inner>
+  <sidebar-toggle><ThemeToggle /></sidebar-toggle>
+</aside>
+
+<style>
+  aside {
+    position: sticky;
+    top: var(--page-offset-top);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: calc(100svh - var(--page-offset-top) - var(--page-offset-bottom));
+
+    @media (width < 64rem) {
+      position: static;
+      height: auto;
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-s);
+    }
+  }
+
+  sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+
+    > a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: fit-content;
+      font-weight: var(--font-weight-medium);
+      font-size: var(--step-0);
+      color: var(--foreground);
+      text-decoration-line: none;
+
+      svg {
+        inline-size: 1.125rem;
+        block-size: 1.125rem;
+        flex-shrink: 0;
+      }
+
+      /* On one row with the nav, the name crowds the entries: the logo
+         alone says whose site it is. */
+      @media (width < 64rem) {
+        span {
+          display: none;
+        }
+      }
+    }
+
+    @media (width < 64rem) {
+      flex: 1;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  /* Where you are: a hairline rail hung in the gutter beside the list,
+     the current entry's stretch of it in ink and a hovered entry's in
+     grey. No underline, and no accent: the rail is the nav's only mark. */
+  nav ul {
+    --rail: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    margin-inline-start: calc(-1 * var(--rail));
+    padding-inline-start: calc(var(--rail) - var(--hairline));
+    border-inline-start: var(--hairline) solid var(--border);
+
+    a {
+      position: relative;
+      display: block;
+      color: var(--muted-foreground);
+      text-decoration: none;
+
+      &:hover,
+      &[aria-current] {
+        color: var(--foreground);
+      }
+    }
+
+    a::before {
+      content: "";
+      position: absolute;
+      inset-block: 0.15em;
+      inset-inline-start: calc(-1 * var(--rail));
+      inline-size: var(--hairline);
+      background-color: transparent;
+    }
+
+    a:hover::before {
+      background-color: var(--neutral-8);
+    }
+
+    a[aria-current]::before {
+      background-color: var(--foreground);
+    }
+
+    @media (width < 64rem) {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-s);
+      margin-inline-start: 0;
+      padding-inline-start: 0;
+      border-inline-start: 0;
+
+      @media (width < 24rem) {
+        gap: var(--space-xs);
+      }
+
+      /* On the row the rail lies under the word instead. */
+      a::before {
+        inset: auto 0 -0.3rem;
+        inline-size: auto;
+        block-size: var(--hairline);
+      }
+    }
+  }
+
+  sidebar-toggle {
+    display: flex;
+    align-items: center;
+    margin-inline-start: -0.5rem;
+
+    @media (width < 64rem) {
+      margin-inline-start: 0;
+      margin-inline-end: -0.5rem;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * The section being read is the last one whose heading has passed the
+   * upper third of the window; at the very bottom it is the last one,
+   * which may be too short ever to get there.
+   */
+  const links = [...document.querySelectorAll<HTMLAnchorElement>("aside nav a")]
+  const sections = links.map((link) =>
+    document.getElementById(link.hash.slice(1)),
+  )
+  const mark = () => {
+    const line = innerHeight / 3
+    const bottom =
+      innerHeight + scrollY >= document.documentElement.scrollHeight - 2
+    let current = -1
+    sections.forEach((section, i) => {
+      if (section && section.getBoundingClientRect().top <= line) current = i
+    })
+    if (bottom && scrollY > 0) current = sections.length - 1
+    links.forEach((link, i) => {
+      if (i === current) link.setAttribute("aria-current", "location")
+      else link.removeAttribute("aria-current")
+    })
+  }
+  window.addEventListener("scroll", mark, { passive: true })
+  window.addEventListener("resize", mark, { passive: true })
+  mark()
+</script>

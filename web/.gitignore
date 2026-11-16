@@ -1,0 +1,6 @@
+dist/
+.astro/
+.wrangler/
+node_modules/
+# Written by scripts/catalog.ts on every build.
+src/data/

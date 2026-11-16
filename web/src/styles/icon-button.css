@@ -1,0 +1,26 @@
+@layer reset, tokens, prose, layout, primitives;
+
+@layer primitives {
+[data-icon-button] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--muted);
+  }
+
+  &:active {
+    background-color: var(--muted-hover);
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+}

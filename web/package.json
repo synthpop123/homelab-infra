@@ -1,0 +1,28 @@
+{
+  "name": "homelab-web",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "catalog": "bun scripts/catalog.ts --json src/data/catalog.json",
+    "dev": "bun run catalog && astro dev",
+    "build": "bun run catalog && astro check && astro build",
+    "preview": "wrangler dev",
+    "deploy": "bun run build && wrangler deploy",
+    "lint": "biome lint",
+    "format": "biome format --write .",
+    "format:check": "biome format ."
+  },
+  "dependencies": {
+    "astro": "^7.4.12"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@biomejs/biome": "2.5.14",
+    "@types/bun": "^1.4.4",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.162.0"
+  }
+}

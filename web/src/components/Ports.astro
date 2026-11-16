@@ -1,0 +1,216 @@
+---
+/**
+ * The port registry (docs/ports.md) as a strip per host: a cell to a
+ * number, from 20000 up, in the order they were handed out. A number is
+ * never reused, so an empty cell is a service that left. A cell in use
+ * links to its stack's row and, once /api/status has answered, is lit
+ * when that stack answers (src/lib/status.ts). Both strips share one
+ * cell width: arm's is shorter because it holds fewer.
+ */
+import catalog from "@/data/catalog.json"
+import type { Catalog, Host } from "../../scripts/catalog"
+
+const { hosts } = catalog as Catalog
+const strips = (Object.keys(hosts) as Host[]).map((host) => ({
+  host,
+  cells: hosts[host].ports,
+  used: hosts[host].ports.filter((cell) => cell.stack).length,
+}))
+const widest = Math.max(...strips.map(({ cells }) => cells.length))
+---
+
+<port-strip style={`--cells: ${widest}`}>
+  {strips.map(({ host, cells, used }) => (
+    <>
+      <h3>
+        {host}
+        <span>{used} of {cells.length}</span>
+      </h3>
+      <ol>
+        {cells.map(({ port, stack, label }) => (
+          <li>
+            {stack ? (
+              <a
+                href={`#${stack}`}
+                data-stack={stack}
+                aria-label={`${host} ${port}, ${label}`}
+              >
+                <span aria-hidden="true"><b>{port}</b>{label}</span>
+              </a>
+            ) : (
+              <i><span><b>{port}</b>vacated</span></i>
+            )}
+          </li>
+        ))}
+      </ol>
+    </>
+  ))}
+  <p aria-hidden="true">
+    <span data-key="up">answering</span>
+    <span data-key="used">in use</span>
+    <span data-key="free">vacated</span>
+  </p>
+</port-strip>
+
+<style>
+  port-strip {
+    --gap: 2px;
+    --used: var(--neutral-8);
+    --free: var(--heat-0);
+    --up: var(--accent-fill);
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--host-column) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-xs) var(--space-s);
+    container-type: inline-size;
+  }
+
+  h3 {
+    display: flex;
+    flex-direction: column;
+    font-weight: var(--font-weight-medium);
+
+    span {
+      font-size: var(--step--2);
+      font-weight: var(--font-weight-normal);
+      font-variant-numeric: tabular-nums;
+      color: var(--muted-foreground);
+    }
+  }
+
+  ol {
+    display: flex;
+    gap: var(--gap);
+  }
+
+  li {
+    flex: 0 0 calc((100% - (var(--cells) - 1) * var(--gap)) / var(--cells));
+  }
+
+  /* The cell is drawn by ::before, so growing it on hover leaves the
+     element itself untransformed: its label is placed against the strip,
+     not against a transformed box. */
+  :is(a, i) {
+    display: block;
+    block-size: 1rem;
+
+    &::before {
+      content: "";
+      display: block;
+      block-size: 100%;
+      border-radius: var(--radius-xs);
+      background-color: var(--fill);
+    }
+
+    &:is(:hover, :focus-visible)::before {
+      scale: 1 1.4;
+    }
+  }
+
+  i {
+    --fill: var(--free);
+  }
+
+  a {
+    --fill: var(--used);
+
+    &[data-state="up"] {
+      --fill: var(--up);
+    }
+
+    &[data-state="down"] {
+      --fill: var(--foreground);
+    }
+  }
+
+  /* The key on the line under the strips, and in its place, while a
+     cell is hovered or focused, the number and what holds it. */
+  p,
+  :is(a, i) > span {
+    display: flex;
+    gap: var(--space-xs);
+    font-family: var(--font-mono);
+    font-feature-settings: normal;
+    font-size: var(--step--2);
+    line-height: 1.5;
+    letter-spacing: 0;
+    color: var(--muted-foreground);
+  }
+
+  p {
+    grid-column: 2;
+    min-block-size: 1lh;
+  }
+
+  [data-key] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    letter-spacing: 0;
+
+    &::before {
+      content: "";
+      inline-size: 0.5rem;
+      block-size: 0.5rem;
+      border-radius: var(--radius-xs);
+      background-color: var(--free);
+    }
+
+    &[data-key="up"]::before {
+      background-color: var(--up);
+    }
+
+    &[data-key="used"]::before {
+      background-color: var(--used);
+    }
+  }
+
+  port-strip:has(:is(a, i):is(:hover, :focus-visible)) p {
+    visibility: hidden;
+  }
+
+  :is(a, i) > span {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline: calc(var(--host-column) + var(--space-s)) 0;
+    white-space: nowrap;
+    pointer-events: none;
+    visibility: hidden;
+
+    b {
+      font-weight: var(--font-weight-medium);
+      color: var(--foreground);
+    }
+  }
+
+  :is(a, i):is(:hover, :focus-visible) > span {
+    visibility: visible;
+  }
+
+  /* On a phone a host's name sits over its strip. */
+  @media (width < 30rem) {
+    port-strip {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-2xs);
+    }
+
+    h3 {
+      flex-direction: row;
+      align-items: baseline;
+      gap: var(--space-xs);
+
+      &:not(:first-child) {
+        margin-block-start: var(--space-2xs);
+      }
+    }
+
+    p {
+      grid-column: 1;
+    }
+
+    :is(a, i) > span {
+      inset-inline-start: 0;
+    }
+  }
+</style>

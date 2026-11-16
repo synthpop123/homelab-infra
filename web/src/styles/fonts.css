@@ -1,0 +1,65 @@
+@layer reset, tokens, prose, layout, primitives;
+
+/* Inter 4.1 and Geist Mono, the subsets lkwplus.com ships: Latin through
+   Latin Extended-A, punctuation, arrows and box drawing; `wght` cut to
+   400–600 (Inter) and 400–700 (Geist Mono). */
+@layer tokens {
+@font-face {
+  font-family: "Inter";
+  src: url("../assets/fonts/Inter-Variable.woff2") format("woff2");
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial");
+  font-weight: 100 900;
+  font-style: normal;
+  size-adjust:       107.1957%;
+  ascent-override:   90.3721%;
+  descent-override:  22.5019%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("../assets/fonts/GeistMono-Variable.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono Fallback";
+  src: local("Courier New");
+  font-weight: 100 900;
+  font-style: normal;
+  size-adjust:       99.9837%;
+  ascent-override:   100.5164%;
+  descent-override:  29.5048%;
+  line-gap-override: 0%;
+}
+
+:root {
+  font-synthesis-style: none;
+  --font-sans:
+    "Inter", "Inter Fallback", "PingFang SC", "Hiragino Sans GB",
+    "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  /* Inter's open 3 4 6 9, serifed I and tailed l, round quotes and
+     commas, single-storey a. Set on body; monospace resets it. */
+  --font-sans-features: "ss01", "ss03", "ss04", "cv11";
+  /* Uppercase labels add case-sensitive forms. */
+  --font-label-features: var(--font-sans-features), "case";
+  --font-mono: "Geist Mono", "Geist Mono Fallback", monospace;
+}
+
+body {
+  font-feature-settings: var(--font-sans-features);
+}
+
+:where(code, kbd, samp, pre) {
+  font-feature-settings: normal;
+}
+}

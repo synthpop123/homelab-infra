@@ -1,0 +1,300 @@
+---
+/**
+ * Every stack as a ledger, a host to a group: what it is and the version
+ * it runs on the left, where it answers on the right, each address with
+ * a dot that /api/status fills in (src/lib/status.ts). A row's id is its
+ * stack's name, which is what a port cell links to.
+ */
+import catalog from "@/data/catalog.json"
+import { HOSTS } from "@/consts"
+import type { Catalog, Host } from "../../scripts/catalog"
+
+const { hosts, services } = catalog as Catalog
+const groups = (Object.keys(hosts) as Host[]).map((host) => ({
+  host,
+  region: hosts[host].region,
+  ...HOSTS[host],
+  rows: services.filter((service) => service.host === host),
+}))
+---
+
+<lab-services>
+  {groups.map(({ host, region, spec, edge, rows }) => (
+    <section>
+      <header>
+        <h3>{host}</h3>
+        <ul>
+          {[region, ...spec, edge].map((line) => (
+            <li>{line}</li>
+          ))}
+        </ul>
+      </header>
+      <ol>
+        {rows.map((service) => (
+          <li
+            id={service.name}
+            data-row
+            data-stopped={service.stopped || undefined}
+            data-search={[
+              service.name,
+              service.description,
+              host,
+              ...service.tags,
+              ...service.urls,
+            ]
+              .join(" ")
+              .toLowerCase()}
+          >
+            <div class="what">
+              <p>
+                <b>{service.name}</b>
+                {service.version && <code>{service.version}</code>}
+              </p>
+              <p>{service.description}</p>
+            </div>
+            {service.urls.length > 0 && (
+              <ul class="where">
+                {service.urls.map((url) => (
+                  <li>
+                    <a
+                      href={url}
+                      data-endpoint={service.stopped ? undefined : url}
+                    >
+                      {new URL(url).host}
+                      {!service.stopped && <i data-dot />}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  ))}
+  <p data-empty hidden>No stack matches.</p>
+</lab-services>
+
+<style>
+  lab-services {
+    display: block;
+    container-type: inline-size;
+  }
+
+  /* A host and its stacks: the host stays in the margin column while its
+     rows scroll past, the way a ledger keeps its year. */
+  section {
+    display: grid;
+    grid-template-columns: var(--host-column) minmax(0, 1fr);
+    column-gap: var(--space-s);
+    border-block-start: var(--hairline) solid var(--border-strong);
+
+    & + section {
+      margin-block-start: var(--space-m);
+    }
+  }
+
+  header {
+    position: sticky;
+    inset-block-start: var(--page-offset-top);
+    align-self: start;
+    padding-block: var(--space-xs);
+
+    @media (width < 64rem) {
+      inset-block-start: calc(var(--bar-nav-height) + var(--space-2xs));
+    }
+
+    h3 {
+      font-weight: var(--font-weight-medium);
+    }
+
+    ul {
+      font-size: var(--step--2);
+      line-height: 1.5;
+      color: var(--muted-foreground);
+    }
+  }
+
+  [data-row] {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--space-s);
+    padding-block: var(--space-xs);
+
+    & + [data-row] {
+      border-block-start: var(--hairline) solid var(--border);
+    }
+
+    @media (width >= 64rem) {
+      scroll-margin-block-start: var(--page-offset-top);
+    }
+
+    /* Arrived at from a port cell: the row is held on a fill that
+       bleeds a little past the text's edges. */
+    &:target::before {
+      content: "";
+      position: absolute;
+      inset: 0 calc(-1 * var(--space-2xs));
+      z-index: -1;
+      border-radius: var(--radius-md);
+      background-color: var(--muted);
+    }
+  }
+
+  .what {
+    p:first-child {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: var(--space-2xs);
+    }
+
+    b {
+      font-weight: var(--font-weight-medium);
+    }
+
+    code {
+      font-size: var(--step--2);
+      color: var(--muted-foreground);
+    }
+
+    p:last-child {
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+    }
+  }
+
+  [data-stopped] b {
+    color: var(--muted-foreground);
+  }
+
+  /* Where it answers: the addresses set flush right, so their dots fall
+     in one column down the ledger's edge. */
+  .where {
+    display: grid;
+    align-content: start;
+    justify-items: end;
+    font-family: var(--font-mono);
+    font-feature-settings: normal;
+    font-size: var(--step--2);
+    /* One line of the name beside it. */
+    line-height: calc(1.5 * var(--step-0));
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2xs);
+      letter-spacing: 0;
+      color: var(--muted-foreground);
+
+      &:hover {
+        color: var(--foreground);
+      }
+    }
+  }
+
+  :global([data-dot]) {
+    flex: none;
+    inline-size: 0.375rem;
+    block-size: 0.375rem;
+    border-radius: var(--radius-full);
+    background-color: var(--neutral-a6);
+
+    &[data-state="up"] {
+      background-color: var(--accent-fill);
+    }
+
+    &[data-state="down"] {
+      background-color: var(--foreground);
+    }
+  }
+
+  [data-empty] {
+    padding-block: var(--space-xs);
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+    border-block-start: var(--hairline) solid var(--border-strong);
+  }
+
+  /* On a phone the host heads its group instead of standing beside it,
+     and a row's addresses drop under what they belong to. */
+  @container (width < 30rem) {
+    section {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    header {
+      position: static;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: var(--space-xs);
+      border-block-end: var(--hairline) solid var(--border);
+
+      ul {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: var(--space-xs);
+      }
+    }
+
+    [data-row] {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .where {
+      justify-items: start;
+      line-height: 1.75;
+
+      a {
+        flex-direction: row-reverse;
+      }
+    }
+  }
+</style>
+
+<script>
+  /**
+   * The filter in the section's heading: a row stays when every word
+   * typed is somewhere in its name, description, host, tags or
+   * addresses. `/` reaches it from anywhere, Escape empties it. A port
+   * cell's link empties it too, or its row might be one of the hidden.
+   */
+  const root = document.querySelector("lab-services")
+  const input = document.querySelector<HTMLInputElement>("[data-filter]")
+  if (root && input) {
+    const rows = [...root.querySelectorAll<HTMLElement>("[data-row]")]
+    const empty = root.querySelector<HTMLElement>("[data-empty]")
+    const apply = () => {
+      const words = input.value.toLowerCase().split(/\s+/).filter(Boolean)
+      for (const row of rows) {
+        const text = row.dataset.search ?? ""
+        row.hidden = !words.every((word) => text.includes(word))
+      }
+      for (const section of root.querySelectorAll("section"))
+        section.hidden = !section.querySelector("[data-row]:not([hidden])")
+      if (empty) empty.hidden = rows.some((row) => !row.hidden)
+    }
+    input.addEventListener("input", apply)
+    input.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return
+      input.value = ""
+      apply()
+      input.blur()
+    })
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey) return
+      if (document.activeElement instanceof HTMLInputElement) return
+      event.preventDefault()
+      input.focus()
+    })
+    window.addEventListener("hashchange", () => {
+      const target = document.getElementById(location.hash.slice(1))
+      if (!target?.hidden) return
+      input.value = ""
+      apply()
+      target.scrollIntoView()
+    })
+  }
+</script>

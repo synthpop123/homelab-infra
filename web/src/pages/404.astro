@@ -1,0 +1,21 @@
+---
+import Layout from "@/layouts/Layout.astro"
+---
+
+<Layout title="Not found">
+  <meta name="robots" content="noindex" slot="head">
+  <h1>Not found</h1>
+  <prose-content>
+    <p>Nothing answers at this address. <a href="/">Back to the lab</a>.</p>
+  </prose-content>
+</Layout>
+
+<style>
+  h1 {
+    margin-block-end: var(--space-m);
+    font-size: var(--step-1);
+    line-height: calc(var(--leading-offset) + 1em);
+    font-weight: var(--font-weight-display);
+    letter-spacing: var(--tracking-display);
+  }
+</style>

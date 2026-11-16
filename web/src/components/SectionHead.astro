@@ -1,0 +1,45 @@
+---
+/**
+ * A section heading with, at the far end of its row, the one thing the
+ * section has beside its content: a link to its source, a filter, a key.
+ */
+type Props = { id: string; label: string }
+
+const { id, label } = Astro.props
+---
+
+<div class="section-head">
+  <h2 id={id}>{label}</h2>
+  <slot />
+</div>
+
+<style>
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-s);
+    margin-block-end: var(--space-s);
+  }
+
+  h2 {
+    font-size: var(--step-0);
+    line-height: calc(var(--leading-offset) + 1em);
+    font-weight: var(--font-weight-strong);
+
+    @media (width >= 64rem) {
+      scroll-margin-block-start: calc(var(--page-offset-top) - 0.2em);
+    }
+  }
+
+  .section-head > :global(a) {
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+    text-decoration-line: none;
+
+    &:hover {
+      color: var(--foreground);
+      text-decoration-line: underline;
+    }
+  }
+</style>

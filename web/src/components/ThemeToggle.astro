@@ -1,0 +1,105 @@
+---
+import MoonIcon from "@/assets/icons/moon.svg"
+import SunIcon from "@/assets/icons/sun.svg"
+---
+
+<button id="theme-toggle" data-icon-button aria-label="Toggle theme">
+  <light-icon><SunIcon /></light-icon>
+  <dark-icon><MoonIcon /></dark-icon>
+</button>
+
+<style is:global>
+  :root[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  dark-icon {
+    display: none;
+  }
+
+  :root[data-theme="dark"] {
+    light-icon {
+      display: none;
+    }
+
+    dark-icon {
+      display: inline;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+      light-icon {
+        display: none;
+      }
+
+      dark-icon {
+        display: inline;
+      }
+    }
+  }
+
+  /* Switching themes fades the whole page over the site's one duration. */
+  ::view-transition-group(root) {
+    animation-duration: var(--duration);
+    animation-timing-function: var(--ease);
+  }
+</style>
+
+<script>
+  const root = document.documentElement
+  const system = matchMedia("(prefers-color-scheme: dark)")
+  const still = matchMedia("(prefers-reduced-motion: reduce)")
+
+  /**
+   * Repaints in the new scheme with every transition off. A colour that
+   * transitions and resolves through light-dark() would otherwise keep
+   * the old scheme's value until something else restyles it.
+   */
+  const instantly = (change: () => void) => {
+    const style = document.createElement("style")
+    style.textContent = "*,*::before,*::after{transition:none!important}"
+    document.head.append(style)
+    change()
+    getComputedStyle(root).color
+    setTimeout(() => style.remove())
+  }
+
+  /** The page cross-fades from one scheme to the other; without view
+   *  transitions, or with reduced motion, the change is immediate. */
+  const crossFade = (change: () => void) => {
+    if (!document.startViewTransition || still.matches) return change()
+    document.startViewTransition(change)
+  }
+
+  /** Flips the scheme. Landing on the system's own scheme drops the
+   *  stored choice, so the page follows the system again from there. */
+  const toggleTheme = () =>
+    crossFade(() =>
+      instantly(() => {
+        const dark =
+          root.dataset.theme === "dark" ||
+          (!root.dataset.theme && system.matches)
+        const theme = dark ? "light" : "dark"
+        const follow = (theme === "dark") === system.matches
+        if (follow) delete root.dataset.theme
+        else root.dataset.theme = theme
+        try {
+          if (follow) localStorage.removeItem("theme")
+          else localStorage.theme = theme
+        } catch {
+          // Storage blocked: the choice holds for this page only.
+        }
+      }),
+    )
+
+  const button = document.getElementById("theme-toggle")
+  if (button) button.onclick = toggleTheme
+  system.addEventListener("change", () => {
+    if (!root.dataset.theme) instantly(() => {})
+  })
+</script>

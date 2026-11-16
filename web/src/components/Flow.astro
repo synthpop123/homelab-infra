@@ -1,0 +1,99 @@
+---
+/**
+ * How a change, an update, a request and a secret each travel. The
+ * prose of README.md and docs/workflow.md as four lanes.
+ */
+const lanes = [
+  {
+    name: "Deploy",
+    flow: [
+      "git push",
+      "webhook",
+      "Redeploy On Push",
+      "RunSync",
+      "BatchDeployStackIfChanged",
+    ],
+    note: "One webhook, two ordered stages. Komodo first reconciles every stack’s definition from sync.toml, then brings up only the stacks whose compose file changed. Nothing deploys from CI.",
+  },
+  {
+    name: "Update",
+    flow: ["Renovate", "pull request", "lint", "merge"],
+    note: "Every image is pinned to a version, so an update arrives as a diff to review. Merging it is the push above.",
+  },
+  {
+    name: "Request",
+    flow: ["<name>.lkwplus.com", "Akko or Caddy", "host port"],
+    note: "fame’s ports answer only to the Akko reverse proxy, enforced in Docker’s own firewall chain. arm’s bind to loopback behind its host Caddy. No container port faces the internet on either.",
+  },
+  {
+    name: "Secret",
+    flow: ["Komodo Variable", "[[VAR]]", ".env", "${VAR}"],
+    note: "Git holds the placeholder and nothing else. Komodo writes the value into a git-ignored file as it deploys.",
+  },
+]
+---
+
+<dl>
+  {lanes.map(({ name, flow, note }) => (
+    <div>
+      <dt>{name}</dt>
+      <dd>
+        <p class="flow">
+          {flow.map((node, i) => (
+            <>
+              {i > 0 && <span aria-hidden="true">→</span>}
+              <code>{node}</code>
+            </>
+          ))}
+        </p>
+        <p>{note}</p>
+      </dd>
+    </div>
+  ))}
+</dl>
+
+<style>
+  /* A lane: its name in the margin column the hosts use, its path as a
+     row of mono stops, what that means under it; each on a hairline. */
+  dl > div {
+    display: grid;
+    grid-template-columns: var(--host-column) minmax(0, 1fr);
+    column-gap: var(--space-s);
+    padding-block: var(--space-xs);
+    border-block-start: var(--hairline) solid var(--border);
+
+    &:first-child {
+      border-block-start-color: var(--border-strong);
+    }
+
+    @media (width < 30rem) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  dt {
+    font-weight: var(--font-weight-medium);
+  }
+
+  dd {
+    font-size: var(--step--1);
+    line-height: 1.6;
+    color: var(--muted-foreground);
+  }
+
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3xs) var(--space-2xs);
+    margin-block: 0.15rem var(--space-3xs);
+
+    code {
+      padding: 0.1em 0.4em;
+      font-size: var(--step--2);
+      color: var(--foreground);
+      border-radius: var(--radius-sm);
+      background-color: var(--muted);
+    }
+  }
+</style>

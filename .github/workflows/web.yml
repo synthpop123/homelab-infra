@@ -1,0 +1,45 @@
+# The site in web/ (homelab.lkwplus.com): format, lint, type check and build.
+#
+# Cloudflare Workers Builds deploys it on every push to `main`; this only says, on a pull
+# request, whether that build would pass. A change to the infra files the site reads cannot
+# break it without failing the consistency check in lint.yml first, so only web/ triggers it.
+name: web
+
+on:
+  pull_request:
+    paths: &web-paths
+      - "web/**"
+      - ".github/workflows/web.yml"
+  push:
+    branches: [main]
+    paths: *web-paths
+
+concurrency:
+  group: web-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: web/.bun-version
+      # The `astro` CLI runs on Node, not Bun.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: web/.node-version
+      - run: bun install --frozen-lockfile
+      - run: bun run format:check
+      - run: bun run lint
+      # catalog + astro check + astro build
+      - run: bun run build

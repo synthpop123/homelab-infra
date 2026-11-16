@@ -1,0 +1,22 @@
+@layer reset, tokens, prose, layout, primitives;
+
+@layer tokens {
+:root {
+  /* Every rule, border and divider is a hairline. */
+  --hairline: 0.5px;
+
+  /* Corners, sparingly: 4px for small controls and tags, 6px for buttons
+     and thumbnails, 8px for tiles. A corner nested inside another is the
+     outer radius less the gap between them. */
+  --radius-xs:   0.125rem;
+  --radius-sm:   0.25rem;
+  --radius-md:   0.375rem;
+  --radius-lg:   0.5rem;
+  --radius-full: 9999px;
+
+  /* The one motion: a state change eases out over 250ms. Anything the
+     reader triggers often (hover, keys) changes at once instead. */
+  --duration: 250ms;
+  --ease: ease-out;
+}
+}
