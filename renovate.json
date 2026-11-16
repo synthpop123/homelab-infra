@@ -71,6 +71,18 @@
       "groupName": "web"
     },
     {
+      "description": "Biome stays at the version lkwplus.com uses: later releases re-break inline elements in .astro templates, and the two sites share one formatter config. Bump both by hand.",
+      "matchFileNames": ["web/**"],
+      "matchPackageNames": ["@biomejs/biome"],
+      "enabled": false
+    },
+    {
+      "description": "astro check does not run on TypeScript 7 yet; lift this once it does.",
+      "matchFileNames": ["web/**"],
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<7"
+    },
+    {
       "description": "Pin bundled Postgres and Redis digests in cloudreve, n8n, and umami so updates within a major tag change compose.yaml and trigger Komodo's deploy-if-changed flow.",
       "matchManagers": ["docker-compose"],
       "matchFileNames": [
