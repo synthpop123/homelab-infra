@@ -77,3 +77,25 @@ networks:
   For `postgres:≤17` (and `pgvector/pgvector:pgNN`) the old layout still applies:
   `/srv/<stack>/postgres:/var/lib/postgresql/data`. A *major* bump still needs a deliberate
   dump/restore in either case.
+
+## Healthchecks
+- **Every long-running service that answers on a port carries one**, so Komodo, Beszel and
+  `api.lkwplus.com/homelab` can tell *healthy* from merely *up*. Either write the `test`, or —
+  when the image ships its own `HEALTHCHECK` — restate only the timing under a
+  `# The image's own probe, at this repo's interval.` comment: an image probe left alone runs at
+  the image's default (often 30 s or less). One-shot jobs (`amane-intake`, `affine-migration`)
+  and port-less workers (`sure-worker`, `kometa`) may go without.
+- **Timing:** `interval: 60s`, `start_period: 60s`, `start_interval: 5s`. Each probe is a
+  `docker exec` — at ~100 containers a 10 s interval was constant process churn for state that
+  Beszel's agent samples once a minute anyway — while `start_interval` still turns a fresh
+  container healthy within seconds, so `depends_on: condition: service_healthy` doesn't wait a
+  minute. (`start_interval` needs Docker Engine ≥ 25; both hosts run 29.)
+- **Lint:** `validate.sh` fails a `healthcheck` without an explicit `interval`, or one under
+  60 s (`disable: true` is exempt). A stopped stack (Renovate off for its file, e.g. multica) is
+  checked once it comes back — editing its compose now would start it.
+- **Writing a probe:** call a binary the image actually has (`curl`, `wget`, `node`, `python`,
+  bash's `/dev/tcp` when there is neither, or the app's own subcommand like `/beszel health`),
+  hit `127.0.0.1` rather than `localhost` (which may resolve to `::1` the app doesn't bind), and
+  prefer a health endpoint to the UI. Run it on the live container before pushing —
+  `ssh fame 'docker exec <container> <probe…>'` — since a wrong probe turns a working service
+  *unhealthy* and blocks whatever `depends_on` it.

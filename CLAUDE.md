@@ -135,5 +135,8 @@ config (`/etc/fame-firewall.conf`, `/srv/...`) and secrets in Komodo Variables.
   directly in compose. A whole
   secret-bearing config file (e.g. an app's `config.yaml`) lives on the host under
   `/srv/<service>/` (bind-mounted), never committed — commit a sanitized `*.example` instead.
+- **Healthchecks every 60 s** (`interval: 60s`, `start_period: 60s`, `start_interval: 5s`;
+  lint rejects a missing or shorter interval). An image's own probe is restated with just the
+  timing; a new probe is tried with `docker exec` on the live container first.
 - **Don't force a global UID** — ownership follows each image's own user (LinuxServer images
   respect `PUID`/`PGID`; the wallos image runs as `www-data`/`82`).

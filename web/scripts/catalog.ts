@@ -96,6 +96,32 @@ const imageTag = (image: string) =>
 const version = (tag: string) =>
   tag.replace(/^v(?=\d)/, "").replace(/^RELEASE\.([\d-]+)T.*$/, "$1")
 
+/** The shortest healthcheck interval a stack may set, in seconds. */
+const PROBE_EVERY = 60
+const UNITS: Record<string, number> = {
+  h: 3600,
+  m: 60,
+  s: 1,
+  ms: 1e-3,
+  us: 1e-6,
+  ns: 1e-9,
+}
+
+/** A compose duration (`1m30s`, `90s`) in seconds; null if absent or not one. */
+function seconds(value: unknown): number | null {
+  if (
+    typeof value !== "string" ||
+    !/^(\d+(\.\d+)?(h|ms|us|ns|m|s))+$/.test(value)
+  )
+    return null
+  let total = 0
+  for (const [, amount, unit] of value.matchAll(
+    /(\d+(?:\.\d+)?)(h|ms|us|ns|m|s)/g,
+  ))
+    total += +amount * UNITS[unit]
+  return total
+}
+
 /** A compose `ports` entry as its host side: `127.0.0.1:20012:3000/tcp`. */
 function published(entry: unknown): { ip: string | null; port: number } | null {
   if (typeof entry === "object" && entry !== null) {
@@ -292,6 +318,23 @@ export function load(): { catalog: Catalog; problems: string[] } {
       for (const volume of strings(service.volumes))
         if (!volume.startsWith("/") && !volume.endsWith(":ro"))
           fail(`${key}: bind ${volume} is relative and writable`)
+
+    // Healthchecks: probed no more often than once a minute. A stopped stack is
+    // held to it once it comes back: editing its compose now would start it.
+    for (const [key, service] of stopped.has(name) ? [] : entries) {
+      if (!("healthcheck" in service)) continue
+      const check = dict(service.healthcheck)
+      if (check.disable === true) continue
+      const every = seconds(check.interval)
+      if (every === null)
+        fail(
+          `${key}: healthcheck needs an explicit interval (≥ ${PROBE_EVERY}s)`,
+        )
+      else if (every < PROBE_EVERY)
+        fail(
+          `${key}: healthcheck interval ${check.interval} is under ${PROBE_EVERY}s`,
+        )
+    }
 
     // Ports.
     const ports: number[] = []
