@@ -18,6 +18,13 @@ services:
     environment:
       MEMOS_DRIVER: postgres
       MEMOS_DSN: user=memos password=${MEMOS_DB_PASSWORD} dbname=memos host=memos-postgres port=5432 sslmode=disable
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:5230/healthz"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      start_interval: 5s
 
   memos-postgres:
     container_name: memos-postgres
@@ -31,9 +38,11 @@ services:
       - /srv/memos/postgres:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U memos -d memos"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:

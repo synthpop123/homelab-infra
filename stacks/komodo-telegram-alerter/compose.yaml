@@ -20,6 +20,13 @@ services:
     ports:
       # host:container — arm registry (see docs/ports.md), loopback-only for the host Caddy
       - "127.0.0.1:20012:3000/tcp"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "3000"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:

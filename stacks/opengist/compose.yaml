@@ -10,6 +10,11 @@ services:
       # instance secret key (opengist-secret.key) live here, so it must persist. Owned by uid 1000.
       - /srv/opengist/data:/opengist
     restart: unless-stopped
+    # The image's own probe, at this repo's interval.
+    healthcheck:
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:

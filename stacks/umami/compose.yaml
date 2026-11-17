@@ -24,9 +24,11 @@ services:
       DISABLE_TELEMETRY: "1"
     healthcheck:
       test: ["CMD-SHELL", "curl http://localhost:3000/api/heartbeat"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
+      start_period: 60s
+      start_interval: 5s
 
   umami-postgres:
     container_name: umami-postgres
@@ -40,9 +42,11 @@ services:
       - /srv/umami/postgres:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U umami -d umami"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:
