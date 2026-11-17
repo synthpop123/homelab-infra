@@ -31,10 +31,11 @@ services:
       DB_USE_SSL: "false"
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1
-      start_period: 20s
+      start_period: 60s
       timeout: 5s
       interval: 60s
       retries: 3
+      start_interval: 5s
     networks:
       mediacenter-net:
         ipv4_address: 172.22.0.6
@@ -52,9 +53,11 @@ services:
       - /srv/seerr/postgres:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U seerr -d seerr"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
+      start_period: 60s
+      start_interval: 5s
     networks:
       - seerr-internal
 

@@ -80,6 +80,11 @@ services:
     networks:
       mediacenter-net:
         ipv4_address: 172.22.0.7
+    # The image's own probe, at this repo's interval.
+    healthcheck:
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
 
   tautulli:
     container_name: tautulli
@@ -97,6 +102,11 @@ services:
     networks:
       mediacenter-net:
         ipv4_address: 172.22.0.9
+    # The image's own probe, at this repo's interval.
+    healthcheck:
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
 
   kometa:
     container_name: kometa

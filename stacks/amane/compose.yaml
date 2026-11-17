@@ -50,10 +50,11 @@ services:
       - "20041:8000/tcp"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
-      interval: 30s
+      interval: 60s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 60s
+      start_interval: 5s
 
   amane-postgres:
     container_name: amane-postgres
@@ -67,10 +68,11 @@ services:
       - /srv/amane/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 60s
+      start_interval: 5s
 
   # One-shot JAV/Porn intake (intake/media-intake.py): 115 /Others/待整理/{JAV,Porn} → the libraries'
   # _inbox → scrape → organize. Behind a profile so a normal deploy never runs it; Komodo's "Media Intake"
@@ -112,6 +114,13 @@ services:
         limits:
           cpus: "1.0"
           memory: 1536M
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:8191/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:

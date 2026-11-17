@@ -70,10 +70,11 @@ services:
       UMASK: "022"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7811/api/v1/system/health"]
-      interval: 30s
+      interval: 60s
       timeout: 10s
-      start_period: 20s
+      start_period: 60s
       retries: 5
+      start_interval: 5s
     networks:
       default: {}
       mediacenter-net:
@@ -97,10 +98,11 @@ services:
       - /srv/muvyo/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U muvyo -d muvyo"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 60s
+      start_interval: 5s
 
   muvyo-redis:
     container_name: muvyo-redis
@@ -111,10 +113,11 @@ services:
       - /srv/muvyo/redis:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
-      start_period: 5s
+      start_period: 60s
+      start_interval: 5s
     environment:
       REDIS_PASSWORD: ${MUVYO_REDIS_PASSWORD}
 

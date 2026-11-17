@@ -23,6 +23,9 @@ services:
     restart: unless-stopped
     healthcheck:
       disable: false
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
 
   immich-machine-learning:
     container_name: immich-machine-learning
@@ -34,12 +37,18 @@ services:
     restart: unless-stopped
     healthcheck:
       disable: false
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
 
   redis:
     container_name: immich-redis
     image: docker.io/valkey/valkey:9@sha256:4963247afc4cd33c7d3b2d2816b9f7f8eeebab148d29056c2ca4d7cbc966f2d9
     healthcheck:
       test: redis-cli ping || exit 1
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
     restart: unless-stopped
 
   database:
@@ -56,6 +65,9 @@ services:
     restart: unless-stopped
     healthcheck:
       disable: false
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:
