@@ -1,5 +1,35 @@
 @layer reset, tokens, prose, layout, primitives;
 
+/* Pages change by a cross-document view transition: the content
+   cross-fades, the sidebar holds still, and a stack's name travels from
+   its ledger row to its own page's title. Unlayered: these are not a
+   component's to override. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+::view-transition-old(sidebar) {
+  display: none;
+}
+
+::view-transition-group(sidebar),
+::view-transition-new(sidebar) {
+  animation: none;
+}
+
+::view-transition-group(*) {
+  animation-duration: var(--duration);
+  animation-timing-function: var(--ease);
+}
+
+/* Switching themes (ThemeToggle.astro) fades the whole page as one,
+   sidebar included. */
+:root[data-theme-fade] aside[data-bar] {
+  view-transition-name: none;
+}
+
 @layer layout {
 :root {
   /* https://utopia.fyi/grid/calculator?c=320,16,1.125,1024,18,1.2,6,1,&s=0.75%7C0.5%7C0.25,1.5%7C2%7C3%7C4%7C6,s-l%7Cs-m&g=s,m,2xl,12 */
@@ -44,6 +74,10 @@
       transparent 0
     )
     1;
+
+  /* The margin column a ledger keeps: a host's name, a lane's, a
+     commit's age. */
+  --host-column: 6.5rem;
 
   --page-offset-top: var(--space-xl);
   --page-offset-bottom: var(--space-m);

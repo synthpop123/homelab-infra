@@ -1,99 +1,398 @@
 ---
 /**
- * How a change, an update, a request and a secret each travel. The
- * prose of README.md and docs/workflow.md as four lanes.
+ * How a change, an update, a request and a secret each travel: the prose
+ * of README.md and docs/workflow.md as four lanes of stops. A lane is a
+ * row of tabs on a hairline: choosing a stop inks the line up to it and
+ * shows what happens there; the arrow keys walk it, and Play walks it
+ * for you.
  */
-const lanes = [
+type Stop = { label: string; name: string; note: string }
+type Lane = { id: string; name: string; summary: string; stops: Stop[] }
+
+const lanes: Lane[] = [
   {
+    id: "deploy",
     name: "Deploy",
-    flow: [
-      "git push",
-      "webhook",
-      "Redeploy On Push",
-      "RunSync",
-      "BatchDeployStackIfChanged",
+    summary:
+      "One webhook, two ordered stages, and no CI anywhere on the path: merging is deploying.",
+    stops: [
+      {
+        label: "push",
+        name: "git push origin main",
+        note: "A compose file or sync.toml changes on main. Nothing else starts a deploy: there is no pipeline to run and no button to press.",
+      },
+      {
+        label: "webhook",
+        name: "GitHub push webhook",
+        note: "GitHub tells Komodo, on fame, that main moved. It is the only webhook: the Resource Sync has one too, left off so the two cannot race for a stack’s deploy lock.",
+      },
+      {
+        label: "Komodo",
+        name: "Redeploy On Push",
+        note: "The single entry point and the sole deployer: a Komodo Procedure that runs two stages, the second waiting for the first.",
+      },
+      {
+        label: "sync",
+        name: "RunSync homelab",
+        note: "Stage one reconciles every stack’s definition from sync.toml. Each stack is deploy = false, so the sync itself never deploys; a brand-new stack now exists before anything tries to bring it up.",
+      },
+      {
+        label: "deploy",
+        name: "BatchDeployStackIfChanged *",
+        note: "Stage two brings up only the stacks whose compose file changed, on whichever host they belong to. Everything else keeps running untouched.",
+      },
     ],
-    note: "One webhook, two ordered stages. Komodo first reconciles every stack’s definition from sync.toml, then brings up only the stacks whose compose file changed. Nothing deploys from CI.",
   },
   {
+    id: "update",
     name: "Update",
-    flow: ["Renovate", "pull request", "lint", "merge"],
-    note: "Every image is pinned to a version, so an update arrives as a diff to review. Merging it is the push above.",
+    summary:
+      "Every image is pinned to a version, so an update arrives as a diff to read rather than something that happens overnight.",
+    stops: [
+      {
+        label: "Renovate",
+        name: "Mend Renovate",
+        note: "The hosted app reads every image: name:tag about once an hour and asks the registry for something newer. Databases and caches are pinned to their major line, so it never proposes a migration.",
+      },
+      {
+        label: "pull request",
+        name: "chore(deps): update …",
+        note: "A newer tag becomes a pull request that changes one line of a compose file. A stopped stack has Renovate switched off for its file, and gets none.",
+      },
+      {
+        label: "lint",
+        name: "scripts/validate.sh",
+        note: "The gate: yamllint and docker compose config (the parser Komodo uses) on every stack, sync.toml against its schema, no :latest, and the four places a service is recorded held to each other.",
+      },
+      {
+        label: "merge",
+        name: "merge to main",
+        note: "Merging is the push at the head of the Deploy lane. The stack it touched is redeployed with the new image, and nothing else is.",
+      },
+    ],
   },
   {
+    id: "request",
     name: "Request",
-    flow: ["<name>.lkwplus.com", "Akko or Caddy", "host port"],
-    note: "fame’s ports answer only to the Akko reverse proxy, enforced in Docker’s own firewall chain. arm’s bind to loopback behind its host Caddy. No container port faces the internet on either.",
+    summary:
+      "No container port faces the internet on either host: a request always arrives through a proxy.",
+    stops: [
+      {
+        label: "name",
+        name: "<name>.lkwplus.com",
+        note: "Every service answers at its own name. The site’s status check asks these same names, from outside, the way a visitor would.",
+      },
+      {
+        label: "proxy",
+        name: "Akko · Caddy",
+        note: "fame sits behind the Akko reverse proxy; arm behind a Caddy on the host itself. The proxy is the only thing that speaks to a service’s port.",
+      },
+      {
+        label: "host port",
+        name: "20000–20999",
+        note: "A number from the registry, one per published service. On fame it answers only to Akko, enforced in Docker’s own firewall chain; on arm it binds to loopback.",
+      },
+      {
+        label: "container",
+        name: "the stack’s own network",
+        note: "The port maps into one container. What that container needs (a database, a cache) it reaches on the stack’s own named network.",
+      },
+    ],
   },
   {
+    id: "secret",
     name: "Secret",
-    flow: ["Komodo Variable", "[[VAR]]", ".env", "${VAR}"],
-    note: "Git holds the placeholder and nothing else. Komodo writes the value into a git-ignored file as it deploys.",
+    summary:
+      "Git holds the placeholder and nothing else; the repository is public.",
+    stops: [
+      {
+        label: "Variable",
+        name: "Komodo Variable",
+        note: "The value lives in Komodo, set in its UI and never written to a file in the repository.",
+      },
+      {
+        label: "[[VAR]]",
+        name: "sync.toml: VAR = [[VAR]]",
+        note: "The stack’s environment in sync.toml names the variable in double brackets. The lint gate fails when a compose reads a ${VAR} no stack maps.",
+      },
+      {
+        label: ".env",
+        name: "a git-ignored .env",
+        note: "As it deploys, Komodo writes the value into a .env beside the compose file in its own clone, where git never sees it.",
+      },
+      {
+        label: "${VAR}",
+        name: "compose.yaml: ${VAR}",
+        note: "Compose reads the file and hands the value to the container. Non-secret settings (a timezone, a flag) are written in the compose itself.",
+      },
+    ],
   },
 ]
 ---
 
-<dl>
-  {lanes.map(({ name, flow, note }) => (
-    <div>
-      <dt>{name}</dt>
-      <dd>
-        <p class="flow">
-          {flow.map((node, i) => (
-            <>
-              {i > 0 && <span aria-hidden="true">→</span>}
-              <code>{node}</code>
-            </>
-          ))}
+{lanes.map(({ id, name, summary, stops }) => (
+  <flow-lane style={`--stops: ${stops.length}`}>
+    <div class="head">
+      <h2 id={id}>{name}</h2>
+      <button type="button" data-play>Play</button>
+    </div>
+    <p class="summary">{summary}</p>
+    <div class="track" role="tablist" aria-label={`${name}: stops`}>
+      <i aria-hidden="true"><i></i></i>
+      {stops.map(({ label }, i) => (
+        <button
+          type="button"
+          role="tab"
+          id={`${id}-tab-${i}`}
+          aria-controls={`${id}-stop-${i}`}
+          aria-selected={i === 0 ? "true" : "false"}
+          tabindex={i === 0 ? 0 : -1}
+        >
+          <span>{label}</span>
+        </button>
+      ))}
+    </div>
+    {stops.map(({ name: stop, note }, i) => (
+      <div
+        role="tabpanel"
+        id={`${id}-stop-${i}`}
+        aria-labelledby={`${id}-tab-${i}`}
+        hidden={i !== 0}
+      >
+        <p>
+          <small>{i + 1}/{stops.length}</small>
+          <code>{stop}</code>
         </p>
         <p>{note}</p>
-      </dd>
-    </div>
-  ))}
-</dl>
+      </div>
+    ))}
+  </flow-lane>
+))}
 
 <style>
-  /* A lane: its name in the margin column the hosts use, its path as a
-     row of mono stops, what that means under it; each on a hairline. */
-  dl > div {
-    display: grid;
-    grid-template-columns: var(--host-column) minmax(0, 1fr);
-    column-gap: var(--space-s);
-    padding-block: var(--space-xs);
-    border-block-start: var(--hairline) solid var(--border);
+  flow-lane {
+    --node: 0.5625rem;
+    --at: 0;
+    display: block;
 
-    &:first-child {
-      border-block-start-color: var(--border-strong);
-    }
-
-    @media (width < 30rem) {
-      grid-template-columns: minmax(0, 1fr);
+    & + flow-lane {
+      margin-block-start: var(--space-xl);
     }
   }
 
-  dt {
-    font-weight: var(--font-weight-medium);
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-s);
   }
 
-  dd {
+  h2 {
+    font-size: var(--step-0);
+    line-height: calc(var(--leading-offset) + 1em);
+    font-weight: var(--font-weight-strong);
+
+    @media (width >= 64rem) {
+      scroll-margin-block-start: calc(var(--page-offset-top) - 0.2em);
+    }
+  }
+
+  [data-play] {
     font-size: var(--step--1);
-    line-height: 1.6;
+    color: var(--muted-foreground);
+    cursor: pointer;
+
+    &:hover,
+    &[aria-pressed="true"] {
+      color: var(--foreground);
+    }
+  }
+
+  .summary {
+    margin-block-end: var(--space-s);
+    font-size: var(--step--1);
     color: var(--muted-foreground);
   }
 
-  .flow {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-3xs) var(--space-2xs);
-    margin-block: 0.15rem var(--space-3xs);
+  /* The track: the stops share the width evenly, each a node over its
+     word. A hairline runs through the nodes from the first to the last,
+     and the stretch up to the chosen stop is drawn over it in ink. */
+  .track {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--stops), minmax(0, 1fr));
+    padding-block: var(--space-xs);
+    border-block: var(--hairline) solid var(--border);
+    border-block-start-color: var(--border-strong);
+
+    > i {
+      position: absolute;
+      inset-block-start: calc(var(--space-xs) + var(--node) / 2);
+      inset-inline: calc(50% / var(--stops));
+      block-size: 1px;
+      translate: 0 -50%;
+      background-color: var(--neutral-7);
+
+      i {
+        display: block;
+        block-size: 100%;
+        inline-size: calc(var(--at) / (var(--stops) - 1) * 100%);
+        background-color: var(--foreground);
+        transition: inline-size var(--duration) var(--ease);
+      }
+    }
+  }
+
+  [role="tab"] {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2xs);
+    min-inline-size: 0;
+    font-family: var(--font-mono);
+    font-feature-settings: normal;
+    font-size: var(--step--2);
+    color: var(--muted-foreground);
+    cursor: pointer;
+
+    &::before {
+      content: "";
+      inline-size: var(--node);
+      block-size: var(--node);
+      border: 1px solid var(--neutral-8);
+      border-radius: var(--radius-full);
+      background-color: var(--background);
+    }
+
+    span {
+      max-inline-size: 100%;
+      padding-inline: 0.125rem;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    &:hover {
+      color: var(--foreground);
+    }
+
+    /* A stop already passed is a filled node; the chosen one is filled
+       and its word is in ink. */
+    &[data-passed]::before,
+    &[aria-selected="true"]::before {
+      border-color: var(--foreground);
+      background-color: var(--foreground);
+    }
+
+    &[aria-selected="true"] {
+      font-weight: var(--font-weight-medium);
+      color: var(--foreground);
+    }
+  }
+
+  [role="tabpanel"] {
+    padding-block-start: var(--space-xs);
+    /* Four notes of different lengths: the lane keeps the height of
+       three lines, so walking it does not move the page. */
+    min-block-size: calc(var(--space-xs) + 1.6em + 3 * 1.6 * var(--step--1));
+
+    p:first-child {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-2xs);
+      line-height: 1.6;
+    }
+
+    small {
+      font-family: var(--font-mono);
+      font-feature-settings: normal;
+      font-size: var(--step--2);
+      letter-spacing: 0;
+      color: var(--muted-foreground);
+    }
 
     code {
-      padding: 0.1em 0.4em;
-      font-size: var(--step--2);
-      color: var(--foreground);
-      border-radius: var(--radius-sm);
-      background-color: var(--muted);
+      font-size: var(--step--1);
+      font-weight: var(--font-weight-medium);
+      overflow-wrap: anywhere;
+    }
+
+    p:last-child {
+      font-size: var(--step--1);
+      line-height: 1.6;
+      color: var(--muted-foreground);
     }
   }
 </style>
+
+<script>
+  /** How long Play rests on a stop. */
+  const REST = 2600
+
+  for (const lane of document.querySelectorAll<HTMLElement>("flow-lane")) {
+    const tabs = [...lane.querySelectorAll<HTMLButtonElement>("[role=tab]")]
+    const panels = [...lane.querySelectorAll<HTMLElement>("[role=tabpanel]")]
+    const play = lane.querySelector<HTMLButtonElement>("[data-play]")
+    let at = 0
+    let timer: ReturnType<typeof setInterval> | undefined
+
+    const show = (index: number, focus = false) => {
+      at = (index + tabs.length) % tabs.length
+      lane.style.setProperty("--at", String(at))
+      tabs.forEach((tab, i) => {
+        tab.setAttribute("aria-selected", String(i === at))
+        tab.tabIndex = i === at ? 0 : -1
+        tab.toggleAttribute("data-passed", i < at)
+      })
+      panels.forEach((panel, i) => {
+        panel.hidden = i !== at
+      })
+      if (focus) tabs[at].focus()
+    }
+
+    const stop = () => {
+      clearInterval(timer)
+      timer = undefined
+      if (play) {
+        play.textContent = "Play"
+        play.setAttribute("aria-pressed", "false")
+      }
+    }
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => {
+        stop()
+        show(i)
+      })
+      tab.addEventListener("keydown", (event) => {
+        const step =
+          { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[
+            event.key
+          ] ?? 0
+        const to =
+          event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? tabs.length - 1
+              : step
+                ? at + step
+                : null
+        if (to === null) return
+        event.preventDefault()
+        stop()
+        show(to, true)
+      })
+    })
+
+    play?.addEventListener("click", () => {
+      if (timer) return stop()
+      // From the first stop, unless the walk was paused mid-lane.
+      show(at === tabs.length - 1 ? 0 : at)
+      play.textContent = "Pause"
+      play.setAttribute("aria-pressed", "true")
+      timer = setInterval(() => {
+        if (at === tabs.length - 1) return stop()
+        show(at + 1)
+      }, REST)
+    })
+  }
+</script>

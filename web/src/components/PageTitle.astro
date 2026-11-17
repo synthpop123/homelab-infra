@@ -1,0 +1,64 @@
+---
+/**
+ * What a page opens with: its one h1, at the far end of the line the
+ * link to where its content is read from, and under it a sentence or
+ * two on what the page is.
+ */
+type Props = {
+  /** Carries the title through a page transition (a stack's name from
+   *  its row in the ledger). */
+  transition?: string
+}
+
+const { transition } = Astro.props
+---
+
+<header>
+  <div>
+    <h1 style={transition && `view-transition-name: ${transition}`}>
+      <slot />
+    </h1>
+    <slot name="aside" />
+  </div>
+  {Astro.slots.has("lead") && (
+    <prose-content><slot name="lead" /></prose-content>
+  )}
+</header>
+
+<style>
+  header {
+    margin-block-end: var(--space-m);
+  }
+
+  div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-s);
+
+    > :global(a) {
+      flex-shrink: 0;
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+      text-decoration-line: none;
+
+      &:hover {
+        color: var(--foreground);
+        text-decoration-line: underline;
+      }
+    }
+  }
+
+  h1 {
+    inline-size: fit-content;
+    font-size: var(--step-1);
+    line-height: calc(var(--leading-offset) + 1em);
+    font-weight: var(--font-weight-display);
+    letter-spacing: var(--tracking-display);
+    overflow-wrap: anywhere;
+  }
+
+  prose-content {
+    margin-block-start: var(--space-m);
+  }
+</style>

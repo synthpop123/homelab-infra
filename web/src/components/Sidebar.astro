@@ -1,11 +1,26 @@
 ---
 /**
- * The site's one page, so the sidebar is its table of contents: the
- * rail marks the section being read (set on scroll, below).
+ * The site's pages down a rail, the stack being read nested under
+ * Services, and at the foot what is live: how many addresses answer,
+ * the search and the theme. On a phone it lies on its side as a bar.
  */
+import SearchIcon from "@/assets/icons/search.svg"
 import Logo from "@/assets/logo.svg"
 import ThemeToggle from "@/components/ThemeToggle.astro"
-import { SECTIONS, SITE } from "@/consts"
+import { NAVIGATION, SITE } from "@/consts"
+import { catalog } from "@/lib/catalog"
+
+type Props = { crumbs?: { label: string; href: string }[] }
+
+const { crumbs = [] } = Astro.props
+const pathname = Astro.url.pathname.replace(/\/$/, "") || "/"
+const section = NAVIGATION.find(
+  ({ href }) =>
+    pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)),
+)
+const endpoints = catalog.services
+  .filter((service) => !service.stopped)
+  .reduce((n, service) => n + service.urls.length, 0)
 ---
 
 <aside data-bar>
@@ -14,19 +29,68 @@ import { SECTIONS, SITE } from "@/consts"
       <Logo />
       <span>{SITE.title}</span>
     </a>
-    <nav aria-label="Sections">
+    <nav aria-label="Pages">
       <ul>
-        {SECTIONS.map(({ id, label }) => (
-          <li><a href={`#${id}`}>{label}</a></li>
+        {NAVIGATION.map((item) => (
+          <li data-home={item.href === "/" || undefined}>
+            <a
+              href={item.href}
+              aria-current={pathname === item.href ? "page" : undefined}
+            >
+              {item.label}
+            </a>
+            {item === section &&
+              crumbs.length > 0 &&
+              pathname !== item.href && (
+                <ul>
+                  {crumbs.map((crumb, i) => (
+                    <li>
+                      <a
+                        href={crumb.href}
+                        aria-current={
+                          i === crumbs.length - 1 ? "page" : undefined
+                        }
+                      >
+                        {crumb.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+          </li>
         ))}
       </ul>
     </nav>
   </sidebar-inner>
-  <sidebar-toggle><ThemeToggle /></sidebar-toggle>
+  <sidebar-foot>
+    <a href="/status" data-pulse title="Addresses answering right now">
+      <i></i>
+      <span
+        ><b data-live="answering">–</b>/<span data-live="total"
+          >{endpoints}</span
+        >
+        answering</span
+      >
+    </a>
+    <sidebar-toggle>
+      <ThemeToggle />
+      <button
+        data-icon-button
+        data-palette-open
+        aria-label="Search pages and stacks"
+        aria-keyshortcuts="Meta+K Control+K"
+      >
+        <SearchIcon />
+      </button>
+      <kbd aria-hidden="true">⌘K</kbd>
+    </sidebar-toggle>
+  </sidebar-foot>
 </aside>
 
 <style>
   aside {
+    /* Held still through page transitions (layout.css). */
+    view-transition-name: sidebar;
     position: sticky;
     top: var(--page-offset-top);
     display: flex;
@@ -47,6 +111,7 @@ import { SECTIONS, SITE } from "@/consts"
     display: flex;
     flex-direction: column;
     gap: var(--space-2xs);
+    min-inline-size: 0;
 
     > a {
       display: inline-flex;
@@ -78,24 +143,35 @@ import { SECTIONS, SITE } from "@/consts"
       flex-direction: row;
       align-items: center;
       justify-content: space-between;
+      gap: var(--space-xs);
     }
   }
 
   /* Where you are: a hairline rail hung in the gutter beside the list,
      the current entry's stretch of it in ink and a hovered entry's in
      grey. No underline, and no accent: the rail is the nav's only mark. */
-  nav ul {
+  nav > ul {
     --rail: 0.75rem;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3xs);
     margin-inline-start: calc(-1 * var(--rail));
     padding-inline-start: calc(var(--rail) - var(--hairline));
     border-inline-start: var(--hairline) solid var(--border);
 
+    @media (width < 64rem) {
+      margin-inline-start: 0;
+      padding-inline-start: 0;
+      border-inline-start: 0;
+    }
+  }
+
+  nav ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+
     a {
       position: relative;
       display: block;
+      margin-inline-start: var(--indent, 0px);
       color: var(--muted-foreground);
       text-decoration: none;
 
@@ -105,11 +181,12 @@ import { SECTIONS, SITE } from "@/consts"
       }
     }
 
+    /* The entry's stretch of the rail, reached back across its indent. */
     a::before {
       content: "";
       position: absolute;
       inset-block: 0.15em;
-      inset-inline-start: calc(-1 * var(--rail));
+      inset-inline-start: calc(-1 * var(--rail) - var(--indent, 0px));
       inline-size: var(--hairline);
       background-color: transparent;
     }
@@ -122,16 +199,42 @@ import { SECTIONS, SITE } from "@/consts"
       background-color: var(--foreground);
     }
 
+    /* A stack's own page, nested under Services: a mono name, a step in. */
+    ul {
+      margin-block-start: var(--space-3xs);
+
+      a {
+        --indent: var(--space-xs);
+        overflow: hidden;
+        font-family: var(--font-mono);
+        font-feature-settings: normal;
+        font-size: var(--step--2);
+        line-height: calc(1.5 * var(--step-0));
+        letter-spacing: 0;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
     @media (width < 64rem) {
       flex-direction: row;
       align-items: center;
       gap: var(--space-s);
-      margin-inline-start: 0;
-      padding-inline-start: 0;
-      border-inline-start: 0;
 
-      @media (width < 24rem) {
+      /* Five entries, the logo and the theme toggle share a phone's
+         width: the logo is the way home, so Overview steps out. */
+      [data-home],
+      ul {
+        display: none;
+      }
+
+      @media (width < 26rem) {
         gap: var(--space-xs);
+        font-size: var(--step--1);
+      }
+
+      @media (width < 22.5rem) {
+        gap: var(--space-2xs);
       }
 
       /* On the row the rail lies under the word instead. */
@@ -143,43 +246,92 @@ import { SECTIONS, SITE } from "@/consts"
     }
   }
 
+  /* On the phone the nested entry is hidden, so the section it sits
+     under is the current one. */
+  @media (width < 64rem) {
+    nav li:has(> ul) > a {
+      color: var(--foreground);
+
+      &::before {
+        background-color: var(--foreground);
+      }
+    }
+  }
+
+  sidebar-foot {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+  }
+
+  /* The pulse: one live figure that follows the reader to every page.
+     Its dot is the accent while everything answers, ink when something
+     does not, grey until asked. */
+  [data-pulse] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    width: fit-content;
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+    color: var(--muted-foreground);
+    text-decoration-line: none;
+
+    &:hover {
+      color: var(--foreground);
+    }
+
+    b {
+      font-weight: var(--font-weight-medium);
+      color: var(--foreground);
+    }
+
+    i {
+      inline-size: 0.375rem;
+      block-size: 0.375rem;
+      border-radius: var(--radius-full);
+      background-color: var(--neutral-a6);
+    }
+
+    &[data-pulse="up"] i {
+      background-color: var(--accent-fill);
+    }
+
+    &[data-pulse="down"] i {
+      background-color: var(--foreground);
+    }
+
+    @media (width < 64rem) {
+      display: none;
+    }
+  }
+
   sidebar-toggle {
     display: flex;
     align-items: center;
     margin-inline-start: -0.5rem;
 
+    kbd {
+      margin-inline-start: var(--space-3xs);
+      font-size: var(--step--2);
+      color: var(--muted-foreground);
+    }
+
     @media (width < 64rem) {
       margin-inline-start: 0;
       margin-inline-end: -0.5rem;
+
+      kbd {
+        display: none;
+      }
+    }
+
+    /* A phone's bar has room for one button; the search is a key there
+       is no keyboard for anyway, and Services has its own filter. */
+    @media (width < 30rem) {
+      [data-palette-open] {
+        display: none;
+      }
     }
   }
 </style>
-
-<script>
-  /**
-   * The section being read is the last one whose heading has passed the
-   * upper third of the window; at the very bottom it is the last one,
-   * which may be too short ever to get there.
-   */
-  const links = [...document.querySelectorAll<HTMLAnchorElement>("aside nav a")]
-  const sections = links.map((link) =>
-    document.getElementById(link.hash.slice(1)),
-  )
-  const mark = () => {
-    const line = innerHeight / 3
-    const bottom =
-      innerHeight + scrollY >= document.documentElement.scrollHeight - 2
-    let current = -1
-    sections.forEach((section, i) => {
-      if (section && section.getBoundingClientRect().top <= line) current = i
-    })
-    if (bottom && scrollY > 0) current = sections.length - 1
-    links.forEach((link, i) => {
-      if (i === current) link.setAttribute("aria-current", "location")
-      else link.removeAttribute("aria-current")
-    })
-  }
-  window.addEventListener("scroll", mark, { passive: true })
-  window.addEventListener("resize", mark, { passive: true })
-  mark()
-</script>

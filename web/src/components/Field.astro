@@ -1,0 +1,261 @@
+---
+/**
+ * Both hosts as a field of marks: a cluster to a stack, a square to a
+ * container, in the order the stacks joined. A square is solid for what
+ * the stack is and pale for a database or cache it carries; a cluster
+ * turns the accent when the stack's addresses answer (src/lib/status.ts)
+ * and links to the stack's page. The count of squares is the size of the
+ * thing, read at a glance: mastodon's six beside wallos's one.
+ */
+import { HOSTS } from "@/consts"
+import { catalog } from "@/lib/catalog"
+import type { Host } from "../../scripts/catalog"
+
+const { hosts, services } = catalog
+const groups = (Object.keys(hosts) as Host[]).map((host) => {
+  const rows = services.filter((service) => service.host === host)
+  return {
+    host,
+    region: hosts[host].region,
+    ...HOSTS[host],
+    rows,
+    containers: rows.reduce((n, service) => n + service.containers.length, 0),
+  }
+})
+---
+
+<lab-field>
+  {groups.map(({ host, region, spec, edge, rows, containers }) => (
+    <section>
+      <header>
+        <h3>{host}</h3>
+        <ul>
+          {[region, ...spec, edge].map((line) => (
+            <li>{line}</li>
+          ))}
+        </ul>
+      </header>
+      <div>
+        <p class="label">
+          {rows.length} stacks <span aria-hidden="true">·</span>
+          {containers} containers
+        </p>
+        <ol>
+          {rows.map((service) => (
+            <li>
+              <a
+                href={`/services/${service.name}`}
+                data-stack={
+                  service.stopped || service.urls.length === 0
+                    ? undefined
+                    : service.name
+                }
+                data-stopped={service.stopped || undefined}
+                aria-label={`${service.name}: ${service.description}`}
+              >
+                {service.containers.map((container) => (
+                  <i data-bundled={container.bundled || undefined} />
+                ))}
+                <span aria-hidden="true">
+                  <b>{service.name}</b>
+                  {service.description}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  ))}
+  <p aria-hidden="true">
+    <span data-key="up">answering</span>
+    <span data-key="bundled">a database or cache it carries</span>
+    <span data-key="idle">not asked</span>
+    <span data-key="stopped">stopped</span>
+  </p>
+</lab-field>
+
+<style>
+  lab-field {
+    --cell: 0.625rem;
+    --gap: 2px;
+    --app: var(--neutral-8);
+    --bundled: var(--neutral-6);
+    position: relative;
+    display: block;
+    border-block-start: var(--hairline) solid var(--border-strong);
+  }
+
+  section {
+    display: grid;
+    grid-template-columns: var(--host-column) minmax(0, 1fr);
+    column-gap: var(--space-s);
+    padding-block: var(--space-xs) var(--space-s);
+
+    & + section {
+      border-block-start: var(--hairline) solid var(--border);
+    }
+  }
+
+  header {
+    h3 {
+      font-weight: var(--font-weight-medium);
+    }
+
+    ul {
+      font-size: var(--step--2);
+      line-height: 1.5;
+      color: var(--muted-foreground);
+    }
+  }
+
+  .label {
+    margin-block: 0.3rem var(--space-xs);
+  }
+
+  ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-xs);
+  }
+
+  /* A cluster. Its padding widens what the pointer can hit without
+     moving the squares. */
+  a {
+    display: flex;
+    gap: var(--gap);
+    margin: -0.25rem;
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+  }
+
+  i {
+    inline-size: var(--cell);
+    block-size: var(--cell);
+    border-radius: var(--radius-xs);
+    background-color: var(--app);
+
+    &[data-bundled] {
+      background-color: var(--bundled);
+    }
+  }
+
+  a[data-state="up"] {
+    --app: var(--accent-fill);
+    --bundled: var(--heat-1);
+  }
+
+  a[data-state="down"] {
+    --app: var(--foreground);
+    --bundled: var(--neutral-9);
+  }
+
+  /* Stopped: the outline of what would run. */
+  a[data-stopped] i {
+    background-color: transparent;
+    border: 1px solid var(--neutral-8);
+  }
+
+  /* One cluster under the pointer or the keyboard: the rest step back,
+     and the line under the field names it in place of the key. */
+  lab-field:has(a:is(:hover, :focus-visible)) a:not(:hover, :focus-visible) {
+    opacity: 0.35;
+  }
+
+  lab-field > p,
+  a > span {
+    display: flex;
+    gap: var(--space-xs);
+    font-size: var(--step--2);
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+
+  lab-field > p {
+    flex-wrap: wrap;
+    row-gap: 0;
+    margin-inline-start: calc(var(--host-column) + var(--space-s));
+    min-block-size: 1lh;
+  }
+
+  [data-key] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+
+    &::before {
+      content: "";
+      inline-size: 0.5rem;
+      block-size: 0.5rem;
+      border-radius: var(--radius-xs);
+      background-color: var(--neutral-8);
+    }
+
+    &[data-key="up"]::before {
+      background-color: var(--accent-fill);
+    }
+
+    &[data-key="bundled"]::before {
+      background-color: var(--heat-1);
+    }
+
+    &[data-key="stopped"]::before {
+      background-color: transparent;
+      border: 1px solid var(--neutral-8);
+    }
+  }
+
+  lab-field:has(a:is(:hover, :focus-visible)) > p {
+    visibility: hidden;
+  }
+
+  a > span {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline: calc(var(--host-column) + var(--space-s)) 0;
+    overflow: hidden;
+    white-space: nowrap;
+    pointer-events: none;
+    visibility: hidden;
+
+    b {
+      font-family: var(--font-mono);
+      font-feature-settings: normal;
+      font-weight: var(--font-weight-medium);
+      letter-spacing: 0;
+      color: var(--foreground);
+    }
+  }
+
+  a:is(:hover, :focus-visible) > span {
+    visibility: visible;
+  }
+
+  /* On a phone a host's name sits over its field. */
+  @media (width < 30rem) {
+    section {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: var(--space-xs);
+
+      ul {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: var(--space-xs);
+      }
+    }
+
+    lab-field > p {
+      margin-inline-start: 0;
+    }
+
+    a > span {
+      inset-inline-start: 0;
+    }
+  }
+</style>

@@ -1,0 +1,383 @@
+---
+/**
+ * The commit log as the deploy log: four weeks of days as columns (what
+ * a person wrote in ink, what Renovate bumped in grey), then the commits
+ * themselves under their day, narrowed by type.
+ */
+import "@/styles/commits.css"
+import PageTitle from "@/components/PageTitle.astro"
+import { CHANGES, REPO_URL } from "@/consts"
+import Layout from "@/layouts/Layout.astro"
+
+const DAYS = 28
+---
+
+<Layout
+  title="Changes"
+  description="The homelab repository's latest commits. Merging is deploying, so the commit log is also the deploy log."
+>
+  <PageTitle>
+    Changes
+    <a slot="aside" href={`${REPO_URL}/commits/main`}>commits ↗</a>
+    <p slot="lead">
+      Merging is deploying here, so the commit log is also the deploy log. Most
+      of it is Renovate keeping the images current; the rest is written by hand.
+      Read live from GitHub, the last {CHANGES.log} commits.
+    </p>
+  </PageTitle>
+
+  <lab-log aria-busy="true" data-days={DAYS}>
+    <dl class="readout">
+      <div>
+        <dt>Last change</dt>
+        <dd class="value" data-figure="last">–</dd>
+        <dd data-figure="last-what">–</dd>
+      </div>
+      <div>
+        <dt>This week</dt>
+        <dd class="value" data-figure="week">–</dd>
+        <dd>commits in seven days</dd>
+      </div>
+      <div>
+        <dt>By Renovate</dt>
+        <dd class="value">
+          <span data-figure="bot">–</span><small>%</small>
+        </dd>
+        <dd>of the last <span data-figure="count">{CHANGES.log}</span></dd>
+      </div>
+      <div>
+        <dt>Most touched</dt>
+        <dd class="value" data-figure="scope">–</dd>
+        <dd data-figure="scope-count">by hand</dd>
+      </div>
+    </dl>
+
+    <figure>
+      <lab-days role="img" aria-label="Commits a day over the last four weeks">
+        {Array.from({ length: DAYS }, () => (
+          <i><b></b><b></b></i>
+        ))}
+      </lab-days>
+      <figcaption>
+        <span data-range>the last {DAYS} days</span>
+        <span data-readout hidden></span>
+        <span class="keys" aria-hidden="true">
+          <span data-key="hand">by hand</span>
+          <span data-key="bot">Renovate</span>
+        </span>
+      </figcaption>
+    </figure>
+
+    <div class="chips" role="group" aria-label="Narrow by type" hidden></div>
+
+    <div data-log>
+      <ol class="commits">
+        {Array.from({ length: 12 }, () => (
+          <li data-pending><time>–</time><span></span><code></code></li>
+        ))}
+      </ol>
+    </div>
+  </lab-log>
+</Layout>
+
+<style>
+  lab-log {
+    display: block;
+  }
+
+  figure {
+    margin-block-start: var(--space-xl);
+  }
+
+  /* A column to a day, oldest first: its commits stacked, Renovate's
+     under the ones written by hand. The tallest day touches the top. */
+  lab-days {
+    --ink: var(--foreground);
+    --bot: var(--neutral-8);
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    align-items: end;
+    gap: 2px;
+    block-size: 5rem;
+    padding-block-end: 1px;
+    border-block-end: var(--hairline) solid var(--border-strong);
+
+    :global(i) {
+      display: flex;
+      flex-direction: column;
+      justify-content: end;
+      block-size: 100%;
+    }
+
+    /* A day's two parts. An empty day keeps a foot on the baseline, so
+       the row of days reads as a row. */
+    :global(b) {
+      display: block;
+      block-size: calc(var(--share, 0) * 100%);
+      background-color: var(--ink);
+      transition: block-size var(--duration) var(--ease);
+    }
+
+    :global(b:first-child) {
+      border-start-start-radius: var(--radius-xs);
+      border-start-end-radius: var(--radius-xs);
+    }
+
+    :global(b:last-child) {
+      background-color: var(--bot);
+    }
+
+    :global(i[data-empty])::after {
+      content: "";
+      block-size: 2px;
+      background-color: var(--heat-0);
+    }
+
+    :global(i:hover b:last-child) {
+      background-color: var(--neutral-9);
+    }
+  }
+
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 var(--space-s);
+    margin-block-start: var(--space-2xs);
+    font-size: var(--step--2);
+    font-variant-numeric: tabular-nums;
+    color: var(--muted-foreground);
+  }
+
+  .keys {
+    display: flex;
+    gap: var(--space-xs);
+  }
+
+  [data-key] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+
+    &::before {
+      content: "";
+      inline-size: 0.5rem;
+      block-size: 0.5rem;
+      border-radius: var(--radius-xs);
+      background-color: var(--foreground);
+    }
+
+    &[data-key="bot"]::before {
+      background-color: var(--neutral-8);
+    }
+  }
+
+  .chips {
+    margin-block: var(--space-xl) var(--space-xs);
+    margin-inline-start: -0.5rem;
+  }
+
+  /* A day's commits under its date; the date holds the margin column
+     while its rows pass, as a host does in the services ledger. */
+  [data-log] :global(h2) {
+    margin-block: var(--space-m) var(--space-2xs);
+    font-size: var(--step--1);
+    font-weight: var(--font-weight-medium);
+
+    :global(small) {
+      margin-inline-start: var(--space-2xs);
+      font-size: var(--step--2);
+      font-weight: var(--font-weight-normal);
+      font-variant-numeric: tabular-nums;
+      color: var(--muted-foreground);
+    }
+  }
+
+  [data-log] :global(h2:first-child) {
+    margin-block-start: 0;
+  }
+</style>
+
+<script>
+  import { type Commit, commitRow, commits, unavailable } from "@/lib/commits"
+  import { ago } from "@/lib/time"
+
+  const DAY = 86_400_000
+  const root = document.querySelector<HTMLElement>("lab-log")
+  const log = root?.querySelector<HTMLElement>("[data-log]")
+  const chips = root?.querySelector<HTMLElement>(".chips")
+  const days = root?.querySelector<HTMLElement>("lab-days")
+
+  const dayName = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  })
+  const shortDay = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  })
+  const clock = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+  /** The reader's own calendar day a moment falls on, as a sortable key. */
+  const dayKey = (at: number | string) => {
+    const date = new Date(at)
+    return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+  }
+  const figure = (name: string, text: string) => {
+    const node = root?.querySelector(`[data-figure="${name}"]`)
+    if (node) node.textContent = text
+  }
+
+  function summarise(all: Commit[]) {
+    const [latest] = all
+    figure("last", ago(latest.date))
+    figure("last-what", latest.subject)
+    figure(
+      "week",
+      String(
+        all.filter((commit) => Date.now() - Date.parse(commit.date) < 7 * DAY)
+          .length,
+      ),
+    )
+    figure("count", String(all.length))
+    figure(
+      "bot",
+      String(
+        Math.round(
+          (100 * all.filter((commit) => commit.bot).length) / all.length,
+        ),
+      ),
+    )
+    // The scope hand-written commits name most often: what is being
+    // worked on, as against what is merely kept current.
+    const scopes = new Map<string, number>()
+    for (const { bot, scope } of all)
+      if (!bot && scope) scopes.set(scope, (scopes.get(scope) ?? 0) + 1)
+    const [top] = [...scopes].sort((a, b) => b[1] - a[1])
+    if (top) {
+      figure("scope", top[0])
+      figure("scope-count", `${top[1]} commits by hand`)
+    }
+  }
+
+  function chart(all: Commit[]) {
+    if (!days) return
+    const columns = [...days.querySelectorAll<HTMLElement>("i")]
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const slots = columns.map((_, i) => {
+      const date = new Date(today)
+      date.setDate(today.getDate() - (columns.length - 1 - i))
+      return { date, hand: 0, bot: 0 }
+    })
+    const index = new Map(
+      slots.map((slot) => [dayKey(slot.date.getTime()), slot]),
+    )
+    for (const commit of all) {
+      const slot = index.get(dayKey(commit.date))
+      if (slot) slot[commit.bot ? "bot" : "hand"]++
+    }
+    const top = Math.max(1, ...slots.map((slot) => slot.hand + slot.bot))
+    const range = root?.querySelector<HTMLElement>("[data-range]")
+    const readout = root?.querySelector<HTMLElement>("[data-readout]")
+    if (range)
+      range.textContent = `${shortDay.format(slots[0].date)} – ${shortDay.format(slots.at(-1)!.date)}`
+    columns.forEach((column, i) => {
+      const { date, hand, bot } = slots[i]
+      const [handBar, botBar] = column.querySelectorAll<HTMLElement>("b")
+      handBar.style.setProperty("--share", String(hand / top))
+      botBar.style.setProperty("--share", String(bot / top))
+      column.toggleAttribute("data-empty", hand + bot === 0)
+      const said = `${shortDay.format(date)}: ${hand + bot} commits${hand + bot ? `, ${hand} by hand` : ""}`
+      column.title = said
+      // Under the pointer, the day's figures take the range's place.
+      column.addEventListener("pointerenter", () => {
+        if (!range || !readout) return
+        readout.textContent = said
+        range.hidden = true
+        readout.hidden = false
+      })
+      column.addEventListener("pointerleave", () => {
+        if (!range || !readout) return
+        range.hidden = false
+        readout.hidden = true
+      })
+    })
+  }
+
+  /** The commits under their days, newest first. */
+  function list(all: Commit[], type: string) {
+    if (!log) return
+    const shown = type ? all.filter((commit) => commit.type === type) : all
+    const groups = new Map<string, Commit[]>()
+    for (const commit of shown) {
+      const key = dayKey(commit.date)
+      groups.set(key, [...(groups.get(key) ?? []), commit])
+    }
+    const nodes: Node[] = []
+    for (const group of groups.values()) {
+      const heading = document.createElement("h2")
+      const count = document.createElement("small")
+      count.textContent = String(group.length)
+      heading.append(dayName.format(new Date(group[0].date)), count)
+      const rows = document.createElement("ol")
+      rows.className = "commits"
+      rows.append(
+        ...group.map((commit) =>
+          commitRow(commit, (date) => clock.format(new Date(date))),
+        ),
+      )
+      nodes.push(heading, rows)
+    }
+    log.replaceChildren(...nodes)
+  }
+
+  function narrow(all: Commit[]) {
+    if (!chips) return
+    const counts = new Map<string, number>()
+    for (const { type } of all)
+      if (type) counts.set(type, (counts.get(type) ?? 0) + 1)
+    const types = [...counts].sort((a, b) => b[1] - a[1])
+    const button = (type: string, label: string, count: number) => {
+      const chip = document.createElement("button")
+      chip.type = "button"
+      chip.dataset.type = type
+      chip.setAttribute("aria-pressed", String(type === ""))
+      const figure = document.createElement("small")
+      figure.textContent = String(count)
+      chip.append(label, figure)
+      return chip
+    }
+    chips.replaceChildren(
+      button("", "All", all.length),
+      ...types.map(([type, count]) => button(type, type, count)),
+    )
+    chips.hidden = false
+    chips.addEventListener("click", (event) => {
+      const chosen = (event.target as Element).closest("button")
+      if (!chosen) return
+      for (const chip of chips.querySelectorAll("button"))
+        chip.setAttribute("aria-pressed", String(chip === chosen))
+      list(all, chosen.dataset.type ?? "")
+    })
+  }
+
+  if (root && log)
+    commits()
+      .then((all) => {
+        summarise(all)
+        chart(all)
+        narrow(all)
+        list(all, "")
+      })
+      .catch(() => {
+        const note = unavailable()
+        note.className = "commits-note"
+        log.replaceChildren(note)
+      })
+      .finally(() => root.setAttribute("aria-busy", "false"))
+</script>

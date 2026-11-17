@@ -87,13 +87,15 @@ mapped in the stack's `environment`, tags matching the server and `build:`).
 
 ## The site (`web/`)
 
-`web/` is lab.lkwplus.com: an Astro page plus one Worker route (`/api/status`), the only part of
-the repo with a build. It has **no service list of its own** — `web/scripts/catalog.ts` reads
+`web/` is lab.lkwplus.com: an Astro site (Overview, Services with a page per stack, Status,
+Ports, Flow, Changes; `web/README.md` lists what each draws) plus one Worker route
+(`/api/status`), the only part of the repo with a build. It has **no service list of its own** — `web/scripts/catalog.ts` reads
 `sync.toml`, every `compose.yaml`, `docs/ports.md`, the README tables and `renovate.json` (a
 stack whose file Renovate is switched off for is drawn as stopped) into `src/data/catalog.json`
 (git-ignored) on each build; the same script without `--json` is the consistency check. So a new
-stack appears on the site by being added the usual way. Host hardware lines and the Flow copy
-are the only hand-written content (`src/consts.ts`, `src/components/Flow.astro`).
+stack appears on the site, with its own page, by being added the usual way. Host hardware lines,
+the page list and the Flow copy are the only hand-written content (`src/consts.ts`,
+`src/components/Flow.astro`).
 
 ```bash
 cd web

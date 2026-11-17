@@ -3,7 +3,7 @@
 @layer prose {
 :root {
   /* Five sizes, no more: 12px for labels and mono detail, 14px for
-     interface text, 16px for reading, 18px unused here, 24px for the
+     interface text, 16px for reading, 18px unused here, 24px for a
      page's title and its figures. Hierarchy past that comes from
      weight, colour and space. */
   --step--2: 0.75rem;

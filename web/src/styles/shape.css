@@ -18,5 +18,10 @@
      reader triggers often (hover, keys) changes at once instead. */
   --duration: 250ms;
   --ease: ease-out;
+
+  /* A sparkline's stroke, and the level it is read against. */
+  --chart-stroke: 1.25;
+  --chart-ghost:  var(--neutral-9);
+  --chart-grid:   var(--neutral-a4);
 }
 }

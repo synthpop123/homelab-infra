@@ -1,0 +1,313 @@
+---
+/**
+ * The palette: ⌘K (or the sidebar's search) opens a list of every page
+ * and every stack, narrowed as you type; Enter goes there, Shift+Enter
+ * opens the stack's own address instead. The list is drawn by the build,
+ * so it works with nothing loaded but the page.
+ */
+import SearchIcon from "@/assets/icons/search.svg"
+import { NAVIGATION } from "@/consts"
+import { catalog } from "@/lib/catalog"
+
+const { services } = catalog
+---
+
+<dialog id="palette" aria-label="Go to a page or a stack">
+  <label>
+    <SearchIcon />
+    <span class="sr">Go to</span>
+    <input
+      type="search"
+      role="combobox"
+      aria-expanded="true"
+      aria-controls="palette-list"
+      aria-autocomplete="list"
+      placeholder="Go to a page or a stack"
+      autocomplete="off"
+      spellcheck="false"
+    >
+    <kbd aria-hidden="true">esc</kbd>
+  </label>
+  <div id="palette-list" role="listbox" aria-label="Results">
+    <section>
+      <p class="label" aria-hidden="true">Pages</p>
+      {NAVIGATION.map(({ href, label, blurb }) => (
+        <a
+          role="option"
+          aria-selected="false"
+          href={href}
+          data-search={`${label} ${blurb}`.toLowerCase()}
+        >
+          <b>{label}</b>
+          <span>{blurb}</span>
+        </a>
+      ))}
+    </section>
+    <section>
+      <p class="label" aria-hidden="true">Stacks</p>
+      {services.map((service) => (
+        <a
+          role="option"
+          aria-selected="false"
+          href={`/services/${service.name}`}
+          data-open={service.urls[0]}
+          data-search={[
+            service.name,
+            service.description,
+            service.host,
+            ...service.tags,
+            ...service.urls.map((url) => new URL(url).host),
+            ...service.containers.map((container) => container.name),
+          ]
+            .join(" ")
+            .toLowerCase()}
+        >
+          <b>{service.name}</b>
+          <span>{service.description}</span>
+          <small>{service.host}</small>
+        </a>
+      ))}
+    </section>
+    <p data-empty hidden>Nothing by that name.</p>
+  </div>
+  <footer aria-hidden="true">
+    <span><kbd>↑</kbd><kbd>↓</kbd> move</span>
+    <span><kbd>↵</kbd> go</span>
+    <span><kbd>⇧</kbd><kbd>↵</kbd> open the service</span>
+  </footer>
+</dialog>
+
+<style>
+  dialog {
+    inset-block-start: min(18vh, 9rem);
+    inline-size: min(34rem, 100vw - 2 * var(--grid-gutter));
+    max-block-size: min(70vh, 34rem);
+    margin-inline: auto;
+    padding: 0;
+    overflow: hidden;
+    color: var(--foreground);
+    background-color: var(--background);
+    border: var(--hairline) solid var(--border-strong);
+    border-radius: var(--radius-lg);
+
+    &[open] {
+      display: flex;
+      flex-direction: column;
+    }
+
+    &::backdrop {
+      background-color: var(--scrim);
+    }
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    padding: var(--space-xs) var(--space-s);
+    border-block-end: var(--hairline) solid var(--border);
+
+    svg {
+      flex: none;
+      inline-size: 0.875rem;
+      block-size: 0.875rem;
+      color: var(--muted-foreground);
+    }
+
+    input {
+      flex: 1;
+      min-inline-size: 0;
+      outline: none;
+
+      &::placeholder {
+        color: var(--muted-foreground);
+      }
+
+      &::-webkit-search-cancel-button {
+        display: none;
+      }
+    }
+  }
+
+  kbd {
+    padding: 0.05rem 0.3rem;
+    font-size: var(--step--2);
+    color: var(--muted-foreground);
+    border: var(--hairline) solid var(--border-strong);
+    border-radius: var(--radius-sm);
+  }
+
+  [role="listbox"] {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-2xs);
+  }
+
+  .label {
+    padding: var(--space-2xs) var(--space-2xs) var(--space-3xs);
+  }
+
+  /* An entry: its name, what it is, and for a stack the host at the far
+     end. The chosen one is held on a fill; the mouse and the arrow keys
+     move the same mark. */
+  [role="option"] {
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: var(--space-xs);
+    padding: 0.3rem var(--space-2xs);
+    text-decoration-line: none;
+    border-radius: var(--radius-md);
+
+    b {
+      overflow: hidden;
+      font-weight: var(--font-weight-medium);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    span {
+      overflow: hidden;
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    small {
+      font-family: var(--font-mono);
+      font-feature-settings: normal;
+      font-size: var(--step--2);
+      letter-spacing: 0;
+      color: var(--muted-foreground);
+    }
+
+    &[aria-selected="true"] {
+      background-color: var(--muted);
+    }
+  }
+
+  [data-empty] {
+    padding: var(--space-xs) var(--space-2xs);
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+  }
+
+  footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs) var(--space-s);
+    padding: var(--space-2xs) var(--space-s);
+    font-size: var(--step--2);
+    color: var(--muted-foreground);
+    border-block-start: var(--hairline) solid var(--border);
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    @media (hover: none) {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>("#palette")
+  const input = dialog?.querySelector("input")
+  const list = dialog?.querySelector<HTMLElement>("[role=listbox]")
+
+  if (dialog && input && list) {
+    const options = [
+      ...list.querySelectorAll<HTMLAnchorElement>("[role=option]"),
+    ]
+    const empty = list.querySelector<HTMLElement>("[data-empty]")
+    options.forEach((option, i) => {
+      option.id = `palette-option-${i}`
+    })
+    const shown = () => options.filter((option) => !option.hidden)
+
+    const select = (option: HTMLAnchorElement | undefined, scroll = true) => {
+      for (const other of options)
+        other.setAttribute("aria-selected", String(other === option))
+      if (option) input.setAttribute("aria-activedescendant", option.id)
+      else input.removeAttribute("aria-activedescendant")
+      if (scroll) option?.scrollIntoView({ block: "nearest" })
+    }
+
+    /** An entry stays when every word typed is somewhere in it; one
+     *  whose name starts with what was typed is chosen first. */
+    const narrow = () => {
+      const typed = input.value.trim().toLowerCase()
+      const words = typed.split(/\s+/).filter(Boolean)
+      for (const option of options) {
+        const text = option.dataset.search ?? ""
+        option.hidden = !words.every((word) => text.includes(word))
+      }
+      for (const group of list.querySelectorAll("section"))
+        group.hidden = !group.querySelector("[role=option]:not([hidden])")
+      const left = shown()
+      if (empty) empty.hidden = left.length > 0
+      select(
+        (typed &&
+          left.find((option) => option.dataset.search?.startsWith(typed))) ||
+          left[0],
+      )
+      list.scrollTop = 0
+    }
+
+    const open = () => {
+      if (dialog.open) return
+      input.value = ""
+      narrow()
+      dialog.showModal()
+    }
+
+    const go = (option: HTMLAnchorElement | undefined, outside: boolean) => {
+      if (!option) return
+      const address = option.dataset.open
+      dialog.close()
+      if (outside && address) window.open(address, "_blank", "noopener")
+      else location.assign(option.href)
+    }
+
+    input.addEventListener("input", narrow)
+    input.addEventListener("keydown", (event) => {
+      const left = shown()
+      const at = left.findIndex(
+        (option) => option.getAttribute("aria-selected") === "true",
+      )
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault()
+        const step = event.key === "ArrowDown" ? 1 : -1
+        select(left[(at + step + left.length) % left.length])
+      } else if (event.key === "Enter") {
+        event.preventDefault()
+        go(left[at], event.shiftKey)
+      }
+    })
+    list.addEventListener("pointermove", (event) => {
+      const option = (event.target as Element).closest<HTMLAnchorElement>(
+        "[role=option]",
+      )
+      if (option && option.getAttribute("aria-selected") !== "true")
+        select(option, false)
+    })
+    // A click on the scrim, outside the panel, closes it.
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) dialog.close()
+    })
+    document.addEventListener("keydown", (event) => {
+      if (event.key.toLowerCase() !== "k") return
+      if (!(event.metaKey || event.ctrlKey) || event.altKey) return
+      event.preventDefault()
+      if (dialog.open) dialog.close()
+      else open()
+    })
+    for (const button of document.querySelectorAll("[data-palette-open]"))
+      button.addEventListener("click", open)
+  }
+</script>

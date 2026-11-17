@@ -1,144 +1,38 @@
 ---
 /**
- * The repository's latest commits, read from GitHub by the visitor's
- * browser, so the list is current without a rebuild. Merging is
- * deploying here, so this is also the deploy log.
+ * The repository's latest commits as a ledger (src/lib/commits.ts): the
+ * overview's few. Merging is deploying here, so this is also the deploy
+ * log; /changes has the rest of it.
  */
-import { CHANGES, REPO } from "@/consts"
+import "@/styles/commits.css"
+import { CHANGES } from "@/consts"
 ---
 
-<lab-changes
-  data-endpoint={`https://api.github.com/repos/${REPO}/commits?per_page=${CHANGES}`}
-  data-log={`https://github.com/${REPO}/commits/main`}
-  aria-busy="true"
->
-  <ol>
-    {Array.from({ length: CHANGES }, () => (
+<lab-changes aria-busy="true">
+  <ol class="commits">
+    {Array.from({ length: CHANGES.latest }, () => (
       <li data-pending><time>–</time><span></span><code></code></li>
     ))}
   </ol>
 </lab-changes>
 
-<style>
-  lab-changes {
-    display: block;
-  }
-
-  ol {
-    border-block-start: var(--hairline) solid var(--border-strong);
-  }
-
-  ol :global(li) {
-    display: grid;
-    grid-template-columns: var(--host-column) minmax(0, 1fr) auto;
-    align-items: baseline;
-    column-gap: var(--space-s);
-    padding-block: var(--space-2xs);
-    font-size: var(--step--1);
-    line-height: 1.6;
-
-    & + :global(li) {
-      border-block-start: var(--hairline) solid var(--border);
-    }
-
-    @media (width < 30rem) {
-      grid-template-columns: 4rem minmax(0, 1fr);
-
-      :global(code) {
-        display: none;
-      }
-    }
-  }
-
-  ol :global(:is(time, code)) {
-    font-family: var(--font-mono);
-    font-feature-settings: normal;
-    font-size: var(--step--2);
-    letter-spacing: 0;
-    color: var(--muted-foreground);
-  }
-
-  /* A row still on its way holds its place with a bar the length of a
-     typical subject; it does not shimmer. */
-  [data-pending] span {
-    inline-size: 60%;
-    block-size: 0.75rem;
-    align-self: center;
-    border-radius: var(--radius-xs);
-    background-color: var(--muted);
-  }
-
-  lab-changes :global(p) {
-    padding-block: var(--space-xs);
-    font-size: var(--step--1);
-    color: var(--muted-foreground);
-    border-block-start: var(--hairline) solid var(--border-strong);
-
-    :global(a) {
-      --underline: var(--border-strong);
-    }
-  }
-</style>
-
 <script>
-  import { ago } from "@/lib/time"
+  import { CHANGES } from "@/consts"
+  import { commitRow, commits, unavailable } from "@/lib/commits"
 
   const root = document.querySelector<HTMLElement>("lab-changes")
   const list = root?.querySelector("ol")
-  const { endpoint, log } = root?.dataset ?? {}
-
-  type Commit = { sha: string; html_url: string; date: string; subject: string }
-
-  /** GitHub's commit list, down to what a row shows; anything that is
-   *  not the expected shape is left out rather than drawn. */
-  const decode = (body: unknown): Commit[] =>
-    (Array.isArray(body) ? body : []).flatMap((entry) => {
-      const { sha, html_url, commit } = entry ?? {}
-      const date = commit?.committer?.date
-      const message = commit?.message
-      return [sha, html_url, date, message].every((v) => typeof v === "string")
-        ? [
-            {
-              sha,
-              html_url,
-              date,
-              // The subject line, without the pull request's number.
-              subject: message.split("\n")[0].replace(/ \(#\d+\)$/, ""),
-            },
-          ]
-        : []
-    })
-
-  const row = ({ sha, html_url, date, subject }: Commit) => {
-    const item = document.createElement("li")
-    const time = document.createElement("time")
-    time.dateTime = date
-    time.textContent = ago(date)
-    const link = document.createElement("a")
-    link.href = html_url
-    link.textContent = subject
-    const code = document.createElement("code")
-    code.textContent = sha.slice(0, 7)
-    item.append(time, link, code)
-    return item
-  }
-
-  if (root && list && endpoint) {
-    fetch(endpoint, { signal: AbortSignal.timeout(10_000) })
-      .then((response) => response.json())
-      .then((body: unknown) => {
-        const commits = decode(body)
-        if (commits.length === 0) throw new Error("no commits")
-        list.replaceChildren(...commits.map(row))
-      })
+  if (root && list)
+    commits()
+      .then((all) =>
+        list.replaceChildren(
+          ...all.slice(0, CHANGES.latest).map((commit) => commitRow(commit)),
+        ),
+      )
       .catch(() => {
-        const note = document.createElement("p")
-        const link = document.createElement("a")
-        link.href = log ?? ""
-        link.textContent = "commit log"
-        note.append("GitHub did not answer. The ", link, " has them.")
+        const note = unavailable()
+        note.className = "commits-note"
         list.replaceWith(note)
       })
       .finally(() => root.setAttribute("aria-busy", "false"))
-  }
 </script>

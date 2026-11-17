@@ -14,17 +14,26 @@
  */
 import { catalog } from "./lib/catalog"
 
-export type Probe = { ok: boolean; status: number | null; ms: number }
+export type Probe = {
+  ok: boolean
+  status: number | null
+  ms: number
+  /** The stack the address belongs to, so a page that draws stacks
+   *  (the field, the port strip) needs no map of its own. */
+  stack: string
+}
 export type Status = { checkedAt: string; endpoints: Record<string, Probe> }
 
 const TTL = 60
 const TIMEOUT = 8_000
 
-const urls = catalog.services
+const targets = catalog.services
   .filter((service) => !service.stopped)
-  .flatMap((service) => service.urls)
+  .flatMap((service) =>
+    service.urls.map((url) => ({ url, stack: service.name })),
+  )
 
-async function probe(url: string): Promise<Probe> {
+async function probe({ url, stack }: (typeof targets)[number]): Promise<Probe> {
   const start = Date.now()
   try {
     const response = await fetch(url, {
@@ -39,9 +48,10 @@ async function probe(url: string): Promise<Probe> {
       ok: response.status < 500,
       status: response.status,
       ms: Date.now() - start,
+      stack,
     }
   } catch {
-    return { ok: false, status: null, ms: Date.now() - start }
+    return { ok: false, status: null, ms: Date.now() - start, stack }
   }
 }
 
@@ -61,10 +71,12 @@ export default {
     const cached = await cache.match(key)
     if (cached) return cached
 
-    const probes = await Promise.all(urls.map(probe))
+    const probes = await Promise.all(targets.map(probe))
     const status: Status = {
       checkedAt: new Date().toISOString(),
-      endpoints: Object.fromEntries(urls.map((url, i) => [url, probes[i]])),
+      endpoints: Object.fromEntries(
+        targets.map(({ url }, i) => [url, probes[i]]),
+      ),
     }
     const response = Response.json(status, {
       headers: { "cache-control": `public, max-age=${TTL}` },

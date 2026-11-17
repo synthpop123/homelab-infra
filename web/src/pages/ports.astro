@@ -1,0 +1,171 @@
+---
+/**
+ * The port registry: the strips for its shape, then the ledger for what
+ * each number is, vacated ones kept in their place.
+ */
+import PageTitle from "@/components/PageTitle.astro"
+import PortStrip from "@/components/PortStrip.astro"
+import SectionHead from "@/components/SectionHead.astro"
+import { REPO_URL } from "@/consts"
+import Layout from "@/layouts/Layout.astro"
+import { catalog } from "@/lib/catalog"
+import type { Host } from "../../scripts/catalog"
+
+const { hosts, services } = catalog
+const names = Object.keys(hosts) as Host[]
+const cells = names.flatMap((host) => hosts[host].ports)
+const used = cells.filter((cell) => cell.stack).length
+const stopped = new Set(
+  services.filter((service) => service.stopped).map((service) => service.name),
+)
+const edge: Record<Host, string> = {
+  fame: "answer only to the Akko proxy",
+  arm: "bind to 127.0.0.1, behind Caddy",
+}
+---
+
+<Layout
+  title="Ports"
+  description="The homelab's host port registry: every number from 20000 up, who holds it, and which were vacated."
+>
+  <PageTitle>
+    Ports
+    <a slot="aside" href={`${REPO_URL}/blob/main/docs/ports.md`}>ports.md ↗</a>
+    <p slot="lead">
+      Host ports are handed out in order from <code>20000</code>, a registry to
+      a host, and a number is never given twice: a gap is a service that left.
+      Only what is published takes one.
+    </p>
+  </PageTitle>
+
+  <dl class="readout">
+    <div>
+      <dt>In use</dt>
+      <dd class="value">{used}<small>/{cells.length}</small></dd>
+      <dd>across both hosts</dd>
+    </div>
+    <div>
+      <dt>Vacated</dt>
+      <dd class="value">{cells.length - used}</dd>
+      <dd>never handed out again</dd>
+    </div>
+    {names.map((host) => (
+      <div>
+        <dt>Next on {host}</dt>
+        <dd class="value">{hosts[host].next}</dd>
+        <dd>the next service’s</dd>
+      </div>
+    ))}
+  </dl>
+
+  <section>
+    <SectionHead id="map" label="The registry" />
+    <PortStrip />
+  </section>
+
+  {names.map((host) => (
+    <section>
+      <SectionHead id={host} label={host}>
+        <span class="section-link">ports {edge[host]}</span>
+      </SectionHead>
+      <ol class="ledger">
+        {hosts[host].ports.map(({ port, stack, label }) => (
+          <li data-row={`${host}-${port}`} data-free={!stack || undefined}>
+            <code>{port}</code>
+            {stack ? (
+              <>
+                <a href={`/services/${stack}`}>{label}</a>
+                <i
+                  data-dot
+                  data-stack={stopped.has(stack) ? undefined : stack}
+                />
+              </>
+            ) : (
+              <span>vacated</span>
+            )}
+          </li>
+        ))}
+        <li data-next>
+          <code>{hosts[host].next}</code>
+          <span>next free</span>
+        </li>
+      </ol>
+    </section>
+  ))}
+</Layout>
+
+<style>
+  section {
+    margin-block-start: var(--space-xl);
+  }
+
+  /* The ledger: number, holder, and whether the holder answers; two
+     columns of it where there is room, read down then across. */
+  .ledger {
+    columns: 2;
+    column-gap: var(--space-l);
+    border-block-start: var(--hairline) solid var(--border-strong);
+
+    @media (width < 34rem) {
+      columns: 1;
+    }
+
+    li {
+      display: grid;
+      grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+      align-items: center;
+      column-gap: var(--space-xs);
+      padding-block: 0.3rem;
+      break-inside: avoid;
+      font-size: var(--step--1);
+      border-block-end: var(--hairline) solid var(--border);
+    }
+
+    code {
+      font-size: var(--step--2);
+      color: var(--muted-foreground);
+    }
+
+    a {
+      overflow: hidden;
+      text-decoration-line: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &:hover {
+        text-decoration-line: underline;
+      }
+    }
+
+    :is([data-free], [data-next]) span {
+      color: var(--muted-foreground);
+    }
+
+    [data-free] code {
+      text-decoration-line: line-through;
+      text-decoration-color: var(--border-strong);
+    }
+
+    /* The row whose cell is under the pointer in the strip above. */
+    [data-lit] {
+      background-color: var(--muted);
+      box-decoration-break: clone;
+    }
+  }
+</style>
+
+<script>
+  // A cell pointed at or focused in the strip marks its row in the ledger.
+  const strip = document.querySelector("port-strip")
+  const mark = (event: Event, on: boolean) => {
+    const cell = (event.target as Element).closest<HTMLElement>("[data-cell]")
+    if (!cell) return
+    document
+      .querySelector(`[data-row="${cell.dataset.cell}"]`)
+      ?.toggleAttribute("data-lit", on)
+  }
+  strip?.addEventListener("pointerover", (event) => mark(event, true))
+  strip?.addEventListener("pointerout", (event) => mark(event, false))
+  strip?.addEventListener("focusin", (event) => mark(event, true))
+  strip?.addEventListener("focusout", (event) => mark(event, false))
+</script>

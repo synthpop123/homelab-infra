@@ -1,0 +1,500 @@
+---
+/**
+ * A stack's own page: where it runs and whether it answers, each address
+ * with its last checks, the containers it is made of and what they wait
+ * for, the ports it holds, and the four files that record it.
+ */
+import PageTitle from "@/components/PageTitle.astro"
+import SectionHead from "@/components/SectionHead.astro"
+import { REPO_URL } from "@/consts"
+import Layout from "@/layouts/Layout.astro"
+import { catalog } from "@/lib/catalog"
+import type { Service } from "../../../scripts/catalog"
+
+export function getStaticPaths() {
+  const { services } = catalog
+  return services.map((service, i) => ({
+    params: { name: service.name },
+    props: {
+      service,
+      previous: services[i - 1] ?? null,
+      next: services[i + 1] ?? null,
+    },
+  }))
+}
+
+type Props = {
+  service: Service
+  previous: Service | null
+  next: Service | null
+}
+
+const { service, previous, next } = Astro.props
+const { name, host, urls, ports, tags, stopped, version } = service
+// What the stack is first, then what it carries.
+const containers = service.containers.toSorted(
+  (a, b) => Number(a.bundled) - Number(b.bundled),
+)
+const region = catalog.hosts[host].region
+const cells = catalog.hosts[host].ports.filter((cell) => cell.stack === name)
+const carried = containers.filter((container) => container.bundled).length
+const built = containers.filter((container) => !container.image).length
+const blob = `${REPO_URL}/blob/main`
+const record = [
+  {
+    file: `stacks/${name}/compose.yaml`,
+    says: "What runs: images, versions, mounts and published ports.",
+  },
+  {
+    file: "komodo/sync.toml",
+    says: `The [[stack]] block: its server, its tags${tags.length ? ` (${tags.join(", ")})` : ""}, the secrets Komodo writes in.`,
+  },
+  {
+    file: "docs/ports.md",
+    says: ports.length
+      ? `The registry, where it holds ${ports.join(" and ")} on ${host}.`
+      : "The registry, where it holds no number: nothing is published.",
+  },
+  {
+    file: "README.md",
+    says: "Its row in the service table: addresses and what it is.",
+  },
+]
+/** `ghcr.io/org/name:tag` without the tag: the tag has its own column. */
+const repository = (image: string) => image.replace(/:[^/:]+$/, "")
+const verdict = stopped ? "Stopped" : urls.length ? "–" : "No address"
+---
+
+<Layout
+  title={name}
+  description={`${name}: ${service.description}. Runs on ${host}.`}
+  crumbs={[{ label: name, href: `/services/${name}` }]}
+>
+  <PageTitle transition={`stack-${name}`}>
+    {name}
+    <a slot="aside" href={`${blob}/stacks/${name}/compose.yaml`}
+      >compose.yaml ↗</a
+    >
+    <p slot="lead">{service.description}.</p>
+  </PageTitle>
+
+  <dl class="readout">
+    <div>
+      <dt>Host</dt>
+      <dd class="value">{host}</dd>
+      <dd>{region}</dd>
+    </div>
+    <div>
+      <dt>Version</dt>
+      <dd class="value" data-long={(version?.length ?? 0) > 9 || undefined}>
+        {version ?? "–"}
+      </dd>
+      <dd>
+        {stopped
+          ? "held: Renovate is off"
+          : built
+            ? "built from source here"
+            : "bumped by Renovate"}
+      </dd>
+    </div>
+    <div>
+      <dt>Containers</dt>
+      <dd class="value">{containers.length}</dd>
+      <dd>
+        {carried
+          ? `${carried} carried`
+          : containers.length > 1
+            ? "all its own"
+            : "one image"}
+      </dd>
+    </div>
+    <div>
+      <dt>Right now</dt>
+      <dd class="value" data-verdict>{verdict}</dd>
+      <dd>
+        {stopped || urls.length === 0 ? (
+          "nothing to ask"
+        ) : (
+          <time data-live="checked">not asked yet</time>
+        )}
+      </dd>
+    </div>
+  </dl>
+
+  {urls.length > 0 && (
+    <section>
+      <SectionHead id="addresses" label="Addresses">
+        {!stopped && <a href="/status">All addresses →</a>}
+      </SectionHead>
+      <ol class="addresses">
+        {urls.map((url) => (
+          <li data-address={stopped ? undefined : url}>
+            <a href={url} data-endpoint={stopped ? undefined : url}>
+              {!stopped && <i data-dot />}
+              {new URL(url).host}
+              <span aria-hidden="true">↗</span>
+            </a>
+            {stopped ? (
+              <span class="quiet">stopped</span>
+            ) : (
+              <>
+                <span class="figure">
+                  <b data-code>–</b>
+                  <small>status</small>
+                </span>
+                <span class="figure">
+                  <b data-time>–</b>
+                  <small>ms</small>
+                </span>
+                <span data-spark title="This browser’s last checks" />
+              </>
+            )}
+          </li>
+        ))}
+      </ol>
+      {!stopped && (
+        <p class="note">
+          Asked from Cloudflare’s edge once a minute; anything below 500 is an
+          answer. The line is this browser’s own record of the last checks it
+          saw.
+        </p>
+      )}
+    </section>
+  )}
+
+  <section>
+    <SectionHead id="containers" label="Containers" />
+    <ol class="containers">
+      {containers.map((container) => (
+        <li>
+          <p>
+            <b>{container.name}</b>
+            {container.bundled && <small>carried</small>}
+            {!container.image && <small>built here</small>}
+          </p>
+          <code>{container.version ?? "–"}</code>
+          <dl>
+            <div>
+              <dt>image</dt>
+              <dd>
+                {container.image
+                  ? repository(container.image)
+                  : `stacks/${name}/ (Dockerfile)`}
+              </dd>
+            </div>
+            {container.needs.length > 0 && (
+              <div>
+                <dt>waits for</dt>
+                <dd>{container.needs.join(", ")}</dd>
+              </div>
+            )}
+            {container.mounts.length > 0 && (
+              <div>
+                <dt>data</dt>
+                <dd>
+                  {container.mounts.map((path, i) => (
+                    <>
+                      {i > 0 && <br>}
+                      {path}
+                    </>
+                  ))}
+                </dd>
+              </div>
+            )}
+          </dl>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  {cells.length > 0 && (
+    <section>
+      <SectionHead id="ports" label="Ports">
+        <a href="/ports">The registry →</a>
+      </SectionHead>
+      <ol class="ports">
+        {cells.map(({ port, label }) => (
+          <li>
+            <code>{port}</code>
+            <span>{label}</span>
+            <small>
+              {host === "arm" ? "127.0.0.1, behind Caddy" : "Akko only"}
+            </small>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  <section>
+    <SectionHead id="record" label="Where it is written" />
+    <ol class="record">
+      {record.map(({ file, says }) => (
+        <li>
+          <a href={`${blob}/${file}`}><code>{file}</code></a>
+          <span>{says}</span>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <nav aria-label="Other stacks">
+    {previous ? (
+      <a href={`/services/${previous.name}`} rel="prev">
+        <small>← Previous</small>
+        <b>{previous.name}</b>
+      </a>
+    ) : (
+      <span />
+    )}
+    {next && (
+      <a href={`/services/${next.name}`} rel="next">
+        <small>Next →</small>
+        <b>{next.name}</b>
+      </a>
+    )}
+  </nav>
+</Layout>
+
+<style>
+  section {
+    margin-block-start: var(--space-xl);
+  }
+
+  /* A long version (`0.7.7-alpha.5`) steps down a size to stay on its
+     hairline; the line it stands on keeps its height. */
+  .value[data-long] {
+    font-size: var(--step-0);
+    line-height: calc(1.2 * var(--step-1));
+    letter-spacing: var(--tracking-tight);
+  }
+
+  :is(.addresses, .containers, .ports, .record) {
+    border-block-start: var(--hairline) solid var(--border-strong);
+
+    > li {
+      padding-block: var(--space-xs);
+
+      & + li {
+        border-block-start: var(--hairline) solid var(--border);
+      }
+    }
+  }
+
+  /* An address: where it is, what it answered and how fast, and the
+     shape of its last checks. */
+  .addresses li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 3rem 3rem 4rem;
+    align-items: center;
+    column-gap: var(--space-s);
+
+    > a {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2xs);
+      min-inline-size: 0;
+      font-family: var(--font-mono);
+      font-feature-settings: normal;
+      font-size: var(--step--1);
+      letter-spacing: 0;
+      text-decoration-line: none;
+
+      &:hover {
+        text-decoration-line: underline;
+      }
+
+      span {
+        color: var(--muted-foreground);
+      }
+    }
+
+    .figure {
+      display: flex;
+      flex-direction: column;
+      align-items: end;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.3;
+
+      b {
+        font-size: var(--step--1);
+        font-weight: var(--font-weight-medium);
+      }
+
+      small {
+        font-size: var(--step--2);
+        color: var(--muted-foreground);
+      }
+    }
+
+    .quiet {
+      grid-column: 2 / -1;
+      justify-self: end;
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+    }
+
+    @media (width < 30rem) {
+      grid-template-columns: minmax(0, 1fr) 3rem 3rem;
+
+      [data-spark] {
+        display: none;
+      }
+    }
+  }
+
+  .note {
+    margin-block-start: var(--space-xs);
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+  }
+
+  /* A container: its name and the version it runs on one line, then
+     what it is made from, what it waits for and where its data lives. */
+  .containers li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: var(--space-3xs) var(--space-s);
+
+    p {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: var(--space-2xs);
+    }
+
+    b {
+      font-weight: var(--font-weight-medium);
+    }
+
+    small {
+      font-size: var(--step--2);
+      color: var(--muted-foreground);
+    }
+
+    > code {
+      font-size: var(--step--2);
+      color: var(--muted-foreground);
+    }
+
+    dl {
+      grid-column: 1 / -1;
+      display: grid;
+      row-gap: 0.125rem;
+
+      div {
+        display: grid;
+        grid-template-columns: 4.5rem minmax(0, 1fr);
+        column-gap: var(--space-xs);
+        align-items: baseline;
+      }
+    }
+
+    dt {
+      font-size: var(--step--2);
+      color: var(--muted-foreground);
+    }
+
+    dd {
+      font-family: var(--font-mono);
+      font-feature-settings: normal;
+      font-size: var(--step--2);
+      line-height: 1.6;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .ports li {
+    display: grid;
+    grid-template-columns: var(--host-column) minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: var(--space-s);
+
+    code {
+      font-size: var(--step--1);
+    }
+
+    small {
+      font-size: var(--step--2);
+      color: var(--muted-foreground);
+    }
+  }
+
+  .record li {
+    display: grid;
+    grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: var(--space-s);
+
+    code {
+      font-size: var(--step--2);
+    }
+
+    a {
+      --underline: var(--border-strong);
+      overflow-wrap: anywhere;
+    }
+
+    span {
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+    }
+
+    @media (width < 30rem) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* The stack before and the one after, in the ledger's order. */
+  nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-s);
+    margin-block-start: var(--space-xl);
+    padding-block-start: var(--space-xs);
+    border-block-start: var(--hairline) solid var(--border-strong);
+
+    a {
+      display: flex;
+      flex-direction: column;
+      text-decoration-line: none;
+
+      &[rel="next"] {
+        align-items: end;
+        grid-column: 2;
+      }
+
+      &:hover b {
+        text-decoration-line: underline;
+      }
+    }
+
+    small {
+      font-size: var(--step--2);
+      color: var(--muted-foreground);
+    }
+
+    b {
+      font-weight: var(--font-weight-medium);
+    }
+  }
+</style>
+
+<script>
+  import { paintAddresses } from "@/lib/addresses"
+  import { onStatus } from "@/lib/status"
+
+  const list = document.querySelector<HTMLElement>(".addresses")
+  const verdict = document.querySelector<HTMLElement>("[data-verdict]")
+  if (list)
+    onStatus((status) => {
+      paintAddresses(list, status)
+      const rows = [...list.querySelectorAll<HTMLElement>("[data-address]")]
+      if (rows.length === 0 || !verdict) return
+      const down = rows.filter((row) => row.dataset.state === "down").length
+      verdict.textContent =
+        down === 0 ? "Answering" : down === rows.length ? "Down" : "Partly"
+    })
+</script>

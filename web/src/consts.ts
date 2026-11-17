@@ -7,16 +7,44 @@ export const SITE = {
   locale: "en-US",
 } as const
 
-/** The repository this page is built from, and whose commits it lists. */
+/** The repository this site is built from, and whose commits it lists. */
 export const REPO = "synthpop123/homelab-infra"
+export const REPO_URL = `https://github.com/${REPO}`
 export const HOME = { href: "https://lkwplus.com", label: "lkw123" } as const
 
-/** The page's sections: the sidebar is their table of contents. */
-export const SECTIONS = [
-  { id: "services", label: "Services" },
-  { id: "ports", label: "Ports" },
-  { id: "flow", label: "Flow" },
-  { id: "changes", label: "Changes" },
+/** The site's pages: the sidebar, the overview's index and the palette
+ *  all list these. */
+export const NAVIGATION = [
+  {
+    href: "/",
+    label: "Overview",
+    blurb: "Both hosts at a glance, and what changed last.",
+  },
+  {
+    href: "/services",
+    label: "Services",
+    blurb: "Every stack as a ledger, each with a page of its own.",
+  },
+  {
+    href: "/status",
+    label: "Status",
+    blurb: "Which addresses answer, and how fast, asked every minute.",
+  },
+  {
+    href: "/ports",
+    label: "Ports",
+    blurb: "The registry from 20000 up: who holds which number.",
+  },
+  {
+    href: "/flow",
+    label: "Flow",
+    blurb: "How a change, an update, a request and a secret travel.",
+  },
+  {
+    href: "/changes",
+    label: "Changes",
+    blurb: "The commit log, which here is also the deploy log.",
+  },
 ] as const
 
 /** What a host is, which no file in the repo states as data
@@ -26,5 +54,6 @@ export const HOSTS: Record<Host, { spec: string[]; edge: string }> = {
   arm: { spec: ["Ubuntu 24.04", "2 vCPU, 12 GiB"], edge: "behind Caddy" },
 }
 
-/** How many commits Changes lists. */
-export const CHANGES = 8
+/** How many commits the overview lists, and how many Changes asks for
+ *  (GitHub's most for one request). */
+export const CHANGES = { latest: 5, log: 100 } as const

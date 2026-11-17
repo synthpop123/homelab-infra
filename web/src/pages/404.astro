@@ -1,21 +1,55 @@
 ---
+import PageTitle from "@/components/PageTitle.astro"
+import { NAVIGATION } from "@/consts"
 import Layout from "@/layouts/Layout.astro"
 ---
 
 <Layout title="Not found">
   <meta name="robots" content="noindex" slot="head">
-  <h1>Not found</h1>
-  <prose-content>
-    <p>Nothing answers at this address. <a href="/">Back to the lab</a>.</p>
-  </prose-content>
+  <PageTitle>
+    Not found
+    <p slot="lead">
+      Nothing answers at this address. A stack that left the lab takes its page
+      with it; these are still here.
+    </p>
+  </PageTitle>
+  <ol>
+    {NAVIGATION.map(({ href, label, blurb }) => (
+      <li>
+        <a href={href}><b>{label}</b><span>{blurb}</span></a>
+      </li>
+    ))}
+  </ol>
 </Layout>
 
 <style>
-  h1 {
-    margin-block-end: var(--space-m);
-    font-size: var(--step-1);
-    line-height: calc(var(--leading-offset) + 1em);
-    font-weight: var(--font-weight-display);
-    letter-spacing: var(--tracking-display);
+  ol {
+    border-block-start: var(--hairline) solid var(--border-strong);
+  }
+
+  li + li {
+    border-block-start: var(--hairline) solid var(--border);
+  }
+
+  a {
+    display: grid;
+    grid-template-columns: var(--host-column) minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: var(--space-s);
+    padding-block: var(--space-xs);
+    text-decoration-line: none;
+
+    b {
+      font-weight: var(--font-weight-medium);
+    }
+
+    span {
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+    }
+
+    &:hover span {
+      color: var(--foreground);
+    }
   }
 </style>

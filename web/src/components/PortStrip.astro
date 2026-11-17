@@ -3,14 +3,18 @@
  * The port registry (docs/ports.md) as a strip per host: a cell to a
  * number, from 20000 up, in the order they were handed out. A number is
  * never reused, so an empty cell is a service that left. A cell in use
- * links to its stack's row and, once /api/status has answered, is lit
- * when that stack answers (src/lib/status.ts). Both strips share one
- * cell width: arm's is shorter because it holds fewer.
+ * links to its stack's page and, once /api/status has answered, is lit
+ * when that stack answers (src/lib/status.ts); the ledger under the
+ * strips marks the row of the cell being pointed at. Both strips share
+ * one cell width: arm's is shorter because it holds fewer.
  */
 import { catalog } from "@/lib/catalog"
-import type { Catalog, Host } from "../../scripts/catalog"
+import type { Host } from "../../scripts/catalog"
 
-const { hosts } = catalog as Catalog
+const { hosts, services } = catalog
+const stopped = new Set(
+  services.filter((service) => service.stopped).map((service) => service.name),
+)
 const strips = (Object.keys(hosts) as Host[]).map((host) => ({
   host,
   cells: hosts[host].ports,
@@ -22,17 +26,18 @@ const widest = Math.max(...strips.map(({ cells }) => cells.length))
 <port-strip style={`--cells: ${widest}`}>
   {strips.map(({ host, cells, used }) => (
     <>
-      <h3>
+      <h2>
         {host}
         <span>{used} of {cells.length}</span>
-      </h3>
+      </h2>
       <ol>
         {cells.map(({ port, stack, label }) => (
           <li>
             {stack ? (
               <a
-                href={`#${stack}`}
-                data-stack={stack}
+                href={`/services/${stack}`}
+                data-stack={stopped.has(stack) ? undefined : stack}
+                data-cell={`${host}-${port}`}
                 aria-label={`${host} ${port}, ${label}`}
               >
                 <span aria-hidden="true"><b>{port}</b>{label}</span>
@@ -66,7 +71,7 @@ const widest = Math.max(...strips.map(({ cells }) => cells.length))
     container-type: inline-size;
   }
 
-  h3 {
+  h2 {
     display: flex;
     flex-direction: column;
     font-weight: var(--font-weight-medium);
@@ -195,7 +200,7 @@ const widest = Math.max(...strips.map(({ cells }) => cells.length))
       row-gap: var(--space-2xs);
     }
 
-    h3 {
+    h2 {
       flex-direction: row;
       align-items: baseline;
       gap: var(--space-xs);

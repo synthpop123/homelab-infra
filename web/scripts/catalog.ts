@@ -22,6 +22,12 @@ export type Container = {
   name: string
   image: string | null
   version: string | null
+  /** A database, cache or helper the stack carries, not what it is. */
+  bundled: boolean
+  /** The containers this one waits for (`depends_on`), by container name. */
+  needs: string[]
+  /** Where its data lives on the host: the bind mounts under /srv. */
+  mounts: string[]
 }
 
 export type Service = {
@@ -47,7 +53,16 @@ export type PortCell = {
 }
 
 export type Catalog = {
-  hosts: Record<Host, { server: string; region: string; ports: PortCell[] }>
+  hosts: Record<
+    Host,
+    {
+      server: string
+      region: string
+      ports: PortCell[]
+      /** The number the next published service takes. */
+      next: number
+    }
+  >
   services: Service[]
   commit: string | null
   builtAt: string
@@ -307,19 +322,38 @@ export function load(): { catalog: Catalog; problems: string[] } {
         )
     }
 
+    const names = new Map(
+      entries.map(([key, service]) => [
+        key,
+        String(service.container_name ?? key),
+      ]),
+    )
     const containers = entries.map(([key, service]): Container => {
       const image = typeof service.image === "string" ? service.image : null
       const pin = Object.values(dict(dict(service.build).args))[0]
       const tag = image ? imageTag(image) : pin == null ? null : String(pin)
+      // `depends_on` is a list of service keys, or a map of them to conditions.
+      const waits = Array.isArray(service.depends_on)
+        ? strings(service.depends_on)
+        : Object.keys(dict(service.depends_on))
+      const sources = list(service.volumes).map((volume) =>
+        typeof volume === "string"
+          ? volume.split(":")[0]
+          : String(dict(volume).source ?? ""),
+      )
       return {
-        name: String(service.container_name ?? key),
+        name: names.get(key) ?? key,
         image: image?.replace(/@.*$/, "") ?? null,
         version: tag ? version(tag) : null,
+        bundled: BUNDLED.test(image ?? ""),
+        needs: waits.flatMap((need) => names.get(need) ?? []),
+        mounts: [
+          ...new Set(sources.filter((path) => path.startsWith("/srv/"))),
+        ],
       }
     })
     const main =
-      containers.find((container) => !BUNDLED.test(container.image ?? "")) ??
-      containers[0]
+      containers.find((container) => !container.bundled) ?? containers[0]
 
     return [
       {
@@ -367,6 +401,7 @@ export function load(): { catalog: Catalog; problems: string[] } {
           server: SERVERS[host],
           region: regions.get(SERVERS[host]) ?? "",
           ports,
+          next: top + 1,
         },
       ]
     }),

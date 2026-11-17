@@ -7,15 +7,22 @@ import "@/styles/layout.css"
 import "@/styles/icon-button.css"
 import "@/styles/bar.css"
 import "@/styles/shape.css"
+import "@/styles/readout.css"
 
 import sansWoff2 from "@/assets/fonts/Inter-Variable.woff2?url"
 import Footer from "@/components/Footer.astro"
+import Palette from "@/components/Palette.astro"
 import Sidebar from "@/components/Sidebar.astro"
 import { SITE } from "@/consts"
 
-type Props = { title?: string; description?: string }
+type Props = {
+  title?: string
+  description?: string
+  /** The page's place under its section, drawn in the sidebar. */
+  crumbs?: { label: string; href: string }[]
+}
 
-const { title, description = SITE.description } = Astro.props
+const { title, description = SITE.description, crumbs } = Astro.props
 const heading = title ? `${title} | ${SITE.title}` : SITE.title
 // Mirrors --neutral-1 (the page background) in src/styles/color.css.
 const themeColor = { light: "#fcfdfc", dark: "#111210" }
@@ -74,15 +81,21 @@ const themeColor = { light: "#fcfdfc", dark: "#111210" }
     <a href="#main" data-skip-link>Skip to content</a>
     <page-grid>
       <page-header
-        ><page-nav><Sidebar /></page-nav></page-header
+        ><page-nav><Sidebar crumbs={crumbs} /></page-nav></page-header
       >
       <page-content>
         <main id="main" tabindex="-1"><slot /></main>
         <page-footer><Footer /></page-footer>
       </page-content>
     </page-grid>
+    <Palette />
   </body>
 </html>
+
+<script>
+  // Every page has something live on it, if only the sidebar's pulse.
+  import "@/lib/status"
+</script>
 
 <style>
   [data-skip-link] {

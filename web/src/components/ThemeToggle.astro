@@ -42,12 +42,6 @@ import SunIcon from "@/assets/icons/sun.svg"
       }
     }
   }
-
-  /* Switching themes fades the whole page over the site's one duration. */
-  ::view-transition-group(root) {
-    animation-duration: var(--duration);
-    animation-timing-function: var(--ease);
-  }
 </style>
 
 <script>
@@ -69,11 +63,18 @@ import SunIcon from "@/assets/icons/sun.svg"
     setTimeout(() => style.remove())
   }
 
-  /** The page cross-fades from one scheme to the other; without view
-   *  transitions, or with reduced motion, the change is immediate. */
+  /**
+   * The whole page cross-fades from one scheme to the other: a view
+   * transition, with the sidebar's own name lifted for its length
+   * (data-theme-fade, layout.css) so the sidebar fades with the rest
+   * instead of being swapped at once as it is between pages. Without
+   * view transitions, or with reduced motion, the change is immediate.
+   */
   const crossFade = (change: () => void) => {
     if (!document.startViewTransition || still.matches) return change()
-    document.startViewTransition(change)
+    root.dataset.themeFade = ""
+    const transition = document.startViewTransition(change)
+    transition.finished.finally(() => delete root.dataset.themeFade)
   }
 
   /** Flips the scheme. Landing on the system's own scheme drops the

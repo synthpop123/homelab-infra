@@ -1,0 +1,128 @@
+---
+import Flow from "@/components/Flow.astro"
+import PageTitle from "@/components/PageTitle.astro"
+import SectionHead from "@/components/SectionHead.astro"
+import { REPO_URL } from "@/consts"
+import Layout from "@/layouts/Layout.astro"
+
+const blob = `${REPO_URL}/blob/main`
+const places = [
+  {
+    file: "stacks/<name>/compose.yaml",
+    href: `${REPO_URL}/tree/main/stacks`,
+    holds:
+      "The stack itself: pinned images, absolute binds under /srv, a named network.",
+  },
+  {
+    file: "komodo/sync.toml",
+    href: `${blob}/komodo/sync.toml`,
+    holds:
+      "A [[stack]] block: which server, which tags, which secrets Komodo writes in.",
+  },
+  {
+    file: "docs/ports.md",
+    href: `${blob}/docs/ports.md`,
+    holds: "The next free host port, claimed, and Next free moved on by one.",
+  },
+  {
+    file: "README.md",
+    href: `${blob}/README.md`,
+    holds:
+      "A row in the host’s service table: its address, its port, what it is.",
+  },
+]
+---
+
+<Layout
+  title="Flow"
+  description="How a change, an update, a request and a secret travel through the homelab: from a git push to a running container."
+>
+  <PageTitle>
+    Flow
+    <a slot="aside" href={`${blob}/docs/workflow.md`}>workflow.md ↗</a>
+    <p slot="lead">
+      Four things move through this setup, each along its own path. Choose a
+      stop to read what happens there, or play a lane from its first.
+    </p>
+  </PageTitle>
+
+  <Flow />
+
+  <section>
+    <SectionHead id="places" label="A new service is four files">
+      <a href={`${blob}/docs/conventions.md`}>conventions.md ↗</a>
+    </SectionHead>
+    <ol class="places">
+      {places.map(({ file, href, holds }, i) => (
+        <li>
+          <small>{i + 1}</small>
+          <a href={href}><code>{file}</code></a>
+          <span>{holds}</span>
+        </li>
+      ))}
+    </ol>
+    <p class="note">
+      The lint gate reads the four together and fails when they disagree; this
+      site is built from that same reading, so a stack that passes is a stack
+      that is drawn here.
+    </p>
+  </section>
+</Layout>
+
+<style>
+  section {
+    margin-block-start: var(--space-xl);
+  }
+
+  .places {
+    border-block-start: var(--hairline) solid var(--border-strong);
+
+    li {
+      display: grid;
+      grid-template-columns: 1rem minmax(0, 13rem) minmax(0, 1fr);
+      align-items: baseline;
+      column-gap: var(--space-xs);
+      padding-block: var(--space-xs);
+
+      & + li {
+        border-block-start: var(--hairline) solid var(--border);
+      }
+
+      @media (width < 34rem) {
+        grid-template-columns: 1rem minmax(0, 1fr);
+
+        span {
+          grid-column: 2;
+        }
+      }
+    }
+
+    small {
+      font-family: var(--font-mono);
+      font-feature-settings: normal;
+      font-size: var(--step--2);
+      letter-spacing: 0;
+      color: var(--muted-foreground);
+    }
+
+    code {
+      font-size: var(--step--2);
+    }
+
+    a {
+      --underline: var(--border-strong);
+      overflow-wrap: anywhere;
+    }
+
+    span {
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+    }
+  }
+
+  .note {
+    margin-block-start: var(--space-xs);
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+  }
+</style>

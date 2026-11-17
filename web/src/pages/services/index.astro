@@ -1,0 +1,234 @@
+---
+import PageTitle from "@/components/PageTitle.astro"
+import Services from "@/components/Services.astro"
+import { REPO_URL } from "@/consts"
+import Layout from "@/layouts/Layout.astro"
+import { catalog } from "@/lib/catalog"
+import type { Host, Service } from "../../../scripts/catalog"
+
+const { hosts, services } = catalog
+const count = (keep: (service: Service) => boolean) =>
+  services.filter(keep).length
+const tags = [...new Set(services.flatMap((service) => service.tags))]
+const stopped = count((service) => service.stopped)
+---
+
+<Layout
+  title="Services"
+  description="Every stack in the homelab: what it is, the version it runs, where it answers."
+>
+  <PageTitle>
+    Services
+    <a slot="aside" href={`${REPO_URL}/tree/main/stacks`}>stacks/ ↗</a>
+    <p slot="lead">
+      One row to a stack, in the order each took its port. The dot beside an
+      address is asked from Cloudflare’s edge every minute; a name opens the
+      stack’s own page.
+    </p>
+  </PageTitle>
+
+  <div class="controls">
+    <div class="chips" role="group" aria-label="Narrow the list">
+      <button type="button" data-host="" aria-pressed="true">
+        All <small>{services.length}</small>
+      </button>
+      {(Object.keys(hosts) as Host[]).map((host) => (
+        <button type="button" data-host={host} aria-pressed="false">
+          {host}
+          <small>{count((service) => service.host === host)}</small>
+        </button>
+      ))}
+      <hr>
+      {tags.map((tag) => (
+        <button type="button" data-tag={tag} aria-pressed="false">
+          {tag}
+          <small>{count((service) => service.tags.includes(tag))}</small>
+        </button>
+      ))}
+      {stopped > 0 && (
+        <button type="button" data-state="stopped" aria-pressed="false">
+          stopped <small>{stopped}</small>
+        </button>
+      )}
+      <button type="button" data-state="down" aria-pressed="false" hidden>
+        not answering <small data-down></small>
+      </button>
+    </div>
+    <label class="filter">
+      <span class="sr">Filter services</span>
+      <input
+        type="search"
+        data-filter
+        placeholder="Filter"
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <kbd aria-hidden="true">/</kbd>
+    </label>
+  </div>
+  <p class="sr" role="status" data-count></p>
+
+  <Services />
+</Layout>
+
+<style>
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-s);
+    margin-block-end: var(--space-s);
+  }
+
+  .chips {
+    margin-inline-start: -0.5rem;
+  }
+
+  /* The filter: a word typed onto a hairline. */
+  .filter {
+    display: inline-flex;
+    align-items: baseline;
+    margin-inline-start: auto;
+    gap: var(--space-3xs);
+    border-block-end: var(--hairline) solid var(--border-strong);
+
+    input {
+      inline-size: 8rem;
+      font-size: var(--step--1);
+      outline: none;
+
+      &::placeholder {
+        color: var(--muted-foreground);
+      }
+
+      &::-webkit-search-cancel-button {
+        display: none;
+      }
+    }
+
+    &:focus-within {
+      border-block-end-color: var(--ring);
+    }
+
+    kbd {
+      font-size: var(--step--2);
+      color: var(--muted-foreground);
+    }
+
+    &:focus-within kbd {
+      visibility: hidden;
+    }
+
+    @media (hover: none) {
+      kbd {
+        display: none;
+      }
+    }
+  }
+</style>
+
+<script>
+  /**
+   * What narrows the ledger: the words typed (each must be somewhere in
+   * a row's name, description, host, tags, addresses or containers), one
+   * host, and any of the tags and states pressed. `/` reaches the filter
+   * from anywhere, Escape empties it. The choice is written into the
+   * address, so a narrowed list can be linked to and survives a reload.
+   */
+  import { onStatus } from "@/lib/status"
+
+  const root = document.querySelector("lab-services")
+  const input = document.querySelector<HTMLInputElement>("[data-filter]")
+  const chips = document.querySelector<HTMLElement>(".chips")
+
+  if (root && input && chips) {
+    const rows = [...root.querySelectorAll<HTMLElement>("[data-row]")]
+    const empty = root.querySelector<HTMLElement>("[data-empty]")
+    const said = document.querySelector<HTMLElement>("[data-count]")
+    const buttons = [...chips.querySelectorAll<HTMLButtonElement>("button")]
+    const hostButtons = buttons.filter((b) => b.dataset.host !== undefined)
+    const toggles = buttons.filter((b) => b.dataset.host === undefined)
+    const pressed = (button: HTMLButtonElement) =>
+      button.getAttribute("aria-pressed") === "true"
+    const press = (button: HTMLButtonElement, on: boolean) =>
+      button.setAttribute("aria-pressed", String(on))
+    const named = (button: HTMLButtonElement) =>
+      button.dataset.tag ?? button.dataset.state ?? ""
+
+    const keeps = (row: HTMLElement, button: HTMLButtonElement) => {
+      const { tag, state } = button.dataset
+      if (tag) return (row.dataset.tags ?? "").split(" ").includes(tag)
+      if (state === "stopped") return "stopped" in row.dataset
+      return row.dataset.state === "down"
+    }
+
+    const apply = () => {
+      const words = input.value.toLowerCase().split(/\s+/).filter(Boolean)
+      const host = hostButtons.find(pressed)?.dataset.host ?? ""
+      const on = toggles.filter(pressed)
+      for (const row of rows)
+        row.hidden = !(
+          words.every((word) => (row.dataset.search ?? "").includes(word)) &&
+          (!host || row.dataset.host === host) &&
+          on.every((button) => keeps(row, button))
+        )
+      for (const section of root.querySelectorAll("section"))
+        section.hidden = !section.querySelector("[data-row]:not([hidden])")
+      const left = rows.filter((row) => !row.hidden).length
+      if (empty) empty.hidden = left > 0
+      if (said) said.textContent = `${left} of ${rows.length} stacks shown`
+
+      const query = new URLSearchParams()
+      if (input.value.trim()) query.set("q", input.value.trim())
+      if (host) query.set("host", host)
+      for (const button of on) query.append("only", named(button))
+      const search = query.size ? `?${query}` : ""
+      if (search !== location.search)
+        history.replaceState(null, "", location.pathname + search)
+    }
+
+    // The address first: a link to a narrowed list opens narrowed.
+    const asked = new URLSearchParams(location.search)
+    input.value = asked.get("q") ?? ""
+    for (const button of hostButtons)
+      press(button, button.dataset.host === (asked.get("host") ?? ""))
+    for (const button of toggles)
+      press(button, asked.getAll("only").includes(named(button)))
+
+    chips.addEventListener("click", (event) => {
+      const button = (event.target as Element).closest("button")
+      if (!button) return
+      if (button.dataset.host !== undefined)
+        for (const other of hostButtons) press(other, other === button)
+      else press(button, !pressed(button))
+      apply()
+    })
+    input.addEventListener("input", apply)
+    input.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return
+      input.value = ""
+      apply()
+      input.blur()
+    })
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey) return
+      if (document.activeElement instanceof HTMLInputElement) return
+      event.preventDefault()
+      input.focus()
+    })
+
+    // "Not answering" is a chip only while something is not.
+    const down = buttons.find((button) => button.dataset.state === "down")
+    onStatus(() => {
+      const count = rows.filter((row) => row.dataset.state === "down").length
+      if (down) {
+        down.hidden = count === 0 && !pressed(down)
+        const figure = down.querySelector("[data-down]")
+        if (figure) figure.textContent = String(count)
+      }
+      apply()
+    })
+    apply()
+  }
+</script>

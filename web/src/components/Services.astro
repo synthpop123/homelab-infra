@@ -2,14 +2,15 @@
 /**
  * Every stack as a ledger, a host to a group: what it is and the version
  * it runs on the left, where it answers on the right, each address with
- * a dot that /api/status fills in (src/lib/status.ts). A row's id is its
- * stack's name, which is what a port cell links to.
+ * a dot that /api/status fills in (src/lib/status.ts). A name links to
+ * the stack's own page, and travels there with it (its view-transition
+ * name is the page title's).
  */
-import { catalog } from "@/lib/catalog"
 import { HOSTS } from "@/consts"
-import type { Catalog, Host } from "../../scripts/catalog"
+import { catalog } from "@/lib/catalog"
+import type { Host } from "../../scripts/catalog"
 
-const { hosts, services } = catalog as Catalog
+const { hosts, services } = catalog
 const groups = (Object.keys(hosts) as Host[]).map((host) => ({
   host,
   region: hosts[host].region,
@@ -22,7 +23,7 @@ const groups = (Object.keys(hosts) as Host[]).map((host) => ({
   {groups.map(({ host, region, spec, edge, rows }) => (
     <section>
       <header>
-        <h3>{host}</h3>
+        <h2>{host}</h2>
         <ul>
           {[region, ...spec, edge].map((line) => (
             <li>{line}</li>
@@ -32,8 +33,10 @@ const groups = (Object.keys(hosts) as Host[]).map((host) => ({
       <ol>
         {rows.map((service) => (
           <li
-            id={service.name}
             data-row
+            data-host={host}
+            data-tags={service.tags.join(" ")}
+            data-stack={service.stopped ? undefined : service.name}
             data-stopped={service.stopped || undefined}
             data-search={[
               service.name,
@@ -41,14 +44,22 @@ const groups = (Object.keys(hosts) as Host[]).map((host) => ({
               host,
               ...service.tags,
               ...service.urls,
+              ...service.containers.map((container) => container.name),
             ]
               .join(" ")
               .toLowerCase()}
           >
             <div class="what">
               <p>
-                <b>{service.name}</b>
+                <a href={`/services/${service.name}`}>
+                  <b style={`view-transition-name: stack-${service.name}`}>
+                    {service.name}
+                  </b>
+                </a>
                 {service.version && <code>{service.version}</code>}
+                {service.containers.length > 1 && (
+                  <small>{service.containers.length} containers</small>
+                )}
               </p>
               <p>{service.description}</p>
             </div>
@@ -104,7 +115,7 @@ const groups = (Object.keys(hosts) as Host[]).map((host) => ({
       inset-block-start: calc(var(--bar-nav-height) + var(--space-2xs));
     }
 
-    h3 {
+    h2 {
       font-weight: var(--font-weight-medium);
     }
 
@@ -116,29 +127,15 @@ const groups = (Object.keys(hosts) as Host[]).map((host) => ({
   }
 
   [data-row] {
-    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     column-gap: var(--space-s);
     padding-block: var(--space-xs);
 
-    & + [data-row] {
+    /* The first row shown in a group has no line over it: the group's
+       own rule is there. `+` would count the rows a filter hid. */
+    &:not([hidden]) ~ [data-row] {
       border-block-start: var(--hairline) solid var(--border);
-    }
-
-    @media (width >= 64rem) {
-      scroll-margin-block-start: var(--page-offset-top);
-    }
-
-    /* Arrived at from a port cell: the row is held on a fill that
-       bleeds a little past the text's edges. */
-    &:target::before {
-      content: "";
-      position: absolute;
-      inset: 0 calc(-1 * var(--space-2xs));
-      z-index: -1;
-      border-radius: var(--radius-md);
-      background-color: var(--muted);
     }
   }
 
@@ -150,11 +147,20 @@ const groups = (Object.keys(hosts) as Host[]).map((host) => ({
       column-gap: var(--space-2xs);
     }
 
+    a {
+      text-decoration-line: none;
+
+      &:hover {
+        text-decoration-line: underline;
+      }
+    }
+
     b {
+      display: inline-block;
       font-weight: var(--font-weight-medium);
     }
 
-    code {
+    :is(code, small) {
       font-size: var(--step--2);
       color: var(--muted-foreground);
     }
@@ -191,22 +197,6 @@ const groups = (Object.keys(hosts) as Host[]).map((host) => ({
       &:hover {
         color: var(--foreground);
       }
-    }
-  }
-
-  :global([data-dot]) {
-    flex: none;
-    inline-size: 0.375rem;
-    block-size: 0.375rem;
-    border-radius: var(--radius-full);
-    background-color: var(--neutral-a6);
-
-    &[data-state="up"] {
-      background-color: var(--accent-fill);
-    }
-
-    &[data-state="down"] {
-      background-color: var(--foreground);
     }
   }
 
@@ -253,48 +243,3 @@ const groups = (Object.keys(hosts) as Host[]).map((host) => ({
     }
   }
 </style>
-
-<script>
-  /**
-   * The filter in the section's heading: a row stays when every word
-   * typed is somewhere in its name, description, host, tags or
-   * addresses. `/` reaches it from anywhere, Escape empties it. A port
-   * cell's link empties it too, or its row might be one of the hidden.
-   */
-  const root = document.querySelector("lab-services")
-  const input = document.querySelector<HTMLInputElement>("[data-filter]")
-  if (root && input) {
-    const rows = [...root.querySelectorAll<HTMLElement>("[data-row]")]
-    const empty = root.querySelector<HTMLElement>("[data-empty]")
-    const apply = () => {
-      const words = input.value.toLowerCase().split(/\s+/).filter(Boolean)
-      for (const row of rows) {
-        const text = row.dataset.search ?? ""
-        row.hidden = !words.every((word) => text.includes(word))
-      }
-      for (const section of root.querySelectorAll("section"))
-        section.hidden = !section.querySelector("[data-row]:not([hidden])")
-      if (empty) empty.hidden = rows.some((row) => !row.hidden)
-    }
-    input.addEventListener("input", apply)
-    input.addEventListener("keydown", (event) => {
-      if (event.key !== "Escape") return
-      input.value = ""
-      apply()
-      input.blur()
-    })
-    document.addEventListener("keydown", (event) => {
-      if (event.key !== "/" || event.metaKey || event.ctrlKey) return
-      if (document.activeElement instanceof HTMLInputElement) return
-      event.preventDefault()
-      input.focus()
-    })
-    window.addEventListener("hashchange", () => {
-      const target = document.getElementById(location.hash.slice(1))
-      if (!target?.hidden) return
-      input.value = ""
-      apply()
-      target.scrollIntoView()
-    })
-  }
-</script>

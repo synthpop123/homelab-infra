@@ -1,0 +1,202 @@
+@layer reset, tokens, prose, layout, primitives;
+
+@layer primitives {
+/* Readout: a row of figures, each standing on its own hairline, the way
+   lkwplus.com sets a summary. Two across or four, never three: a row
+   left short would read as a figure missing. The column count switches
+   on the panel's own width (the clamp resolves to half the width below
+   --panel-wide and a quarter above it, less the gaps). */
+.readout {
+  --panel-wide: 30rem;
+  --readout-gap: var(--space-s);
+
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(
+      clamp(
+        25% - var(--readout-gap) * 0.75,
+        (var(--panel-wide) - 100%) * 999,
+        50% - var(--readout-gap) * 0.5
+      ),
+      1fr
+    )
+  );
+  gap: var(--space-xs) var(--readout-gap);
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-inline-size: 0;
+    padding-block-start: var(--space-2xs);
+    border-block-start: var(--hairline) solid var(--border);
+  }
+
+  dt {
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+  }
+
+  .value {
+    font-size: var(--step-1);
+    font-weight: var(--font-weight-medium);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    letter-spacing: var(--tracking-figure);
+    white-space: nowrap;
+    min-block-size: 1lh;
+
+    :is(span, a) {
+      letter-spacing: inherit;
+    }
+
+    /* A unit, or the whole a count is out of: small and muted, so
+       `36/37` and `212 ms` read as quantities. */
+    small {
+      margin-inline: 0.1em;
+      font-size: var(--step--1);
+      font-weight: var(--font-weight-normal);
+      letter-spacing: 0;
+      color: var(--muted-foreground);
+    }
+  }
+
+  dd:not(.value) {
+    overflow: hidden;
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+    color: var(--muted-foreground);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* Chips: a row of choices that narrow what is listed under them. The
+   chosen one is in ink on a fill; the rest are muted words. A count
+   after the word is how many rows it would leave. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3xs) var(--space-3xs);
+
+  button {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35em;
+    padding: 0.15rem 0.5rem;
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--foreground);
+      background-color: var(--muted);
+    }
+
+    &[aria-pressed="true"] {
+      color: var(--foreground);
+      background-color: var(--muted-hover);
+    }
+
+    small {
+      font-size: var(--step--2);
+      font-variant-numeric: tabular-nums;
+      color: var(--muted-foreground);
+    }
+  }
+
+  /* A break between two groups of chips: a hairline the height of a word. */
+  hr {
+    inline-size: 0;
+    block-size: 1em;
+    margin-inline: var(--space-3xs);
+    border-block-start-width: 0;
+    border-inline-start: var(--hairline) solid var(--border-strong);
+  }
+}
+
+/* A status dot: grey until asked, the accent when its address answers,
+   ink when it does not. */
+[data-dot] {
+  flex: none;
+  display: inline-block;
+  inline-size: 0.375rem;
+  block-size: 0.375rem;
+  border-radius: var(--radius-full);
+  background-color: var(--neutral-a6);
+
+  &[data-state="up"] {
+    background-color: var(--accent-fill);
+  }
+
+  &[data-state="down"] {
+    background-color: var(--foreground);
+  }
+}
+
+/* The small uppercase label over a block inside a section. */
+.label {
+  font-size: var(--step--2);
+  font-weight: var(--font-weight-medium);
+  font-feature-settings: var(--font-label-features);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* The small link at the far end of a heading row. */
+.section-link {
+  flex-shrink: 0;
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-normal);
+  color: var(--muted-foreground);
+  text-decoration-line: none;
+
+  &:hover {
+    color: var(--foreground);
+  }
+}
+
+/* Mono detail: an address, a number, a hash. */
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: normal;
+  font-size: var(--step--2);
+  letter-spacing: 0;
+}
+}
+
+@layer primitives {
+/* A sparkline (src/lib/spark.ts): a line at the chart stroke, its last
+   point a dot, an unanswered check a tick on the baseline. */
+[data-spark] {
+  display: block;
+  inline-size: 4rem;
+  block-size: 1rem;
+  color: var(--chart-ghost);
+
+  svg {
+    overflow: visible;
+  }
+
+  path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: var(--chart-stroke);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  circle {
+    fill: var(--foreground);
+  }
+
+  [data-miss] {
+    stroke: var(--foreground);
+    stroke-width: var(--chart-stroke);
+  }
+}
+}

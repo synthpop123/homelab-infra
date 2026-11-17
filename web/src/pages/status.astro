@@ -1,0 +1,419 @@
+---
+/**
+ * Every address the catalog has, with what it just answered: a dot, a
+ * bar for how long it took, the status, and this browser's record of its
+ * last checks. Sorted by the reader; whatever is not answering stays on
+ * top whichever order is chosen.
+ */
+import PageTitle from "@/components/PageTitle.astro"
+import Layout from "@/layouts/Layout.astro"
+import { catalog } from "@/lib/catalog"
+
+const { services } = catalog
+const rows = services
+  .filter((service) => !service.stopped)
+  .flatMap((service) =>
+    service.urls.map((url) => ({
+      url,
+      address: new URL(url).host.replace(/\.lkwplus\.com$/, ""),
+      stack: service.name,
+      host: service.host,
+    })),
+  )
+const stopped = services.filter((service) => service.stopped)
+const silent = services.filter(
+  (service) => !service.stopped && service.urls.length === 0,
+)
+---
+
+<Layout
+  title="Status"
+  description="Which of the homelab's addresses answer right now, and how fast, asked from Cloudflare's edge every minute."
+>
+  <PageTitle>
+    Status
+    <a slot="aside" href="/api/status">/api/status ↗</a>
+    <p slot="lead">
+      A Worker asks every address the way a visitor would reach it, once a
+      minute, and one answer serves everyone. Anything below 500 counts: a login
+      page or a 401 means the service and the proxy in front of it are up; a 502
+      or a timeout means they are not.
+    </p>
+  </PageTitle>
+
+  <lab-status>
+    <p class="clock">
+      <i aria-hidden="true"><i data-countdown></i></i>
+      <span>
+        Asked <time data-live="checked">not yet</time>
+        <span data-next></span>
+      </span>
+    </p>
+
+    <dl class="readout">
+      <div>
+        <dt>Answering</dt>
+        <dd class="value">
+          <span data-live="answering">–</span><small>/{rows.length}</small>
+        </dd>
+        <dd><span data-live="down">–</span> not answering</dd>
+      </div>
+      <div>
+        <dt>Median</dt>
+        <dd class="value">
+          <span data-live="median">–</span><small>ms</small>
+        </dd>
+        <dd>of those that answer</dd>
+      </div>
+      <div>
+        <dt>Fastest</dt>
+        <dd class="value"><span data-fastest>–</span><small>ms</small></dd>
+        <dd data-fastest-name>–</dd>
+      </div>
+      <div>
+        <dt>Slowest</dt>
+        <dd class="value"><span data-slowest>–</span><small>ms</small></dd>
+        <dd data-slowest-name>–</dd>
+      </div>
+    </dl>
+
+    <div class="controls">
+      <div class="chips" role="group" aria-label="Order">
+        <button type="button" data-sort="slow" aria-pressed="true">
+          Slowest first
+        </button>
+        <button type="button" data-sort="fast" aria-pressed="false">
+          Fastest first
+        </button>
+        <button type="button" data-sort="host" aria-pressed="false">
+          By host
+        </button>
+        <button type="button" data-sort="name" aria-pressed="false">A–Z</button>
+      </div>
+      <p class="heads" aria-hidden="true">
+        <span>ms</span><span>status</span><span>last checks</span>
+      </p>
+    </div>
+
+    <ol class="board">
+      {rows.map(({ url, address, stack, host }, i) => (
+        <li data-address={url} data-name={address} data-host={host} data-at={i}>
+          <i data-dot data-endpoint={url}></i>
+          <a href={`/services/${stack}`}>{address}</a>
+          <small>{host}</small>
+          <span class="bar" aria-hidden="true"><i data-bar-fill></i></span>
+          <b data-time>–</b>
+          <span data-code>–</span>
+          <span data-spark></span>
+        </li>
+      ))}
+    </ol>
+
+    {(stopped.length > 0 || silent.length > 0) && (
+      <p class="rest">
+        Not asked:
+        {stopped.map((service) => (
+          <span>
+            <a href={`/services/${service.name}`}>{service.name}</a> (stopped)
+          </span>
+        ))}
+        {silent.map((service) => (
+          <span>
+            <a href={`/services/${service.name}`}>{service.name}</a> (no
+            address)
+          </span>
+        ))}
+      </p>
+    )}
+
+    <p class="note">
+      The sparklines are this browser’s own record of the checks it has seen,
+      thirty at most; nothing is kept on a server. A break in a line is a check
+      that got no answer.
+    </p>
+  </lab-status>
+</Layout>
+
+<style>
+  lab-status {
+    display: block;
+  }
+
+  /* The minute: a hairline that fills as the answer ages, in the accent
+     because it is the one thing here that moves on its own. */
+  .clock {
+    display: grid;
+    gap: var(--space-2xs);
+    margin-block-end: var(--space-m);
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+    color: var(--muted-foreground);
+
+    > i {
+      display: block;
+      block-size: 2px;
+      overflow: hidden;
+      border-radius: var(--radius-full);
+      background-color: var(--heat-0);
+    }
+
+    [data-countdown] {
+      display: block;
+      block-size: 100%;
+      scale: 0 1;
+      transform-origin: 0 50%;
+      background-color: var(--accent-fill);
+    }
+
+    time {
+      color: var(--foreground);
+    }
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-s);
+    margin-block: var(--space-xl) var(--space-2xs);
+  }
+
+  .chips {
+    margin-inline-start: -0.5rem;
+  }
+
+  /* The board's columns, shared by its rows and the heads over them. */
+  lab-status {
+    --columns: 0.375rem minmax(0, 9rem) 2.25rem minmax(2rem, 1fr) 3rem 2.25rem
+      4rem;
+  }
+
+  .heads {
+    display: grid;
+    grid-template-columns: 3rem 2.25rem 4rem;
+    margin-inline-start: auto;
+    column-gap: var(--space-xs);
+    font-size: var(--step--2);
+    color: var(--muted-foreground);
+
+    span:not(:last-child) {
+      text-align: end;
+    }
+  }
+
+  .board {
+    border-block-start: var(--hairline) solid var(--border-strong);
+
+    li {
+      display: grid;
+      grid-template-columns: var(--columns);
+      align-items: center;
+      column-gap: var(--space-xs);
+      padding-block: 0.4rem;
+      font-size: var(--step--1);
+      font-variant-numeric: tabular-nums;
+      background-color: var(--background);
+
+      & + li {
+        border-block-start: var(--hairline) solid var(--border);
+      }
+    }
+
+    a {
+      overflow: hidden;
+      font-family: var(--font-mono);
+      font-feature-settings: normal;
+      letter-spacing: 0;
+      text-decoration-line: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &:hover {
+        text-decoration-line: underline;
+      }
+    }
+
+    small,
+    [data-code] {
+      font-size: var(--step--2);
+      color: var(--muted-foreground);
+    }
+
+    [data-code],
+    [data-time] {
+      text-align: end;
+    }
+
+    [data-time] {
+      font-weight: var(--font-weight-medium);
+    }
+
+    /* How long the answer took, against the slowest on the board. */
+    .bar {
+      block-size: 0.375rem;
+      border-radius: var(--radius-xs);
+      background-color: var(--heat-0);
+    }
+
+    [data-bar-fill] {
+      display: block;
+      inline-size: calc(var(--share, 0) * 100%);
+      block-size: 100%;
+      border-radius: inherit;
+      background-color: var(--neutral-9);
+      transition: inline-size var(--duration) var(--ease);
+    }
+
+    /* Not answering: the row says so in ink, and its bar is empty. */
+    [data-state="down"] {
+      a,
+      [data-code] {
+        color: var(--foreground);
+        font-weight: var(--font-weight-medium);
+      }
+    }
+  }
+
+  :is(.rest, .note) {
+    margin-block-start: var(--space-s);
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+  }
+
+  .rest {
+    span + span::before {
+      content: " · ";
+    }
+
+    a {
+      --underline: var(--border-strong);
+      color: var(--foreground);
+    }
+  }
+
+  /* On a phone the host and the sparkline step out, and the bar with
+     them: the figures say it. */
+  @media (width < 34rem) {
+    lab-status {
+      --columns: 0.375rem minmax(0, 1fr) 3rem 2.25rem;
+    }
+
+    .heads {
+      grid-template-columns: 3rem 2.25rem;
+
+      span:last-child {
+        display: none;
+      }
+    }
+
+    .board :is(small, .bar, [data-spark]) {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { paintAddresses } from "@/lib/addresses"
+  import { onStatus } from "@/lib/status"
+
+  const MINUTE = 60_000
+  const root = document.querySelector<HTMLElement>("lab-status")
+  const board = root?.querySelector<HTMLElement>(".board")
+
+  if (root && board) {
+    const rows = [...board.querySelectorAll<HTMLElement>("[data-address]")]
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>("[data-sort]")]
+    const still = matchMedia("(prefers-reduced-motion: reduce)")
+    const ms = (row: HTMLElement) => Number(row.dataset.ms ?? "0")
+    const text = (part: string, value: string) => {
+      const node = root.querySelector(part)
+      if (node) node.textContent = value
+    }
+
+    const orders: Record<string, (a: HTMLElement, b: HTMLElement) => number> = {
+      slow: (a, b) => ms(b) - ms(a),
+      fast: (a, b) => ms(a) - ms(b),
+      host: (a, b) => Number(a.dataset.at) - Number(b.dataset.at),
+      name: (a, b) =>
+        (a.dataset.name ?? "").localeCompare(b.dataset.name ?? ""),
+    }
+
+    /** Puts the rows in the chosen order, whatever is down first; each
+     *  row slides from where it was to where it now is. */
+    const sort = (animate: boolean) => {
+      const chosen =
+        buttons.find((button) => button.getAttribute("aria-pressed") === "true")
+          ?.dataset.sort ?? "slow"
+      const before = new Map(
+        rows.map((row) => [row, row.getBoundingClientRect().top]),
+      )
+      const down = (row: HTMLElement) => (row.dataset.state === "down" ? 0 : 1)
+      const sorted = rows.toSorted(
+        (a, b) => down(a) - down(b) || orders[chosen](a, b),
+      )
+      board.append(...sorted)
+      if (!animate || still.matches) return
+      for (const row of sorted) {
+        const moved = (before.get(row) ?? 0) - row.getBoundingClientRect().top
+        if (moved)
+          row.animate([{ translate: `0 ${moved}px` }, { translate: "0 0" }], {
+            duration: 250,
+            easing: "ease-out",
+          })
+      }
+    }
+
+    for (const button of buttons)
+      button.addEventListener("click", () => {
+        for (const other of buttons)
+          other.setAttribute("aria-pressed", String(other === button))
+        sort(true)
+      })
+
+    const countdown = root.querySelector<HTMLElement>("[data-countdown]")
+    const next = root.querySelector<HTMLElement>("[data-next]")
+    let asked = 0
+    let filling: Animation | undefined
+
+    /** The hairline fills over the minute the answer is good for, from
+     *  however much of it has already gone. */
+    const fill = () => {
+      if (!countdown) return
+      const gone = Math.min(Date.now() - asked, MINUTE)
+      filling?.cancel()
+      if (still.matches) {
+        countdown.style.scale = `${gone / MINUTE} 1`
+        return
+      }
+      filling = countdown.animate([{ scale: "0 1" }, { scale: "1 1" }], {
+        duration: MINUTE,
+        fill: "forwards",
+      })
+      filling.currentTime = gone
+    }
+    const tick = () => {
+      if (!next || !asked) return
+      const left = Math.ceil((asked + MINUTE - Date.now()) / 1000)
+      next.textContent =
+        left > 0 ? `· next in ${left}s` : "· asking again when in view"
+    }
+    setInterval(tick, 1000)
+
+    onStatus((status) => {
+      const first = asked === 0
+      asked = Date.parse(status.checkedAt)
+      paintAddresses(board, status)
+      const up = rows.filter((row) => row.dataset.state === "up")
+      const byTime = up.toSorted((a, b) => ms(a) - ms(b))
+      const [fastest, slowest] = [byTime[0], byTime.at(-1)]
+      text("[data-fastest]", fastest ? String(ms(fastest)) : "–")
+      text("[data-fastest-name]", fastest?.dataset.name ?? "–")
+      text("[data-slowest]", slowest ? String(ms(slowest)) : "–")
+      text("[data-slowest-name]", slowest?.dataset.name ?? "–")
+      sort(!first)
+      fill()
+      tick()
+    })
+  }
+</script>

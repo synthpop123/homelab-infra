@@ -1,0 +1,69 @@
+@layer reset, tokens, prose, layout, primitives;
+
+@layer primitives {
+/* A commit ledger, here and on /changes: when in the margin column,
+   the subject, the hash at the far end; each row on a hairline. */
+.commits {
+  border-block-start: var(--hairline) solid var(--border-strong);
+
+  li {
+    display: grid;
+    grid-template-columns: var(--host-column) minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: var(--space-s);
+    padding-block: var(--space-2xs);
+    font-size: var(--step--1);
+    line-height: 1.6;
+
+    & + li {
+      border-block-start: var(--hairline) solid var(--border);
+    }
+
+    @media (width < 30rem) {
+      grid-template-columns: 4rem minmax(0, 1fr);
+
+      code {
+        display: none;
+      }
+    }
+  }
+
+  :is(time, code, i) {
+    font-family: var(--font-mono);
+    font-feature-settings: normal;
+    font-size: var(--step--2);
+    letter-spacing: 0;
+    color: var(--muted-foreground);
+  }
+
+  /* The type and scope, set before the subject as a small tag. */
+  i {
+    margin-inline-end: var(--space-2xs);
+    padding: 0.1em 0.4em;
+    white-space: nowrap;
+    border-radius: var(--radius-sm);
+    background-color: var(--muted);
+  }
+
+  /* A row still on its way holds its place with a bar the length of
+     a typical subject; it does not shimmer. */
+  [data-pending] span {
+    inline-size: 60%;
+    block-size: 0.75rem;
+    align-self: center;
+    border-radius: var(--radius-xs);
+    background-color: var(--muted);
+  }
+}
+
+.commits-note {
+  padding-block: var(--space-xs);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+  border-block-start: var(--hairline) solid var(--border-strong);
+
+  a {
+    --underline: var(--border-strong);
+  }
+}
+}
