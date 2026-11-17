@@ -47,6 +47,13 @@ services:
       DATABASE_URL: postgresql://affine:${AFFINE_DB_PASSWORD}@affine-postgres:5432/affine
       AFFINE_INDEXER_ENABLED: "false"
       TZ: Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3010/info').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      start_interval: 5s
 
   affine-migration:
     container_name: affine-migration
@@ -68,9 +75,11 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
+      start_period: 60s
+      start_interval: 5s
 
   affine-postgres:
     container_name: affine-postgres
@@ -85,9 +94,11 @@ services:
       - /srv/affine/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "affine", "-d", "affine"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:

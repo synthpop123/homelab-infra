@@ -47,10 +47,11 @@ services:
       TRUST_PROXY: "1"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
-      interval: 30s
+      interval: 60s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:

@@ -31,6 +31,11 @@ services:
       UPLOAD_LOCATION: /app/uploads
       BODY_SIZE_LIMIT: 20M
       TZ: Asia/Shanghai
+    # The image's own probe, at this repo's interval.
+    healthcheck:
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
 
   airtrail-postgres:
     container_name: airtrail-postgres
@@ -44,9 +49,11 @@ services:
       - /srv/airtrail/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U airtrail -d airtrail"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:

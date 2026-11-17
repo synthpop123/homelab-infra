@@ -52,6 +52,13 @@ services:
     dns:
       - 8.8.8.8
       - 1.1.1.1
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:3000/up"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      start_interval: 5s
 
   sure-worker:
     container_name: sure-worker
@@ -103,9 +110,11 @@ services:
       - /srv/sure/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sure_user -d sure_production"]
-      interval: 30s
+      interval: 60s
       timeout: 5s
       retries: 5
+      start_period: 60s
+      start_interval: 5s
 
   sure-redis:
     container_name: sure-redis
@@ -115,9 +124,11 @@ services:
       - /srv/sure/redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
+      interval: 60s
       timeout: 5s
       retries: 5
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:
