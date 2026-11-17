@@ -24,6 +24,13 @@ services:
       - /srv/deeix-chat/data:/app/data
       - /srv/deeix-chat/config.yaml:/app/config.yaml:ro
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /healthz HTTP/1.0\\r\\n\\r\\n' >&3 && head -n 1 <&3 | grep -q ' 200 '"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      start_interval: 5s
 
   postgres:
     container_name: deeix-chat-postgres
@@ -38,10 +45,11 @@ services:
       - /srv/deeix-chat/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-      interval: 30s
+      interval: 60s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 60s
+      start_interval: 5s
     restart: unless-stopped
 
   redis:
@@ -52,10 +60,11 @@ services:
       - /srv/deeix-chat/redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${DEEIX_REDIS_PASSWORD}", "ping"]
-      interval: 30s
+      interval: 60s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 60s
+      start_interval: 5s
     restart: unless-stopped
 
 networks:

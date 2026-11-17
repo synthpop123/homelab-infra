@@ -37,10 +37,11 @@ services:
     healthcheck:
       # The image has no wget/curl, so the probe speaks HTTP through bash's /dev/tcp (upstream's).
       test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8317 && printf 'GET /healthz HTTP/1.0\\r\\n\\r\\n' >&3 && head -n 1 <&3 | grep -q ' 200 '"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 3
-      start_period: 5s
+      start_period: 60s
+      start_interval: 5s
     restart: unless-stopped
 
   oh-my-cpa:
@@ -75,6 +76,11 @@ services:
     volumes:
       - /srv/cliproxyapi/omc-data:/data
     restart: unless-stopped
+    # The image's own probe, at this repo's interval.
+    healthcheck:
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
 
   # Applies the updates OMC's System Information page offers: pulls the new image and recreates
   # oh-my-cpa / cli-proxy-api with the same config, rolling back if the replacement is unhealthy.
@@ -94,6 +100,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
+    # The image's own probe, at this repo's interval.
+    healthcheck:
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   # Name the project network explicitly to avoid the auto-generated "<project>_default".

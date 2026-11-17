@@ -32,6 +32,13 @@ services:
       # BitTorrent listen port — unchanged (tcp + udp).
       - "65231:65231/tcp"
       - "65231:65231/udp"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:8081/"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      start_interval: 5s
 
   qui:
     container_name: qui
@@ -44,6 +51,11 @@ services:
       - "20020:7476/tcp"
     volumes:
       - /srv/torrent/qui/config:/config
+    # The image's own probe, at this repo's interval.
+    healthcheck:
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:

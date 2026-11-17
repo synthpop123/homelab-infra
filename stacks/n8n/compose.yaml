@@ -31,6 +31,13 @@ services:
       N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
       GENERIC_TIMEZONE: Asia/Shanghai
       VUE_APP_URL_BASE_API: ${N8N_URL_BASE_API}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:5678/healthz"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      start_interval: 5s
 
   n8n-postgres:
     container_name: n8n-postgres
@@ -44,9 +51,11 @@ services:
       - /srv/n8n/postgres:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U n8n -d n8n"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:

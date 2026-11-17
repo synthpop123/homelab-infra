@@ -22,6 +22,13 @@ services:
     volumes:
       - /srv/cloudreve/backend_data:/cloudreve/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:5212/api/v4/site/ping"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      start_interval: 5s
 
   postgresql:
     container_name: cloudreve-postgresql
@@ -38,10 +45,11 @@ services:
       - /srv/cloudreve/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-      interval: 30s
+      interval: 60s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 60s
+      start_interval: 5s
     restart: unless-stopped
 
   redis:
@@ -51,10 +59,11 @@ services:
       - /srv/cloudreve/redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
+      interval: 60s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 60s
+      start_interval: 5s
     restart: unless-stopped
 
 networks:

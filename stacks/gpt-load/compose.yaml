@@ -19,10 +19,11 @@ services:
       - /srv/gpt-load/data:/app/data
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "-T", "10", "-O", "/dev/null", "http://localhost:3001/health"]
-      interval: 30s
+      interval: 60s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
+      start_interval: 5s
     stop_grace_period: 15s
     restart: unless-stopped
 

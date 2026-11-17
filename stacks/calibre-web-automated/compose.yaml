@@ -13,6 +13,11 @@ services:
       - /srv/calibre-web-automated/ingest:/cwa-book-ingest
       - /srv/calibre-web-automated/library:/calibre-library
     restart: unless-stopped
+    # The image's own probe, at this repo's interval.
+    healthcheck:
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:

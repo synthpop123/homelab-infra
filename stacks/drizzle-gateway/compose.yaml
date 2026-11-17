@@ -18,6 +18,11 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped
+    # The image's own probe, at this repo's interval.
+    healthcheck:
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   # Name the project network explicitly to avoid the auto-generated "<project>_default".

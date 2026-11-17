@@ -34,6 +34,11 @@ services:
       OCR_LANGS: chi_sim,eng
       INFERENCE_ENABLE_AUTO_SUMMARIZATION: "true"
       INFERENCE_LANG: Simplified Chinese
+    # The image's own probe, at this repo's interval.
+    healthcheck:
+      interval: 60s
+      start_period: 60s
+      start_interval: 5s
 
   karakeep-chrome:
     container_name: karakeep-chrome
@@ -46,6 +51,13 @@ services:
       - --remote-debugging-address=0.0.0.0
       - --remote-debugging-port=9222
       - --hide-scrollbars
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9222/json/version"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      start_interval: 5s
 
   karakeep-meilisearch:
     container_name: karakeep-meilisearch
@@ -56,6 +68,13 @@ services:
       MEILI_NO_ANALYTICS: "true"
     volumes:
       - /srv/karakeep/meilisearch:/meili_data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:7700/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:

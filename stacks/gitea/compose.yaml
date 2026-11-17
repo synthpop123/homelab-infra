@@ -30,6 +30,13 @@ services:
       # host:container — HTTP from the registry (see docs/ports.md); SSH host port 222 -> 22
       - "20018:3000/tcp"
       - "222:22/tcp"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:3000/api/healthz"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      start_interval: 5s
 
   gitea-postgres:
     container_name: gitea-postgres
@@ -43,9 +50,11 @@ services:
       - /srv/gitea/postgres:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U gitea -d gitea"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
+      start_period: 60s
+      start_interval: 5s
 
 networks:
   default:
