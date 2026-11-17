@@ -74,10 +74,6 @@ The `/opt` → stacks migration is **complete**: no compose-managed services rem
 
 ## Known state / pending
 
-- **Reboot pending** — kernel `6.1.0-54` installed, `-52` still running (last reboot 2026-08).
-  A reboot picks up the new kernel; containers come back via `restart: unless-stopped`, the
-  firewall re-applies, clouddrive2 remounts FUSE (see
-  [operations.md → Reboot](./operations.md#reboot)).
 - **Swap 1 GiB is ~full** (`swappiness=10`) while RAM has headroom — stale pages, harmless.
   Add a swapfile only if OOM ever shows up.
 - **Manual upgrades queued** — docker-ce / compose-plugin / containerd (+ a few
