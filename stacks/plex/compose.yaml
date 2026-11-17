@@ -17,11 +17,12 @@
 # Amane-organized trees (STRM + NFO + posters per number dir, links to Muvyo's 302) as "Plex NFO Movie"
 # agent libraries (PMS >= 1.43.1). Plex's own config/database lives in /srv/plex/config.
 #
-# Media info: Cirvel's "媒体信息文件位置" is /{parentFolderPath}/ — the <strm-name>-mediainfo.json next
-# to each .strm (Muvyo writes them for Movie/TV) — so Cirvel fills media
-# info without probing the netdisk. Its "生成媒体信息文件" is on with "也写入其他工具…" off: Japan and
-# Western are writable so Cirvel writes the json there (Amane writes none); every other tree stays
-# read-only, so Cirvel never races Muvyo, the only writer of Movie/TV.
+# Media info: Cirvel owns the <strm-name>-mediainfo.json next to each .strm in all four trees
+# ("媒体信息文件位置" /{parentFolderPath}/, "生成媒体信息文件" on): it probes a new STRM when Plex
+# scans it in, writes the json, and backfills missing ones in its maintenance window — so every
+# tree is mounted writable. Nothing else writes these files any more (Muvyo's came from Vyo's
+# library scan, off since Vyo holds no library; Amane writes none). "也写入其他工具…" stays off, so
+# the json Muvyo/Emby left behind are read as they are and never rewritten.
 #
 # Tautulli monitors Plex; point it at http://172.22.0.7:32400 (or plex:32400 in-network). Config lives
 # in /srv/plex/tautulli/config. Fronted by https://tautulli.lkwplus.com (reverse proxy off-repo).
@@ -68,8 +69,8 @@ services:
       - PLEX_CLAIM=${PLEX_CLAIM}
     volumes:
       - /srv/plex/config:/config
-      - /srv/emby/data/Movie:/data/Movie:ro
-      - /srv/emby/data/TV:/data/TV:ro
+      - /srv/emby/data/Movie:/data/Movie
+      - /srv/emby/data/TV:/data/TV
       - /srv/emby/data/Japan:/data/Japan
       - /srv/emby/data/Western:/data/Western
     ports:

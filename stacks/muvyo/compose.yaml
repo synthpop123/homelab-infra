@@ -44,8 +44,8 @@ services:
       - /srv/muvyo/data:/opt          # config / cache / logs (vault.ini, plugins, …)
       - /srv/muvyo/strm:/strm         # STRM staging (full regenerations land here first)
       # Shared library, at the same /data path Plex sees it (Cirvel matches Muvyo-made
-      # STRM by path). Read-only, except Movie/TV: Muvyo is the only writer of those two trees
-      # (STRM, subtitles, Vyo's -mediainfo.json). Japan/Western are Amane-owned and writable only so
+      # STRM by path). Read-only, except Movie/TV: Muvyo writes the STRM and subtitles of those
+      # two trees (the -mediainfo.json beside them are Cirvel's, stacks/plex). Japan/Western are Amane-owned and writable only so
       # the STRM-only 115 life-event rules /Japan, /Porn can drop a STRM when its video is deleted in
       # the 115 app (docs/media.md).
       - /srv/emby/data:/data:ro

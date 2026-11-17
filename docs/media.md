@@ -4,8 +4,8 @@ A cloud-storage (115) media library served without keeping the files on disk. Th
 is split by owner:
 
 - **Movie / TV** — **muvyo** owns them end to end: uploads finished downloads to 115,
-  organizes them, writes the `.strm` + `-mediainfo.json` trees, and serves the 302 links.
-  Watched with **Plex** (via Cirvel). **Vyo**, Muvyo's own player, stays deployed but holds no
+  organizes them, writes the `.strm` trees, and serves the 302 links. Watched with **Plex**
+  (via Cirvel), which adds the `-mediainfo.json`. **Vyo**, Muvyo's own player, stays deployed but holds no
   library since 2026-11.
 - **JAV / Porn** — **Amane** owns them: it organizes the videos on 115 (`/Japan`, `/Porn`) and
   writes `.strm` + NFO + images to `/srv/emby/data/{Japan,Western}`; Cirvel adds the
@@ -28,11 +28,11 @@ qBittorrent completed/{Movie,TV}            115 netdisk
   └──────────────► 115 /Movie, /TV ◄──────────┤
                         │ 115 life events      │
                         ▼                      │
-  muvyo ─► .strm + -mediainfo.json ─► /srv/emby/data/{Movie,TV}
+  muvyo ─► .strm ─► /srv/emby/data/{Movie,TV}
                         │                      │
                         │ amane ─► .strm/nfo ──┴─► /srv/emby/data/{Japan,Western}
                         ▼     (muvyo life events: deletes)
-  plex (Cirvel)  reads Movie/TV ro, Japan (JAV), Western (Porn)
+  plex (Cirvel)  reads all four trees, writes -mediainfo.json beside each .strm
 
   playback: the client follows a 302 to the real 115 download link, served by muvyo for
   every live tree (Movie, TV, Japan, Western); no media bytes transit this host
@@ -111,11 +111,13 @@ cleanup for good. Both timers' scripts, units and the stop runbook:
 [`bootstrap/media/`](../bootstrap/media/).
 
 Plex mounts subtrees of `/srv/emby/data`: 电影 → `/data/Movie` and 电视节目 → `/data/TV` are
-ordinary online-agent libraries (zh-CN, read-only mounts); JAV → `/data/Japan` is a "Plex NFO
-Movie" library on Amane's NFOs, and Porn → `/data/Western` (section 7) the same. Cirvel reads the `-mediainfo.json` next to each `.strm`
-(media-info path `/{parentFolderPath}/`), so nothing probes the netdisk; where none exists it
-analyzes the `.strm` itself and, for the Amane trees (`/data/Japan`, `/data/Western`, the only
-writable Plex mounts), writes the json there ("生成媒体信息文件" on, "也写入其他工具…" off). The Plex-side tooling is scoped to those two libraries anyway: kometa's
+ordinary online-agent libraries (zh-CN); JAV → `/data/Japan` is a "Plex NFO
+Movie" library on Amane's NFOs, and Porn → `/data/Western` (section 7) the same. Cirvel owns the `-mediainfo.json` next to each `.strm`
+(media-info path `/{parentFolderPath}/`) in all four trees, which is why every Plex mount is
+writable: with "生成媒体信息文件" on it probes a new `.strm` when Plex scans it in, writes the json,
+and backfills missing ones in its maintenance window; afterwards nothing probes the netdisk.
+"也写入其他工具…" stays off, so the json left by earlier writers (Emby, Vyo's library scan — both
+gone since 2026-11) are read but never rewritten. Neither muvyo nor Amane writes these files. The Plex-side tooling is scoped to 电影/电视节目: kometa's
 config whitelists only 电影/电视节目, letterboxd-plex-sync is pinned with
 `PLEX_LIBRARY_NAME=电影` (compose), and the local plex-metadata-fixer tool sets
 `PLEX_LIBRARIES=电影,电视节目` in its `.env`. Plex is the only media server registered in muvyo
@@ -162,7 +164,7 @@ then redeploy the member stacks.
 | Path | Written by | Read by |
 |------|-----------|---------|
 | `/mnt/CloudNAS/115` (FUSE) | clouddrive2 | amane |
-| `/srv/emby/data/{Movie,TV}` | muvyo (.strm, subtitles, `-mediainfo.json`) | plex (ro) |
+| `/srv/emby/data/{Movie,TV}` | muvyo (.strm, subtitles), plex/Cirvel (`-mediainfo.json`) | plex |
 | `/srv/emby/data/{Japan,Western}` | amane (.strm, nfo/jpg), muvyo (life-event .strm/deletes), plex/Cirvel (`-mediainfo.json`) | plex |
 | `/srv/torrent/qbittorrent/completed` | qBittorrent | muvyo (uploads to 115) |
 
