@@ -284,6 +284,17 @@ export function load(): { catalog: Catalog; problems: string[] } {
       fail("the source-build tag must match whether a service has build:")
     if (builds !== strings(config.extra_args).includes("--build"))
       fail('extra_args must be ["--build"] exactly when a service has build:')
+    // ghcr.io throttles anonymous pulls (429 toomanyrequests), so Komodo logs in first.
+    const ghcr = entries.some(([, service]) =>
+      String(service.image ?? "").startsWith("ghcr.io/"),
+    )
+    if (
+      ghcr !==
+      (config.registry_provider === "ghcr.io" && !!config.registry_account)
+    )
+      fail(
+        'registry_provider = "ghcr.io" + registry_account exactly when an image is on ghcr.io',
+      )
 
     // Secrets: every ${VAR} the compose reads is one Komodo writes.
     const env = new Set(

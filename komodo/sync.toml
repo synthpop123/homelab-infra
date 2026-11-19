@@ -83,6 +83,8 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/deeix-chat"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # Postgres/Redis passwords come from Komodo Variables, kept out of git. The compose references
 # ${DEEIX_POSTGRES_PASSWORD} / ${DEEIX_REDIS_PASSWORD}; Komodo writes them into .env at deploy.
 environment = """
@@ -101,6 +103,8 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/drizzle-gateway"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # MASTERPASS comes from a Komodo Variable; the compose references ${DRIZZLE_GATEWAY_MASTERPASS}.
 environment = """
 DRIZZLE_GATEWAY_MASTERPASS=[[DRIZZLE_GATEWAY_MASTERPASS]]
@@ -154,6 +158,8 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/opengist"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # No secrets in compose: opengist's instance key + SQLite DB live in the /srv data dir.
 
 [[stack]]
@@ -184,6 +190,8 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/immich"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # Immich reads DB settings from .env (env_file in the compose). Komodo writes that file at
 # deploy; only DB_PASSWORD is secret (a Komodo Variable), the rest are non-sensitive defaults.
 environment = """
@@ -218,6 +226,8 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/karakeep"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # Auth/search/OpenAI secrets + personal URLs come from Komodo Variables; compose has placeholders.
 environment = """
 KARAKEEP_NEXTAUTH_SECRET=[[KARAKEEP_NEXTAUTH_SECRET]]
@@ -273,6 +283,8 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/seerr"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # Dedicated bundled Postgres (migrated off the shared instance); DB password via Komodo Variable.
 # Stays on the external mediacenter-net (see compose.yaml).
 environment = """
@@ -324,6 +336,8 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/mastodon"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # Mastodon reads all app config from .env.production (env_file in the compose). Komodo writes
 # that file into the run directory at deploy from the `environment` below, resolving [[VAR]]
 # placeholders from Komodo Variables. Non-sensitive values are inline; secrets and personal
@@ -384,6 +398,8 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/torrent"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # No secrets in compose: the qBittorrent WebUI credentials live in /srv/torrent/qbittorrent/config
 # and qui's instance config (incl. the encrypted qBittorrent password) in /srv/torrent/qui/config.
 # Own `torrent` network. autobrr is its own stack (IRC/RSS + notify) and isn't wired to qBittorrent.
@@ -399,6 +415,8 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/amane"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # JAV scraper + organizer replacing mdc. Libraries live on the 115 mount (/mnt/CloudNAS → /media,
 # rslave); link_template writes STRM/NFO/images into the shared /srv/emby/data (/data). The API
 # token is auto-generated into /srv/amane/data, LLM keys are entered in the UI. Bundled Postgres
@@ -422,6 +440,8 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/autobrr"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # `autobrr-notify` is built locally from ./notify, so the deploy runs `docker compose up --build`.
 extra_args = ["--build"]
 # TMDB key + Telegram bot token/channel id for the notify sidecar are Komodo Variables; the compose
@@ -443,6 +463,8 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/umami"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # Fresh install with a dedicated bundled Postgres. The DB password + APP_SECRET come from Komodo
 # Variables; the compose references ${UMAMI_DB_PASSWORD} / ${UMAMI_APP_SECRET}.
 environment = """
@@ -493,6 +515,8 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/miaomiaowu"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # No compose secrets: SQLite traffic.db, subscribes and rule_templates live in /srv/miaomiaowu/.
 # Image tracks `latest` because the app self-updates in place into /app/data/server (docs/conventions.md).
 
@@ -507,6 +531,8 @@ server = "Famesystems"
 linked_repo = "homelab-infra"
 run_directory = "stacks/plex"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # `letterboxd-plex-sync` is built locally from ./letterboxd-sync (upstream image + Cloudflare
 # TLS-fingerprint patch), so the deploy runs `docker compose up --build`.
 extra_args = ["--build"]
@@ -536,6 +562,8 @@ server = "Oracle-Arm"
 linked_repo = "homelab-infra"
 run_directory = "stacks/multica"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # First stack on the arm host (aarch64 — images are multi-arch). Secrets are Komodo Variables:
 # JWT + bundled Postgres password (generated), Resend API key, GitHub App webhook secret and
 # the App's RSA private key. The PEM is stored \n-escaped on a single line; compose's .env
@@ -582,6 +610,8 @@ server = "Oracle-Arm"
 linked_repo = "homelab-infra"
 run_directory = "stacks/sure"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # Self-hosted personal finance on the arm host (image is multi-arch incl. linux/arm64).
 # Bundled Postgres + Redis; only the web service publishes a loopback port for host Caddy.
 # Active Record encryption keys: `docker exec sure bin/rails db:encryption:init` on first setup.
@@ -721,6 +751,8 @@ server = "Oracle-Arm"
 linked_repo = "homelab-infra"
 run_directory = "stacks/affine"
 file_paths = ["compose.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "synthpop123"
 # Docs/whiteboard workspace on the arm host (image is multi-arch incl. linux/arm64). Server +
 # one-shot migration job + bundled Postgres (pgvector) + Redis; only the server publishes a
 # loopback port for host Caddy. App settings (incl. the silo S3 key for blobs) live off-git in

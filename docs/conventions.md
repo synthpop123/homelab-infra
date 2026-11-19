@@ -28,6 +28,13 @@
   and Redis as `name:major@sha256:...`. Renovate tracks digest changes within the same tag,
   so merging the update changes `compose.yaml` and triggers Komodo's deploy-if-changed flow.
   A pull alone never switches an existing container to the new image.
+- **ghcr.io pulls are authenticated:** anonymous pulls get throttled (`429 toomanyrequests`
+  mid-pull fails the deploy and leaves the old container running — immich hit it repeatedly).
+  A stack with any `ghcr.io/` image sets `registry_provider = "ghcr.io"` and
+  `registry_account = "synthpop123"` in its `[stack.config]`; Komodo then `docker login`s with
+  the token stored under Settings → Providers (a `read:packages` PAT) before pulling. The lint
+  gate requires the pair exactly when a ghcr image is present. The host's own
+  `/root/.docker/config.json` is **not** used: Periphery runs in a container without it.
 
 ## Ports
 - Host ports are allocated sequentially from `20000`, one per published service.
