@@ -483,19 +483,6 @@ CPA_TRUSTED_PROXY_CIDRS=[[CPA_TRUSTED_PROXY_CIDRS]]
 """
 
 [[stack]]
-name = "gpt-load"
-description = "https://gptload.lkwplus.com"
-deploy = false
-tags = ["app", "host-fame"]
-
-[stack.config]
-server = "Famesystems"
-linked_repo = "homelab-infra"
-run_directory = "stacks/gpt-load"
-file_paths = ["compose.yaml"]
-# No compose secrets: SQLite, auth.key and encryption.key live in /srv/gpt-load/data.
-
-[[stack]]
 name = "miaomiaowu"
 description = "https://miaomiaowu.lkwplus.com"
 deploy = false

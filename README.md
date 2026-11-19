@@ -77,7 +77,6 @@ not directly reachable from the internet (see [Networking](#networking--security
 | [bark](./stacks/bark) | [bark.lkwplus.com](https://bark.lkwplus.com) | 20028 | Push notifications |
 | [cliproxyapi](./stacks/cliproxyapi) | [cpa.lkwplus.com](https://cpa.lkwplus.com) | 20029 / 20042 | AI API proxy, Oh My CPA console at `/omc/` |
 | [plex](./stacks/plex) | [plex.lkwplus.com](https://plex.lkwplus.com) / [tautulli.lkwplus.com](https://tautulli.lkwplus.com) | 20031 / 20033 | Plex via Cirvel (STRM direct play), Tautulli, Kometa, Letterboxd sync |
-| [gpt-load](./stacks/gpt-load) | [gptload.lkwplus.com](https://gptload.lkwplus.com) | 20035 | AI API proxy |
 | [muvyo](./stacks/muvyo) | [muvyo.lkwplus.com](https://muvyo.lkwplus.com) / [vyo.lkwplus.com](https://vyo.lkwplus.com) | 20038 / 20039 | Movie/TV pipeline (115 upload, organize, STRM, 302) and the Vyo player |
 | [amane](./stacks/amane) | [amane.lkwplus.com](https://amane.lkwplus.com) | 20041 | JAV scraper and organizer on the 115 mount |
 | [miaomiaowu](./stacks/miaomiaowu) | [miaomiaowu.lkwplus.com](https://miaomiaowu.lkwplus.com) | 20043 | Proxy subscription manager |
