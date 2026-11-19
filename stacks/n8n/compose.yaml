@@ -41,7 +41,7 @@ services:
 
   n8n-postgres:
     container_name: n8n-postgres
-    image: postgres:18-alpine@sha256:6c538e7206ea40ff740ef27883529390a690b6ead6ba96b44c67a9f7c638e8fd
+    image: postgres:18-alpine@sha256:ff64c9e3bdf8e2120107d3559de8db314e8305f7e38c5105903c6295876738ff
     restart: unless-stopped
     environment:
       POSTGRES_DB: n8n
