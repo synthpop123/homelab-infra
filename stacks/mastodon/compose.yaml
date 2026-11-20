@@ -81,7 +81,7 @@ services:
 
   web:
     container_name: mastodon-web
-    image: ghcr.io/mastodon/mastodon:v4.7.5
+    image: ghcr.io/mastodon/mastodon:v4.7.6
     restart: unless-stopped
     env_file: .env.production
     command: bundle exec puma -C config/puma.rb
@@ -105,7 +105,7 @@ services:
 
   streaming:
     container_name: mastodon-streaming
-    image: ghcr.io/mastodon/mastodon-streaming:v4.7.5
+    image: ghcr.io/mastodon/mastodon-streaming:v4.7.6
     restart: unless-stopped
     env_file: .env.production
     command: node ./streaming/index.js
@@ -126,7 +126,7 @@ services:
 
   sidekiq:
     container_name: mastodon-sidekiq
-    image: ghcr.io/mastodon/mastodon:v4.7.5
+    image: ghcr.io/mastodon/mastodon:v4.7.6
     restart: unless-stopped
     env_file: .env.production
     command: bundle exec sidekiq
