@@ -8,7 +8,7 @@
 set -euo pipefail
 
 # renovate: datasource=github-releases depName=komari-monitor/komari
-KOMARI_VERSION="1.6.1"
+KOMARI_VERSION="1.6.2"
 
 dir=/opt/komari
 repo=komari-monitor/komari
