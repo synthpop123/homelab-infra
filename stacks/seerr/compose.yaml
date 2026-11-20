@@ -43,7 +43,7 @@ services:
 
   seerr-postgres:
     container_name: seerr-postgres
-    image: postgres:18-alpine
+    image: postgres:19-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: seerr
