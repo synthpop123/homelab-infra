@@ -97,9 +97,9 @@ has a captcha, so nothing logs in by itself: the Komodo procedure **JavDB Keepal
 10:00) runs the one-shot `javdb-keepalive` job, which makes one logged-in request and writes the
 renewed `_jdb_session` back into Amane's config, and sends Telegram when the cookie has died. Then
 log in on javdb.com with 「记住我」 ticked (that is what sets `remember_me_token`, which keeps the
-session renewable) and paste the cookies into Amane's javdb site settings. JavDB also logs the
-account out by itself (clears `remember_me_token`) after a burst — ~60 titles' pages in 10 minutes
-did it on 2026-11-21 — so any bulk rescrape reuses the stored JavDB snapshots (metadata cache) and
+session renewable) and paste the cookies into Amane's javdb site settings. JavDB also suspends
+the account for 24 h when it browses "far faster than a normal user" (帳號已被臨時停用; the cookie
+stops working at once) — ~60 titles' pages in 10 minutes did it on 2026-11-21 — so any bulk rescrape reuses the stored JavDB snapshots (metadata cache) and
 sends rows without one through JavDB slowly, with actor auto-scrape off (actor pages hit JavDB too).
 
 Fixing a ❌ or a wrong 🔴, either way:
