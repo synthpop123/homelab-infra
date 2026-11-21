@@ -22,7 +22,7 @@ This doc is the topology — each stack's compose has the per-service detail.
 ## Flow
 
 ```
-qBittorrent completed/{Movie,TV}            115 netdisk
+qBittorrent completed/                      115 netdisk
   │ muvyo directory monitor                   │ FUSE mount /mnt/CloudNAS/115
   │ (copy-upload, organize, keep seeding)     │ (clouddrive2 — host-networked, privileged)
   └──────────────► 115 /Movie, /TV ◄──────────┤
@@ -38,14 +38,20 @@ qBittorrent completed/{Movie,TV}            115 netdisk
   every live tree (Movie, TV, Japan, Western); no media bytes transit this host
 ```
 
-**Getting new Movie/TV in:** download in qBittorrent — the default save path is
-`completed/Movie`; pick the `TV` category for series (categories set the path, so automatic
-torrent management stays on). Two muvyo directory-monitor rules upload `Movie` → 115 `/Movie`
-and `TV` → 115 `/TV` (copy, so qB keeps seeding). Anything offline-downloaded or saved
-straight into 115 goes under `/Others/待整理/{Movie,TV}`, which muvyo's 115 life events
-organize the same way; edits made in the 115 app under `/Movie`, `/TV` are mirrored into the
-STRM tree. The organize target is never the 115 root — muvyo fails with `Cloud path not
-found:` there.
+**Getting new Movie/TV in:** download in qBittorrent with no category — the default save path
+is `completed/` (incomplete torrents sit in the temp path, so only finished ones show up there).
+One muvyo directory-monitor rule, `qB→115`, watches all of `completed/` (copy, so qB keeps
+seeding), targets the 115 root `/` with the primary category on and the secondary off, and lets
+recognition decide: movies land in `/Movie/<title> (year) {tmdb-id}/`, series in
+`/TV/<show> (year) {tmdb-id}/S01/`, with the STRM under `/data`. The old `Movie`/`TV` qB
+categories still exist for torrents added before 2026-11-22 and are no longer needed; deleting one
+relocates its torrents (automatic torrent management), which the monitor would see as new files.
+A root target needs muvyo 3.14.8-beta4 or later — earlier versions failed every file there. The
+rule's local orphan cleanup removes subfolders of `completed/` that hold no finished file (it
+deleted the emptied `completed/TV`); qB recreates a save path when a torrent finishes.
+Anything offline-downloaded or saved straight into 115 goes under `/Others/待整理/{Movie,TV}`,
+which muvyo's 115 life events organize the same way; edits made in the 115 app under `/Movie`,
+`/TV` are mirrored into the STRM tree.
 
 **Getting new JAV/Porn in:** put the video (or the whole download folder) under 115
 `/Others/待整理/JAV` or `/Others/待整理/Porn`. The Komodo procedure **Media Intake** runs the
