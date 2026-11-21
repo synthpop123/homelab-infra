@@ -88,7 +88,16 @@ nothing: press 整理 on the row afterwards. A row Plex still shows stale gets �
 Covers skip JavDB where they can: its cover images carry a watermark, so `field_priority` puts
 `poster_urls` / `thumb_urls` on JavBus and the other sites first (Amane config `scraping.field_priority`), and JavDB
 stays the last fallback while it still leads the text fields. Amateur titles get no poster cropped
-from the cover; where no site has one, patch `poster_urls` (e.g. MGStage's `pf_o1_…jpg`).
+from the cover; where no site has one, patch `poster_urls` (e.g. MGStage's `pf_o1_…jpg`). MGStage
+and DMM refuse non-Japanese IPs (fame and arm both get 403), so as sources they need a per-site
+Japan proxy (`site_config.<site>.proxy`); their image CDN is open.
+
+**JavDB login.** JavDB needs a logged-in cookie (FC2 detail pages, fewer blocks). Its login form
+has a captcha, so nothing logs in by itself: the Komodo procedure **JavDB Keepalive** (Mondays
+10:00) runs the one-shot `javdb-keepalive` job, which makes one logged-in request and writes the
+renewed `_jdb_session` back into Amane's config, and sends Telegram when the cookie has died. Then
+log in on javdb.com with 「记住我」 ticked (that is what sets `remember_me_token`, which keeps the
+session renewable) and paste the cookies into Amane's javdb site settings.
 
 Fixing a ❌ or a wrong 🔴, either way:
 

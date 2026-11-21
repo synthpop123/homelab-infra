@@ -422,7 +422,7 @@ registry_account = "synthpop123"
 # token is auto-generated into /srv/amane/data, LLM keys are entered in the UI. Bundled Postgres
 # (r18.dev offline source) — its superuser password is a Komodo Variable — plus an internal-only
 # flaresolverr (container amane-flaresolverr, reached in-network at flaresolverr:8191). The Telegram
-# pair is for the amane-intake job's run report.
+# pair is for the amane-intake run report and the javdb-keepalive alert.
 environment = """
 AMANE_DB_PASSWORD=[[AMANE_DB_PASSWORD]]
 TELEGRAM_TOKEN=[[TELEGRAM_TOKEN]]
@@ -925,4 +925,24 @@ schedule_alert = false
 name = "Run the intake job"
 executions = [
   { execution.type = "DeployStack", execution.params.stack = "amane", execution.params.services = ["amane-intake"] },
+]
+
+# JavDB login keepalive (stacks/amane/intake/javdb-keepalive.py): writes the renewed session cookie back
+# into Amane, or tells Telegram the cookie is dead. Weekly; the job alerts on its own, so no schedule alert.
+[[procedure]]
+name = "JavDB Keepalive"
+description = "Refresh Amane's JavDB session cookie; Telegram when it has expired."
+
+[procedure.config]
+webhook_enabled = false
+schedule_format = "Cron"
+schedule = "0 0 10 * * 1"
+schedule_timezone = "Asia/Shanghai"
+schedule_enabled = true
+schedule_alert = false
+
+[[procedure.config.stage]]
+name = "Run the keepalive job"
+executions = [
+  { execution.type = "DeployStack", execution.params.stack = "amane", execution.params.services = ["javdb-keepalive"] },
 ]

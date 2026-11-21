@@ -98,6 +98,27 @@ services:
       - /mnt/CloudNAS:/media:rslave
       - ./intake:/intake:ro
 
+  # One-shot JavDB login keepalive (intake/javdb-keepalive.py): one logged-in request, the renewed session
+  # cookie PATCHed into Amane's config; a dead cookie (login needs a captcha, so no auto re-login) goes to
+  # Telegram. Komodo's "JavDB Keepalive" procedure runs it weekly, like amane-intake above.
+  javdb-keepalive:
+    container_name: javdb-keepalive
+    image: ghcr.io/sqzw-x/amane:0.28.0
+    profiles: ["keepalive"]
+    restart: "no"
+    user: "1000:1000"
+    command: ["python", "/intake/javdb-keepalive.py"]
+    depends_on:
+      amane:
+        condition: service_healthy
+    environment:
+      - TZ=Asia/Shanghai
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+    volumes:
+      - /srv/amane/data/token:/token:ro
+      - ./intake:/intake:ro
+
   flaresolverr:
     container_name: amane-flaresolverr
     image: ghcr.io/flaresolverr/flaresolverr:v3.5.2
