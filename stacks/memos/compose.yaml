@@ -28,7 +28,7 @@ services:
 
   memos-postgres:
     container_name: memos-postgres
-    image: postgres:18-alpine
+    image: postgres:19-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: memos
