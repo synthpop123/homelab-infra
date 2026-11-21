@@ -53,8 +53,8 @@ one-shot `amane-intake` job daily at 08:30 — or press *Run* for an on-demand i
 videos into the library's `_inbox`, scrapes (JAV: the usual content routes; Porn: ThePornDB on a
 `Studio.YY.MM.DD` number taken from the file name, so scene-release names like
 `blackedraw.25.10.28.name` work), organizes, and Plex picks the new `.strm` up by itself. Amane's
-own library automation stays off — without a CloudDrive2 membership (webhook) it would have to
-walk the whole tree on 115. Rename an organized file only in Amane, never in the 115 app (a rename
+own library automation (watching for new files) stays off — without a CloudDrive2 membership
+(webhook) it would have to walk the whole tree on 115. Rename an organized file only in Amane, never in the 115 app (a rename
 leaves a dead STRM). Plex skips each tree's `_inbox`, where
 muvyo's life events give every file moved in a STRM and then ask Plex to scan that folder alone: a
 `.plexignore` at `/srv/emby/data/{Japan,Western}` (`_inbox/*`) covers full scans, and one inside
@@ -78,18 +78,30 @@ does not mean a right match**: Amane only needs the number it read from the name
 | ❌ | Not in the library: the file stays in `/Japan/_inbox` or `/Porn/_inbox`, retried every run. "目标已存在" means a duplicate of a film already organized: delete the extra file |
 | ⚠️ | Still in `/Others/待整理`: 30 MB or more but under the size floor, or a same-named file already in `_inbox`. Smaller files are taken for ads and not reported |
 
+**Scrape vs organize.** A scrape only changes Amane's database; the NFO, images and STRM in
+`/srv/emby/data` are written by 整理 (organize), which rewrites them in place for a file already
+organized. Both libraries have **自动整理** (`auto_organize`) on, so a scrape of a library row (the
+↻ button at the end of the row, 批量刮削, 指定番号刮削 on the row) organizes that one file right after, and Plex picks
+the rewritten files up. A scrape by number alone (from the 影片 page) has no file and organizes
+nothing: press 整理 on the row afterwards. A row Plex still shows stale gets 刷新元数据 in Plex.
+
+Covers skip JavDB where they can: its cover images carry a watermark, so `field_priority` puts
+`poster_urls` / `thumb_urls` on JavBus and the other sites first (Amane config `scraping.field_priority`), and JavDB
+stays the last fallback while it still leads the text fields. Amateur titles get no poster cropped
+from the cover; where no site has one, patch `poster_urls` (e.g. MGStage's `pf_o1_…jpg`).
+
 Fixing a ❌ or a wrong 🔴, either way:
 
-- **Amane UI:** 指定番号刮削 with the right number. For a ❌, the next run organizes it (a row
-  scraped by hand is not re-read from its file name), or press 整理 now. A wrong 🔴 is already in
-  the library, so press 整理 yourself to move it.
+- **Amane UI:** 指定番号刮削 on the row with the right number; auto-organize then moves it (a ❌
+  out of `_inbox`, a wrong 🔴 to its new folder). A row scraped by hand is not re-read from its
+  file name by later intakes.
 - **115 app, ❌ only:** rename the file in `_inbox` to the number, then *Run* Media Intake. The old
   row goes away by itself.
 
 A number can also be right while the merged metadata is wrong, because JavDB outranks JavBus and
 may hold a different film under that number. Then patch the fields from the right site's snapshot
 (`raw` on `GET /api/metadata/{id}`) with `PATCH /api/metadata/{id}`, which also locks them against
-later scrapes, and organize again.
+later scrapes, and organize again (a patch is not a scrape, so it does not auto-organize).
 
 **Deleting JAV/Porn:** delete the video or its whole folder in the 115 app. Two muvyo life-event
 rules, STRM-only, `/Japan → /data/Japan` and `/Porn → /data/Western`, remove the STRM with the
