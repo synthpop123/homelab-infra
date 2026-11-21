@@ -43,12 +43,12 @@ is `completed/` (incomplete torrents sit in the temp path, so only finished ones
 One muvyo directory-monitor rule, `qB→115`, watches all of `completed/` (copy, so qB keeps
 seeding), targets the 115 root `/` with the primary category on and the secondary off, and lets
 recognition decide: movies land in `/Movie/<title> (year) {tmdb-id}/`, series in
-`/TV/<show> (year) {tmdb-id}/S01/`, with the STRM under `/data`. The old `Movie`/`TV` qB
-categories still exist for torrents added before 2026-11-22 and are no longer needed; deleting one
-relocates its torrents (automatic torrent management), which the monitor would see as new files.
-A root target needs muvyo 3.14.8-beta4 or later — earlier versions failed every file there. The
-rule's local orphan cleanup removes subfolders of `completed/` that hold no finished file (it
-deleted the emptied `completed/TV`); qB recreates a save path when a torrent finishes.
+`/TV/<show> (year) {tmdb-id}/S01/`, with the STRM under `/data`. qB has no categories (the old
+`Movie`/`TV` ones were deleted 2026-11-22). Moving an already-uploaded torrent inside
+`completed/` makes the monitor see it as new, but the upload is refused as 「上传目标存在同名文件」,
+so 115 gets no duplicate. A root target needs muvyo 3.14.8-beta4 or later — earlier versions
+failed every file there. The rule's local orphan cleanup removes subfolders of `completed/` that
+no longer hold a finished file.
 Anything offline-downloaded or saved straight into 115 goes under `/Others/待整理/{Movie,TV}`,
 which muvyo's 115 life events organize the same way; edits made in the 115 app under `/Movie`,
 `/TV` are mirrored into the STRM tree.
